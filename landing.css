@@ -1,0 +1,31 @@
+#map {
+  width: 600px; 
+  height: 400px; 
+}
+
+#arrow {
+  width: 25px;
+  height: 25px;
+  background-image: url("arrow.svg");
+  background-size: 100%;
+}
+
+.outputControlElement {
+  background-color: #fff;
+  padding: 4px;
+  padding-bottom: 10px;
+  border-radius: 3px;
+  text-align: center;
+  font-size: 13px;
+  font-family: Arial,Helvetica,sans-serif;
+  max-width: 200px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  height: 28px;
+  cursor: pointer;
+}
+
+#settingsModal {
+  z-index: 100000;
+  
+}
+
