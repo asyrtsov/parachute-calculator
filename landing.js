@@ -1,6 +1,6 @@
 /** 
  * Program calculate time of flying of Chute for 
- * given Path. Path is a set of line segment. 
+ * given Path. Path is a set of line segments. 
  * You can input Path by clicking left mouse button.
  */
 
@@ -26,16 +26,12 @@ function init() {
   var searchControl = map.controls.get('searchControl');
   searchControl.options.set('size', 'small');
   
-  searchControl.events.add('resultshow', function() {
-    
+  searchControl.events.add('resultshow', function() {    
     //map.setZoom(defaultZoom);
     //arrow.arrowPlacemark.geometry.setCoordinates(map.getCenter());      
   });
   
-  
-  //map.controls.get('searchControl').options.set('size', 'small');
-   
-
+     
   // In default case (fullscreenZIndex = 10000)
   // you will not see Bootstrap modal window
   map.options.set('fullscreenZIndex', 100);
@@ -48,7 +44,7 @@ function init() {
     
   function createOutputControlElement(content = '') {
     // Yandex Maps Control Element 
-    // for Height value output 
+    // for some values output 
     var outputElement = new ymaps.control.Button({
       data: {content: content},  
         
@@ -65,7 +61,24 @@ function init() {
   map.controls.add(outputControlElementHeight, {float: 'left'});  
   var outputControlElementWind = createOutputControlElement();
   map.controls.add(outputControlElementWind, {float: 'left'}); 
-  
+
+
+  function createInputControlElement(content='', title='') {
+    // Yandex Maps Control Element 
+    // for some value input 
+    var outputElement = new ymaps.control.Button({
+      data: {content: content, title: title},  
+
+      options: {
+        layout: ymaps.templateLayoutFactory.createClass(
+          "<div title='{{data.title}}' class='inputControlElement'>{{data.content}}</div>"
+        ),
+       maxWidth: 300
+      }
+    });      
+    return outputElement;
+  }  
+
     
   class Arrow {
     // Yandex Maps Placemark for Wind Arrow
@@ -119,6 +132,7 @@ function init() {
         }
       }.bind(this));  
 
+
       this.rotate = this.rotate.bind(this);
       this.moveTo = this.moveTo.bind(this);      
     }
@@ -143,26 +157,20 @@ function init() {
       this.lastVertex = null;
       this.numberOfVertices = 0;
       this.map = map;
-      
-      //console.log("N: " + this.numberOfVertices);
-      
-      
+            
       this.addVertex = this.addVertex.bind(this);
       this.removeVertex = this.removeVertex.bind(this);
-      this.clear = this.clear.bind(this);
-      
+      this.clear = this.clear.bind(this);    
     }
 
     addVertex(e) {
-
       var point = e.get('coords');
 
       var r = 5;  
       var currentVertex = new ymaps.Circle([point, r]); 
       currentVertex.events.add('dblclick', this.removeVertex);
       
-      if (this.numberOfVertices > 0) {
-         
+      if (this.numberOfVertices > 0) {     
         var lastPoint = this.lastVertex.geometry.getCoordinates();
         
         this.map.geoObjects.remove(this.lastVertex);
@@ -178,15 +186,12 @@ function init() {
         this.firstVertex = currentVertex;
       }
 
-      this.map.geoObjects.add(currentVertex);
-      
+      this.map.geoObjects.add(currentVertex);   
       this.lastVertex = currentVertex;        
       this.numberOfVertices++;      
     }
     
-
-    removeVertex(e) {
-      
+    removeVertex(e) {      
       e.stopPropagation();  // remove standart zoom for double click
 
       var removingVertex = e.get('target');
@@ -236,8 +241,7 @@ function init() {
       
       this.numberOfVertices--;
     }
-    
-  
+     
     clear() {
       
       var currentVertex = this.lastVertex;  
@@ -251,8 +255,7 @@ function init() {
       
       this.numberOfVertices = 0;
       this.lastVertex = null;  
-    }
-          
+    }          
   }  
 
   
@@ -271,8 +274,7 @@ function init() {
       this.angle = angle; 
      
       this.getXY = this.getXY.bind(this);
-      this.getDirection = this.getDirection.bind(this);
-      
+      this.getDirection = this.getDirection.bind(this);      
     }
 
     getXY () {      
@@ -402,13 +404,9 @@ function init() {
       return [time, totaldist];          
     }
 
-
-    printResults(arr) {
-            
-      var [time, totaldist] = arr;
-   
+    printResults(arr) {      
+      var [time, totaldist] = arr;   
       var outputDiv = document.getElementById("outputConsole");
-       
       var flightIsPossible = false;         
 
       if (time.length == 0) flightIsPossible = true;  // empty Path
@@ -416,8 +414,7 @@ function init() {
         if (time[time.length - 1] != -1) flightIsPossible = true;
       }
       
-      if (flightIsPossible) {
-        
+      if (flightIsPossible) {        
         var height = this.startHeight;
         var totaltime = 0;
         var currentVertex = this.firstVertex;
@@ -432,83 +429,97 @@ function init() {
             currentVertex = currentVertex.nextVertex;
           }
         }
-        // for Console      
-        outputDiv.innerHTML =     
-        "Высота: " + Math.floor(height) + " м" + "<br>" +  
-        "Расстояние: " + Math.floor(totaldist) + " м" + "<br>" +  
-        "Время: " + totaltime.toFixed(1) + " сек" + "<br>" + 
-        "Начальная высота: " + this.startHeight + " м";
-                
-        // For Map
-        outputControlElementHeight.data.set("content", 
-                                      "Высота: " + Math.floor(height) + " м"); 
-          
-      } else {
-        outputDiv.innerHTML = 
-          "Невозможно пролететь <br> по данной траектории!" + "<br>" + 
-          "Расстояние: " + Math.floor(totaldist) + " м" + "<br>";
 
+        outputControlElementHeight.data.set("content", 
+                                      "Высота: " + Math.floor(height) + " м");           
+      } else { 
         outputControlElementHeight.data.set("content", "Невозможно!");           
       }
-      
-      
+           
       var windAngleLabel = document.getElementById("windanglelabel");
       var windValueLabel = document.getElementById("windvaluelabel");
-               
+      
       windAngleLabel.innerHTML = "Направление ветра: " + 
                                      this.wind.getDirection();
       windValueLabel.innerHTML = "Скорость ветра: " + 
-                                     this.wind.value + " м/с";
+                                     this.wind.value + " м/с"; 
 
       outputControlElementWind.data.set("content", "Ветер: " + 
         this.wind.value + " м/с, " + this.wind.getDirection());                                     
     }    
   }
   
-
   var flight = new Flight(map);
   flight.printResults(flight.calculateTime());
   map.events.add("click", flight.addVertex);
-  
-  
-  var clearButtonMap = createOutputControlElement("Очистить");
+   
+  var clearButtonMap = createInputControlElement("Очистить");
   clearButtonMap.events.add("click", flight.clear);
   map.controls.add(clearButtonMap, {float: 'right'});
-
-  var clearButton = document.getElementById("clearpath");
-  clearButton.addEventListener("click", flight.clear);
   
-  var settingsButtonMap = createOutputControlElement("Настройки");
+  var settingsButtonMap = createInputControlElement("Настройки");
   settingsButtonMap.events.add("click", function() {$("#settingsModal").modal();});
   map.controls.add(settingsButtonMap, {float: 'right'});
    
-  var helpButtonMap = createOutputControlElement("Справка");
+  var helpButtonMap = createInputControlElement("Справка");
   helpButtonMap.events.add("click", function() {$("#helpModal").modal();});
   map.controls.add(helpButtonMap, {float: 'right'});
-
+  
+  
+  var rotateButtonMap = createInputControlElement("Поворот", "Повернуть конус");
+  map.controls.add(rotateButtonMap, {float: 'right'});
+  
+  var rotateIsPressed = false;
+  rotateButtonMap.events.add("mousedown", function(e) {
+    rotateIsPressed = true;
+    var rotateInterval = setInterval(rotateArrow, 50);
+    function rotateArrow() {
+      if (rotateIsPressed) {
+        flight.wind.angle += 5;
+        if (flight.wind.angle > 180) flight.wind.angle = 
+                                       -180 + (flight.wind.angle - 180);
+        arrow.rotate(flight.wind.angle);
+        $("#windangleinput").val(flight.wind.angle);     
+        flight.printResults(flight.calculateTime());         
+      } else {
+        clearInterval(rotateInterval);
+      }
+    }    
+  });
+  
+  rotateButtonMap.events.add("mouseup", function(e) {
+    rotateIsPressed = false;  
+  });
+  
+  rotateButtonMap.events.add("mouseleave", function(e) {
+    rotateIsPressed = false;  
+  });
     
-  // Wind value/angle inputs initialization
-  var windAngleInput = document.getElementById("windangleinput");
-  var windValueInput = document.getElementById("windvalueinput");
-  windAngleInput.value = flight.wind.angle;
-  windValueInput.value = flight.wind.value;
-  windAngleInput.addEventListener("input", listenWindInput);
-  windAngleInput.addEventListener("change", listenWindInput);
-  windValueInput.addEventListener("input", listenWindInput);
-  windValueInput.addEventListener("change", listenWindInput);
-
-  function listenWindInput() {
-    var value = Number.parseInt(windValueInput.value);
-    var angle = Number.parseInt(windAngleInput.value);
-
+  
+  // Wind value/angle inputs initialization  
+  $("#windangleinput").val(flight.wind.angle);
+  $("#windvalueinput").val(flight.wind.value);
+  
+  $("#windangleinput").on("input change", listenWindAngleInput);
+  $("#windvalueinput").on("input change", listenWindValueInput);
+  
+  function listenWindAngleInput(e) {
+    //console.log("angle");
+    var angleStr = $("#windangleinput").val();
+    var angle = Number.parseInt(angleStr);
     arrow.rotate(angle);
-    
-    flight.wind.value = value; 
     flight.wind.angle = angle;
     flight.printResults(flight.calculateTime()); 
   }
   
- 
+  function listenWindValueInput(e) {
+    var valueStr = $("#windvalueinput").val();
+    var value = Number.parseInt(valueStr);    
+    flight.wind.value = value; 
+    flight.printResults(flight.calculateTime()); 
+  }  
+  
+  
   (function createSettingsMenuMap() { 
     // Settings (modal) menu initialization 
     //   Create dz select list  
@@ -520,8 +531,6 @@ function init() {
       var mapCenter = dz[this.selectedIndex].mapCenter;      
       map.setCenter(mapCenter, defaultZoom); 
       arrow.arrowPlacemark.geometry.setCoordinates(mapCenter);
-      //arrow = null;
-      //arrow = new Arrow(map);
     });    
     
     $("#chutehorvel").val(flight.chute.horizontalVel);
@@ -529,10 +538,7 @@ function init() {
     $("#startHeight").val(flight.startHeight); 
     $("#settingsModal").on("hide.bs.modal", closeSettingsModal);
 
-    function closeSettingsModal() {
-      
-      //$("ymaps").show();
-      
+    function closeSettingsModal() {      
       var ch = $("#chutehorvel").val();
       if (!isNaN(ch)) {
         flight.chute.horizontalVel = Number.parseFloat(ch);
@@ -562,36 +568,34 @@ function init() {
   // Change Wind parameters by keyboard
   $("html").keydown(function(e) { 
     var key = e.which;
-    //console.log("key: " + key);
     switch(key) {
       case 39: 
         flight.wind.angle += 5;
         if (flight.wind.angle > 180) flight.wind.angle = 180;
         arrow.rotate(flight.wind.angle);
-        windAngleInput.value = flight.wind.angle;
-        flight.printResults(flight.calculateTime());        
+        $("#windangleinput").val(flight.wind.angle);     
+        flight.printResults(flight.calculateTime()); 
         break;
       case 37: 
         flight.wind.angle -= 5;
         if (flight.wind.angle < -180) flight.wind.angle = -180;
         arrow.rotate(flight.wind.angle);
-        windAngleInput.value = flight.wind.angle;        
+        $("#windangleinput").val(flight.wind.angle);      
         flight.printResults(flight.calculateTime());
         break;
       case 38: 
         flight.wind.value++;
         if (flight.wind.value > 10) flight.wind.value = 10;
-        windValueInput.value = flight.wind.value;
+        $("#windvalueinput").val(flight.wind.value);
         flight.printResults(flight.calculateTime());         
         break;
       case 40: 
         flight.wind.value--;
-        if (flight.wind.value < 0) flight.wind.value = 0;  
-        windValueInput.value = flight.wind.value;        
+        if (flight.wind.value < 0) flight.wind.value = 0;
+        $("#windvalueinput").val(flight.wind.value);             
         flight.printResults(flight.calculateTime());
         break;
     }  
   });   
-
-  
+ 
 }

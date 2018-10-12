@@ -11,56 +11,16 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>  
 
-  <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU"></script>
-  
+  <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU"></script> 
 </head>
 
 <div class="container-fluid">
 
+  <!-- Container for Yandex maps. Not full map case. 
+       In full map case, container will be added 
+       automatically at the end of the DOM -->
   <div id="map"></div>
-  
-
-
-  <!-- Menu -->
-  <div class="row">
-  
-    <div class="col-3.5" id="output-col"> 
-      <div id="outputConsole"></div>
-    </div>
-    
-    <div class="col-4">
-      <div id="input">
-        <form>
-          <div class="form-group">
-            <label for="formControlRange" id="windanglelabel">
-              <!-- Wind angle: -->
-            </label>
-            <input type="range" class="form-control-range" 
-                   id="windangleinput"
-                   min="-180" max="180"
-                   step="5">
-          </div>
-          <div class="form-group">
-            <label for="formControlRange" id="windvaluelabel">
-              <!-- Wind value: -->
-            </label>
-            <input type="range" class="form-control-range" 
-                   id="windvalueinput"
-                   min="0" max="10">
-          </div>       
-        </form>     
-      </div>
-    </div>
-
-    <div class="col-2">   
-      <button type="button" class="btn btn-light btn-block" id="clearpath">Очистить</button>
-      <button type="button" class="btn btn-light btn-block"
-              data-toggle="modal" data-target="#settingsModal">Настройки</button>
-      <button type="button" class="btn btn-light btn-block" 
-              data-toggle="modal" data-target="#helpModal">Справка</button>      
-    </div>   
-  </div>  <!-- class="row" -->
-  
+     
   <!-- Settings Modal window -->
   <div class="modal" tabindex="-1" role="dialog" id="settingsModal">
     <div class="modal-dialog" role="document">
@@ -94,7 +54,32 @@
             <div class="form-group">
               <label for="startHeight">Начальная высота (м)</label>
               <input type="text" class="form-control" id="startHeight">               
-            </div>          
+            </div>
+            <br>
+
+            <div class="form-group">
+              <!-- <label for="formControlRange" id="windanglelabel"> -->
+              <label for="windangleinput" id="windanglelabel">
+                <!-- Wind angle: -->
+                Направление ветра
+              </label>
+              <input type="range" class="form-control-range" 
+                     id="windangleinput"
+                     min="-180" max="180"
+                     step="5"
+                     onkeydown="return false;">
+            </div>
+            <div class="form-group">
+              <!-- <label for="formControlRange" id="windvaluelabel"> -->
+              <label for="windvalueinput" id="windvaluelabel">
+                <!-- Wind value: -->
+                Скорость ветра
+              </label>
+              <input type="range" class="form-control-range" 
+                     id="windvalueinput"
+                     min="0" max="10"
+                     onkeydown="return false;">
+            </div>                                  
           </form>          
         </div>
       </div>
@@ -112,24 +97,25 @@
           </button>
         </div>
         <div class="modal-body">
-          <p>Программа вычисляет Высоту, на которой находится парашют.</p>
+          <p>Программа вычисляет высоту, на которой находится парашют.</p>
           <p>Траектория полета парашюта задается в форме ломаной линии.
-          Щелчок на левую кнопку мыши добавляет следующую вершину Траектории.</p>
-          <p>Двойной щелчок левой кнопкой мыши на вершину Траектории 
-             удаляет указанную вершину.
-             Кнопка "Очистить" удаляет Траекторию.</p>
-          <p>Направление ветра (конуса) можно менять стрелками Влево/Вправо.
-             Силу ветра можно менять стрелками Вверх/Вниз.
-             Конус можно перетаскивать по карте.</p>
+          Щелчок на левую кнопку мыши добавляет следующую вершину траектории.</p>
+          <p>Двойной щелчок левой кнопкой мыши на вершину траектории 
+          удаляет указанную вершину. Кнопка "Очистить" удаляет траекторию.</p>
+          <p>Направление ветра (конуса) можно менять нажатием кнопки "Поворот" или 
+          в меню "Настройки" или кнопками клавиатуры влево/вправо.
+          Силу ветра можно менять в меню "Настройки" или 
+          кнопками клавиатуры вверх/вниз.
+          Конус можно перетаскивать по карте.</p>
           <p>Предполагается, что парашютист летит вдоль 
-             траектории лицом вперед (это всегда так, 
-             если скорость парашюта выше скорости ветра)</p>
+          траектории лицом вперед (это всегда так, 
+          если скорость парашюта выше скорости ветра)</p>
+          <p><b>Данная программа может быть использована только 
+          для предварительного анализа возможных траекторий.</b></p>
         </div>
       </div>
     </div>
   </div>  <!-- id="helpModal" -->
-  
-  
 </div>  <!-- class="container-fluid" -->
 
 <script src="landing.js"></script>
