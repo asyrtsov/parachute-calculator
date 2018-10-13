@@ -36,10 +36,11 @@ function init() {
   // you will not see Bootstrap modal window
   map.options.set('fullscreenZIndex', 100);
   
+  map.controls.remove('geolocationControl');
   // We turn on full screen mode 
   // and remove full screen button 
   map.controls.get('fullscreenControl').enterFullscreen();
-  //map.controls.remove('fullscreenControl'); 
+  map.controls.remove('fullscreenControl'); 
   
     
   function createOutputControlElement(content = '') {
@@ -56,29 +57,15 @@ function init() {
       }
     });      
     return outputElement;
-  }  
+  }
+ 
+  // Height output 
   var outputControlElementHeight = createOutputControlElement();
-  map.controls.add(outputControlElementHeight, {float: 'left'});  
+  map.controls.add(outputControlElementHeight, {float: 'left'});
+  // Wind output  
   var outputControlElementWind = createOutputControlElement();
   map.controls.add(outputControlElementWind, {float: 'left'}); 
-
-
-  function createInputControlElement(content='', title='') {
-    // Yandex Maps Control Element 
-    // for some value input 
-    var outputElement = new ymaps.control.Button({
-      data: {content: content, title: title},  
-
-      options: {
-        layout: ymaps.templateLayoutFactory.createClass(
-          "<div title='{{data.title}}' class='inputControlElement'>{{data.content}}</div>"
-        ),
-       maxWidth: 300
-      }
-    });      
-    return outputElement;
-  }  
-
+  
     
   class Arrow {
     // Yandex Maps Placemark for Wind Arrow
@@ -98,7 +85,7 @@ function init() {
         {
           draggable: true,
           iconLayout: ymaps.templateLayoutFactory.createClass(
-              '<div id="arrow" style="transform: rotate($[properties.rotation]deg);' + 
+              '<div class="arrow" style="transform: rotate($[properties.rotation]deg);' + 
               'width: $[properties.size]px; height: $[properties.size]px;"/>'
             ), 
           iconShape: {
@@ -452,21 +439,41 @@ function init() {
   var flight = new Flight(map);
   flight.printResults(flight.calculateTime());
   map.events.add("click", flight.addVertex);
-   
-  var clearButtonMap = createInputControlElement("Очистить");
+  
+  
+  function createInputControlElement(title='', image='') {
+    // Yandex Maps Control Element 
+    // for some value input 
+    var inputElement = new ymaps.control.Button({
+      data: {
+        title: title,
+        image: image          
+      },  
+      options: {
+        layout: ymaps.templateLayoutFactory.createClass(
+          "<div title='{{data.title}}' class='inputControlElement'>" +
+            "<img class='iconimage' src='{{data.image}}'>" +           
+          "</div>"
+        ),
+        maxWidth: 300
+      }
+    });      
+    return inputElement;
+  }   
+  
+  var clearButtonMap = createInputControlElement("Очистить", "images/icon_eraser.svg");
   clearButtonMap.events.add("click", flight.clear);
   map.controls.add(clearButtonMap, {float: 'right'});
   
-  var settingsButtonMap = createInputControlElement("Настройки");
+  var settingsButtonMap = createInputControlElement("Настройки", "images/icon_settings.svg");
   settingsButtonMap.events.add("click", function() {$("#settingsModal").modal();});
   map.controls.add(settingsButtonMap, {float: 'right'});
    
-  var helpButtonMap = createInputControlElement("Справка");
+  var helpButtonMap = createInputControlElement("Справка", "images/icon_help.svg");
   helpButtonMap.events.add("click", function() {$("#helpModal").modal();});
   map.controls.add(helpButtonMap, {float: 'right'});
-  
-  
-  var rotateButtonMap = createInputControlElement("Поворот", "Повернуть конус");
+    
+  var rotateButtonMap = createInputControlElement("Повернуть конус", "images/icon_arrow.svg");
   map.controls.add(rotateButtonMap, {float: 'right'});
   
   var rotateIsPressed = false;
@@ -571,14 +578,18 @@ function init() {
     switch(key) {
       case 39: 
         flight.wind.angle += 5;
-        if (flight.wind.angle > 180) flight.wind.angle = 180;
+        if (flight.wind.angle > 180) { 
+          flight.wind.angle = -180 + (flight.wind.angle - 180);
+        }  
         arrow.rotate(flight.wind.angle);
         $("#windangleinput").val(flight.wind.angle);     
         flight.printResults(flight.calculateTime()); 
         break;
       case 37: 
         flight.wind.angle -= 5;
-        if (flight.wind.angle < -180) flight.wind.angle = -180;
+        if (flight.wind.angle < -180) {
+          flight.wind.angle = 180 - (-180 - flight.wind.angle);
+        }  
         arrow.rotate(flight.wind.angle);
         $("#windangleinput").val(flight.wind.angle);      
         flight.printResults(flight.calculateTime());
