@@ -3,7 +3,7 @@
  * given Path. Path is a set of line segments. 
  * You can input Path by clicking left mouse button.
  */
-
+ 
 ymaps.ready(init);  
 function init() { 
 
@@ -25,10 +25,20 @@ function init() {
  
   var searchControl = map.controls.get('searchControl');
   searchControl.options.set('size', 'small');
+  searchControl.options.set('noPlacemark', true);
   
-  searchControl.events.add('resultshow', function() {    
-    //map.setZoom(defaultZoom);
-    //arrow.arrowPlacemark.geometry.setCoordinates(map.getCenter());      
+  searchControl.events.add('resultshow', function() {
+    map.setZoom(defaultZoom);
+    arrow.arrowPlacemark.geometry.setCoordinates(map.getCenter());
+
+    var newDz = {
+      name: searchControl.getRequestString(), 
+      mapCenter: map.getCenter()
+    };
+    
+    dz.push(newDz);    
+    $("#dz").append("<option>" + newDz.name + "</option>");    
+    $("#dz").children()[dz.length - 1].selected = true;    
   });
   
      
@@ -60,11 +70,11 @@ function init() {
   }
  
   // Height output 
-  var outputControlElementHeight = createOutputControlElement();
-  map.controls.add(outputControlElementHeight, {float: 'left'});
+  var heightOutput = createOutputControlElement();
+  map.controls.add(heightOutput, {float: 'left'});
   // Wind output  
-  var outputControlElementWind = createOutputControlElement();
-  map.controls.add(outputControlElementWind, {float: 'left'}); 
+  var windOutput = createOutputControlElement();
+  map.controls.add(windOutput, {float: 'left'}); 
   
     
   class Arrow {
@@ -417,21 +427,21 @@ function init() {
           }
         }
 
-        outputControlElementHeight.data.set("content", 
+        heightOutput.data.set("content", 
                                       "Высота: " + Math.floor(height) + " м");           
       } else { 
-        outputControlElementHeight.data.set("content", "Невозможно!");           
+        heightOutput.data.set("content", "Невозможно!");           
       }
-           
+         /*  
       var windAngleLabel = document.getElementById("windanglelabel");
       var windValueLabel = document.getElementById("windvaluelabel");
       
       windAngleLabel.innerHTML = "Направление ветра: " + 
                                      this.wind.getDirection();
       windValueLabel.innerHTML = "Скорость ветра: " + 
-                                     this.wind.value + " м/с"; 
+                                     this.wind.value + " м/с"; */
 
-      outputControlElementWind.data.set("content", "Ветер: " + 
+      windOutput.data.set("content", "Ветер: " + 
         this.wind.value + " м/с, " + this.wind.getDirection());                                     
     }    
   }
@@ -441,7 +451,7 @@ function init() {
   map.events.add("click", flight.addVertex);
   
   
-  function createInputControlElement(title='', image='') {
+  function createButtonControlElement(title='', image='') {
     // Yandex Maps Control Element 
     // for some value input 
     var inputElement = new ymaps.control.Button({
@@ -461,72 +471,101 @@ function init() {
     return inputElement;
   }   
   
-  var clearButtonMap = createInputControlElement("Очистить", "images/icon_eraser.svg");
-  clearButtonMap.events.add("click", flight.clear);
-  map.controls.add(clearButtonMap, {float: 'right'});
+  var clearButton = createButtonControlElement("Очистить", "images/icon_eraser.svg");
+  clearButton.events.add("click", flight.clear);
+  map.controls.add(clearButton, {float: 'right'});
   
-  var settingsButtonMap = createInputControlElement("Настройки", "images/icon_settings.svg");
-  settingsButtonMap.events.add("click", function() {$("#settingsModal").modal();});
-  map.controls.add(settingsButtonMap, {float: 'right'});
-   
-  var helpButtonMap = createInputControlElement("Справка", "images/icon_help.svg");
-  helpButtonMap.events.add("click", function() {$("#helpModal").modal();});
-  map.controls.add(helpButtonMap, {float: 'right'});
+  var settingsButton = createButtonControlElement("Настройки", "images/icon_settings.svg");
+  settingsButton.events.add("click", function() {$("#settingsModal").modal();});
+  map.controls.add(settingsButton, {float: 'right'});
+
+  var windButton = createButtonControlElement("Настройка ветра", "images/icon_arrow.svg");
+  map.controls.add(windButton, {float: 'right'});
+  
+  var helpButton = createButtonControlElement("Справка", "images/icon_help.svg");
+  helpButton.events.add("click", function() {$("#helpModal").modal();});
+  map.controls.add(helpButton, {float: 'right'});
     
-  var rotateButtonMap = createInputControlElement("Повернуть конус", "images/icon_arrow.svg");
-  map.controls.add(rotateButtonMap, {float: 'right'});
-  
-  var rotateIsPressed = false;
-  rotateButtonMap.events.add("mousedown", function(e) {
-    rotateIsPressed = true;
-    var rotateInterval = setInterval(rotateArrow, 50);
-    function rotateArrow() {
-      if (rotateIsPressed) {
-        flight.wind.angle += 5;
-        if (flight.wind.angle > 180) flight.wind.angle = 
-                                       -180 + (flight.wind.angle - 180);
-        arrow.rotate(flight.wind.angle);
-        $("#windangleinput").val(flight.wind.angle);     
-        flight.printResults(flight.calculateTime());         
-      } else {
-        clearInterval(rotateInterval);
-      }
-    }    
+
+  var windSettingsElementLayout =   
+    ymaps.templateLayoutFactory.createClass([
+      '<div class="settingsElement">',                  
+        '<form>',
+          '<div class="form-group">',
+            '<label for="windangleinput" id="windanglelabel">',
+              'Направление ветра',
+            '</label>',
+            '<input type="range" class="form-control-range"', 
+                   'id="windangleinput"',
+                   'min="-180" max="180"',
+                   'step="5"',
+                   'onkeydown="return false;">',
+          '</div>',
+          '<div class="form-group">',
+            '<label for="windvalueinput" id="windvaluelabel">',
+              'Скорость ветра',
+            '</label>',
+            '<input type="range" class="form-control-range"',
+                   'id="windvalueinput"',
+                   'min="0" max="10"',
+                   'onkeydown="return false;">',
+          '</div>',                  
+        '</form>',                       
+      '</div>'
+    ].join(''), {
+      build: function() {
+        windSettingsElementLayout.superclass.build.call(this);
+        
+        this.setWindAngleCallback = ymaps.util.bind(this.setWindAngle, this);          
+        $("#windangleinput").bind('input change', this.setWindAngleCallback);
+
+        this.setWindValueCallback = ymaps.util.bind(this.setWindValue, this);          
+        $("#windvalueinput").bind('input change', this.setWindValueCallback);
+                  
+        $("#windangleinput").val(flight.wind.angle);
+        $("#windvalueinput").val(flight.wind.value);                    
+      },
+      
+      setWindAngle: function() {
+        var angleStr = $("#windangleinput").val();          
+        var angle = Number.parseInt(angleStr);
+        arrow.rotate(angle);
+        flight.wind.angle = angle;
+        flight.printResults(flight.calculateTime());           
+      },
+
+      setWindValue: function() {
+        var valueStr = $("#windvalueinput").val();
+        var value = Number.parseInt(valueStr);    
+        flight.wind.value = value; 
+        flight.printResults(flight.calculateTime()); 
+      }         
+    });  
+
+  // This Control Element will be shown after clicking windButton  
+  var windSettingsElement = new ymaps.control.Button({
+    data: {content: ""},  
+      
+    options: {
+      layout: windSettingsElementLayout,
+      maxWidth: 300 
+    }
   });
-  
-  rotateButtonMap.events.add("mouseup", function(e) {
-    rotateIsPressed = false;  
-  });
-  
-  rotateButtonMap.events.add("mouseleave", function(e) {
-    rotateIsPressed = false;  
-  });
+
+
+  var windSettingsIsOn = false; 
+  windButton.events.add("click", function() {
+    windSettingsIsOn = !windSettingsIsOn;
+    if (windSettingsIsOn) {
+      map.controls.add(windSettingsElement, {position: {top: 45, right: 10}});      
+      arrow.arrowPlacemark.geometry.setCoordinates(map.getCenter());
+            
+    } else {
+       map.controls.remove(windSettingsElement);
+    }   
+  });  
+
     
-  
-  // Wind value/angle inputs initialization  
-  $("#windangleinput").val(flight.wind.angle);
-  $("#windvalueinput").val(flight.wind.value);
-  
-  $("#windangleinput").on("input change", listenWindAngleInput);
-  $("#windvalueinput").on("input change", listenWindValueInput);
-  
-  function listenWindAngleInput(e) {
-    //console.log("angle");
-    var angleStr = $("#windangleinput").val();
-    var angle = Number.parseInt(angleStr);
-    arrow.rotate(angle);
-    flight.wind.angle = angle;
-    flight.printResults(flight.calculateTime()); 
-  }
-  
-  function listenWindValueInput(e) {
-    var valueStr = $("#windvalueinput").val();
-    var value = Number.parseInt(valueStr);    
-    flight.wind.value = value; 
-    flight.printResults(flight.calculateTime()); 
-  }  
-  
-  
   (function createSettingsMenuMap() { 
     // Settings (modal) menu initialization 
     //   Create dz select list  
