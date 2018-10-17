@@ -3,7 +3,8 @@
  * given Path. Path is a set of line segments. 
  * You can input Path by clicking left mouse button.
  */
- 
+
+  
 ymaps.ready(init);  
 function init() { 
 
@@ -163,7 +164,7 @@ function init() {
     addVertex(e) {
       var point = e.get('coords');
 
-      var r = 5;  
+      var r = 7;  
       var currentVertex = new ymaps.Circle([point, r]); 
       currentVertex.events.add('dblclick', this.removeVertex);
       
@@ -485,7 +486,31 @@ function init() {
   var helpButton = createButtonControlElement("Справка", "images/icon_help.svg");
   helpButton.events.add("click", function() {$("#helpModal").modal();});
   map.controls.add(helpButton, {float: 'right'});
+
+  // For mobile case we add button that block map movings 
+  
+  if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+  
+    var blockButton = createButtonControlElement("Блокировать карту", "images/icon_block.svg");
+    var mapIsBlocked = false;
     
+    function noscroll() {
+      window.scrollTo(0, 0);
+    }
+    
+    blockButton.events.add("click", function() {
+      mapIsBlocked = !mapIsBlocked;
+      if (mapIsBlocked) {
+        map.behaviors.disable(['drag']);
+        window.addEventListener('scroll', noscroll);
+      } else { 
+        map.behaviors.enable(['drag']);
+        window.removeEventListener('scroll', noscroll);
+      }      
+    });
+    map.controls.add(blockButton, {float: 'right'});
+  }
+
 
   var windSettingsElementLayout =   
     ymaps.templateLayoutFactory.createClass([
