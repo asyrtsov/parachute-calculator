@@ -1,6 +1,17 @@
-#map {
-  height: 80%; 
+.container-fluid {
+  padding: 0;
+  
+}
+
+html, #map {
+  height: 100%; 
   width: 100%; 
+}
+
+@media only screen and (orientation: landscape) {
+  #map {
+    height: 95%;
+  }
 }
 
 .arrow {

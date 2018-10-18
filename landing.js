@@ -1,10 +1,14 @@
 /** 
- * Program calculate time of flying of Chute for 
- * given Path. Path is a set of line segments. 
+ * Program calculate height of Chute for 
+ * given point on the Path. Path is a set of line segments. 
  * You can input Path by clicking left mouse button.
  */
 
-  
+var isMobile = false;
+if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) { 
+  isMobile = true;
+} 
+   
 ymaps.ready(init);  
 function init() { 
 
@@ -16,13 +20,20 @@ function init() {
 
   var defaultZoom = 16;  
   var map = new ymaps.Map("map", {
-    center: dz[0].mapCenter,    
-    zoom: defaultZoom
-  });
+      center: dz[0].mapCenter,    
+      zoom: defaultZoom
+    },
+    {
+      suppressMapOpenBlock: true  // remove button 'open in yandex maps'
+    }    
+  );
   
   map.setType("yandex#satellite");  // sputnik view    
   map.cursors.push('arrow');  
   map.controls.remove('trafficControl');
+  if (isMobile) {
+    map.controls.remove('zoomControl');
+  }
  
   var searchControl = map.controls.get('searchControl');
   searchControl.options.set('size', 'small');
@@ -50,7 +61,7 @@ function init() {
   map.controls.remove('geolocationControl');
   // We turn on full screen mode 
   // and remove full screen button 
-  map.controls.get('fullscreenControl').enterFullscreen();
+  //map.controls.get('fullscreenControl').enterFullscreen();
   map.controls.remove('fullscreenControl'); 
   
     
@@ -474,23 +485,18 @@ function init() {
   
   var clearButton = createButtonControlElement("Очистить", "images/icon_eraser.svg");
   clearButton.events.add("click", flight.clear);
-  map.controls.add(clearButton, {float: 'right'});
   
   var settingsButton = createButtonControlElement("Настройки", "images/icon_settings.svg");
   settingsButton.events.add("click", function() {$("#settingsModal").modal();});
-  map.controls.add(settingsButton, {float: 'right'});
-
+ 
   var windButton = createButtonControlElement("Настройка ветра", "images/icon_arrow.svg");
-  map.controls.add(windButton, {float: 'right'});
   
   var helpButton = createButtonControlElement("Справка", "images/icon_help.svg");
   helpButton.events.add("click", function() {$("#helpModal").modal();});
-  map.controls.add(helpButton, {float: 'right'});
 
-  // For mobile case we add button that block map movings 
-  
-  if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-  
+  // For mobile case we add button that block map movings   
+  if(isMobile) {
+    
     var blockButton = createButtonControlElement("Блокировать карту", "images/icon_block.svg");
     var mapIsBlocked = false;
     
@@ -508,7 +514,6 @@ function init() {
         window.removeEventListener('scroll', noscroll);
       }      
     });
-    map.controls.add(blockButton, {float: 'right'});
   }
 
 
@@ -588,9 +593,29 @@ function init() {
     } else {
        map.controls.remove(windSettingsElement);
     }   
-  });  
+  }); 
 
-    
+  
+  addCustomControlElements();
+  
+  // Different custom elements disposition
+  // for Mobile and Desktop
+  function addCustomControlElements() {
+    if (isMobile) {  // Mobile
+      map.controls.add(clearButton, {position: {top: 45, left: 10}});
+      map.controls.add(settingsButton, {position: {top: 75, left: 10}});
+      map.controls.add(windButton, {position: {top: 105, left: 10}});
+      map.controls.add(helpButton, {position: {top: 135, left: 10}});
+      map.controls.add(blockButton, {position: {top: 165, left: 10}});   
+    } else {  // Desktop 
+      map.controls.add(clearButton, {float: 'right'});
+      map.controls.add(settingsButton, {float: 'right'});
+      map.controls.add(windButton, {float: 'right'});
+      map.controls.add(helpButton, {float: 'right'});
+    }   
+  }
+  
+      
   (function createSettingsMenuMap() { 
     // Settings (modal) menu initialization 
     //   Create dz select list  
