@@ -5,8 +5,7 @@
 
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
   <link rel="stylesheet" type="text/css" href="landing.css">
-  
-  
+    
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>  
@@ -14,84 +13,80 @@
   <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU"></script> 
 </head>
 
-<div class="container-fluid">
-
-  <!-- Container for Yandex maps. Not full map case. 
-       In full map case, container will be added 
-       automatically at the end of the DOM -->
+<body>
+  <!-- Container for Yandex maps -->
   <div id="map"></div>
-     
-  <!-- Settings Modal window -->
-  <div class="modal" tabindex="-1" role="dialog" id="settingsModal">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Настройки</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <form>
-            <!-- Choose DZ input -->
-            <div class="form-group">
-              <label for="dz">Аэродром:</label>
-              <select class="form-control" id="dz" name="dz">
-                <!-- options will be added by JavaScript -->
-              </select>            
-            </div>             
-            <!-- Chute Horizontal Velocity Input -->
-            <div class="form-group">
-              <label for="chutehorvel">Горизонтальная скорость парашюта (м/c)</label>
-              <input type="text" class="form-control" id="chutehorvel">               
-            </div>
-            <!-- Chute Vertical Velocity Input -->
-            <div class="form-group"> 
-              <label for="chutevervel">Вертикальная скорость парашюта (м/c)</label>
-              <input type="text" class="form-control" id="chutevervel">               
-            </div>
-            <!-- Start Height Input -->
-            <div class="form-group">
-              <label for="startHeight">Начальная высота (м)</label>
-              <input type="text" class="form-control" id="startHeight">               
-            </div>                              
-          </form>          
-        </div>
-      </div>
-    </div>
-  </div>  <!-- id="settingsModal" -->
-  
-  <!-- Help Modal window -->
-  <div class="modal" tabindex="-1" role="dialog" id="helpModal">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Справка</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <p>Программа вычисляет высоту, на которой находится парашют.</p>
-          <p>Траектория полета парашюта задается в форме ломаной линии.
-          Щелчок на левую кнопку мыши добавляет следующую вершину траектории.</p>
-          <p>Двойной щелчок левой кнопкой мыши на вершину траектории 
-          удаляет указанную вершину. Кнопка "Очистить" удаляет траекторию.</p>
-          <p>Направление ветра (конуса) можно менять нажатием кнопки "Поворот" или 
-          в меню "Настройки" или кнопками клавиатуры влево/вправо.
-          Силу ветра можно менять в меню "Настройки" или 
-          кнопками клавиатуры вверх/вниз.
-          Конус можно перетаскивать по карте.</p>
-          <p>Предполагается, что парашютист летит вдоль 
-          траектории лицом вперед (это всегда так, 
-          если скорость парашюта выше скорости ветра)</p>
-          <p><b>Данная программа может быть использована только 
-          для предварительного анализа возможных траекторий.</b></p>
-        </div>
-      </div>
-    </div>
-  </div>  <!-- id="helpModal" -->
-</div>  <!-- class="container-fluid" -->
 
+  <!-- Help Window (hidden at the beginning) -->
+  <div id="helpMenuBackground" class="menuBackground">
+    <!-- This strip is around buttons to prevent their to be clicked -->
+    <div id="helpPreventDiv" class="preventDiv"></div> 
+    <div id="helpMenu">
+      <div class="container">
+        <h2>Справка</h2>
+        <p>Программа вычисляет падение высоты парашюта вдоль заданной Траектории
+        полета.</p>
+        <p>Траектория полета парашюта задается в форме ломаной линии 
+        на Яндекс.Карте.
+        Щелчок на левую кнопку мыши добавляет следующую вершину траектории.</p>
+        <p>Двойной щелчок левой кнопкой мыши на вершину траектории 
+        удаляет указанную вершину. 
+        Кнопка <img class="iconimage" src="images/icon_eraser.svg"> 
+       (очистить) удаляет траекторию.</p>
+        <p>Кнопка <img class="iconimage" src="images/icon_block.svg">
+        делает карту неподвижной. Это нужно для удобства ввода траектории в 
+        случае мобильного устройства (данная кнопка не отображается на 
+        десктопах)</p>
+        <p>Направление ветра (конуса) можно менять нажатием кнопки "Поворот" или 
+        в меню "Настройки" или кнопками клавиатуры влево/вправо.
+        Силу ветра можно менять в меню "Настройки" или 
+        кнопками клавиатуры вверх/вниз.
+        Конус можно перетаскивать по карте.</p>
+        <p>Предполагается, что парашютист летит вдоль 
+        траектории лицом вперед (это всегда так, 
+        если скорость парашюта выше скорости ветра)</p>
+        <p><b>Данная программа может быть использована только 
+        для предварительного анализа. Перед прыжками в незнакомом месте обязательно 
+        консультируйтесь с инструкторами.</b></p>      
+      </div>
+    </div>  <!-- id="helpMenu" -->
+  </div>  <!-- id="helpMenuBackground" -->
+ 
+  <!-- Settings Window (hidden at the beginning) --> 
+  <div id="settingsMenuBackground" class="menuBackground">
+    <!-- This strip is around buttons to prevent their to be clicked -->
+    <div id="settingsPreventDiv" class="preventDiv"></div>  
+    <div id="settingsMenu" onclick="event.stopPropagation()">
+      <div class="container">
+        <h2>Настройки</h2>
+        <form>
+          <!-- Choose DZ input -->
+          <div class="form-group">
+            <label for="dz">Аэродром:</label>
+            <select class="form-control" id="dz" name="dz">
+              <!-- options will be added by JavaScript -->
+            </select>            
+          </div>             
+          <!-- Chute Horizontal Velocity Input -->
+          <div class="form-group">
+            <label for="chutehorvel">Горизонтальная скорость парашюта (м/c)</label>
+            <input type="text" class="form-control" id="chutehorvel">               
+          </div>
+          <!-- Chute Vertical Velocity Input -->
+          <div class="form-group"> 
+            <label for="chutevervel">Вертикальная скорость парашюта (м/c)</label>
+            <input type="text" class="form-control" id="chutevervel">               
+          </div>
+          <!-- Start Height Input -->
+          <div class="form-group">
+            <label for="startHeight">Начальная высота (м)</label>
+            <input type="text" class="form-control" id="startHeight">               
+          </div>                              
+        </form>        
+      </div>
+    </div>  <!-- id="settingsMenu" -->
+  </div>  <!-- id="settingsMenuBackground" -->
+  
+</body>
 <script src="landing.js"></script>
 </html>

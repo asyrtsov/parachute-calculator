@@ -4,11 +4,12 @@
  * You can input Path by clicking left mouse button.
  */
 
+// Determine mobile or desktop cases
 var isMobile = false;
 if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) { 
   isMobile = true;
-} 
-   
+}
+    
 ymaps.ready(init);  
 function init() { 
 
@@ -31,23 +32,26 @@ function init() {
   map.setType("yandex#satellite");  // sputnik view    
   map.cursors.push('arrow');  
   map.controls.remove('trafficControl');
-  if (isMobile) {
-    map.controls.remove('zoomControl');
+  map.controls.remove('zoomControl');
+  if (!isMobile) { 
+    // In Desktop case we move zoomControl to the right
+    var zoomControl = new ymaps.control.ZoomControl({options: { 
+      position: { left: 10, top: 200 }, 
+      size: 'small'
+    }}); 
+    map.controls.add(zoomControl); 
   }
  
   var searchControl = map.controls.get('searchControl');
   searchControl.options.set('size', 'small');
-  searchControl.options.set('noPlacemark', true);
-  
+  searchControl.options.set('noPlacemark', true);  
   searchControl.events.add('resultshow', function() {
     map.setZoom(defaultZoom);
     arrow.arrowPlacemark.geometry.setCoordinates(map.getCenter());
-
     var newDz = {
       name: searchControl.getRequestString(), 
       mapCenter: map.getCenter()
-    };
-    
+    };    
     dz.push(newDz);    
     $("#dz").append("<option>" + newDz.name + "</option>");    
     $("#dz").children()[dz.length - 1].selected = true;    
@@ -56,15 +60,11 @@ function init() {
      
   // In default case (fullscreenZIndex = 10000)
   // you will not see Bootstrap modal window
-  map.options.set('fullscreenZIndex', 100);
-  
+  //map.options.set('fullscreenZIndex', 100);
   map.controls.remove('geolocationControl');
-  // We turn on full screen mode 
-  // and remove full screen button 
-  //map.controls.get('fullscreenControl').enterFullscreen();
   map.controls.remove('fullscreenControl'); 
   
-    
+  // Template for App Output Elements  
   function createOutputControlElement(content = '') {
     // Yandex Maps Control Element 
     // for some values output 
@@ -96,7 +96,7 @@ function init() {
       this.map = map;
       
       var arrowStartSize = 25;
-      var arrowStartRadius = 5;  // radius of start active area for Arrow
+      var arrowStartRadius = 10;  // radius of start active area for Arrow
     
       this.arrowPlacemark = new ymaps.Placemark(
         this.map.getCenter(), 
@@ -139,25 +139,22 @@ function init() {
           // properties.set call rebuild of Placemark, 
           // so, properties.set should stay after options.set
         }
-      }.bind(this));  
-
-
-      this.rotate = this.rotate.bind(this);
-      this.moveTo = this.moveTo.bind(this);      
+      }.bind(this));       
     }
    
     rotate(angle) {
       this.arrowPlacemark.properties.set('rotation', (-1)*angle + 90);      
     }
 
+    /*
     moveTo(point) {  // point = [x, y]
       this.arrowPlacemark.geomentry.setCoordinates(point); 
-    }    
+    }   */ 
   }
   var arrow = new Arrow(map); 
 
   
-  // List of vertices of Path (ymaps.Circle)
+  // List of vertices and lines of Path (ymaps.Circle, ymaps.Polyline) 
   // All class methods change map  
   // (because map is object and is copied by link)
   class Path {  
@@ -166,23 +163,31 @@ function init() {
       this.lastVertex = null;
       this.numberOfVertices = 0;
       this.map = map;
+      this.vertexRadius = 7;  // in meters
             
       this.addVertex = this.addVertex.bind(this);
       this.removeVertex = this.removeVertex.bind(this);
       this.clear = this.clear.bind(this);    
     }
+    
+    addVertex(point) {  // point = [x, y], Yandex.Maps coordinates
 
-    addVertex(e) {
-      var point = e.get('coords');
-
-      var r = 7;  
-      var currentVertex = new ymaps.Circle([point, r]); 
-      currentVertex.events.add('dblclick', this.removeVertex);
+      var currentVertex = new ymaps.Circle([point, this.vertexRadius]); 
+            
       
+      currentVertex.events.add('dblclick', function(e) {
+        e.stopPropagation();  // remove standart zoom for double click
+        var removingVertex = e.get('target');
+        this.removeVertex(removingVertex);
+      }.bind(this));
+            
       if (this.numberOfVertices > 0) {     
         var lastPoint = this.lastVertex.geometry.getCoordinates();
         
-        this.map.geoObjects.remove(this.lastVertex);
+        // We remove previous last circle. Add next line. 
+        // Add previuos last circle. Add last circle.
+        // The reason: lines should be UNDER circles        
+        this.map.geoObjects.remove(this.lastVertex);  
         
         this.lastVertex.nextLine = new ymaps.Polyline([lastPoint, point]);
         this.lastVertex.nextVertex = currentVertex;
@@ -200,10 +205,10 @@ function init() {
       this.numberOfVertices++;      
     }
     
-    removeVertex(e) {      
-      e.stopPropagation();  // remove standart zoom for double click
+    removeVertex(removingVertex) {      
+      //e.stopPropagation();  // remove standart zoom for double click
 
-      var removingVertex = e.get('target');
+      //var removingVertex = e.get('target');
       this.map.geoObjects.remove(removingVertex);
       
       var prevVertex = removingVertex.prevVertex;
@@ -280,10 +285,7 @@ function init() {
     constructor(value, angle) {
       // polar coordinate system: value in m/sec, angle in degree
       this.value = value;
-      this.angle = angle; 
-     
-      this.getXY = this.getXY.bind(this);
-      this.getDirection = this.getDirection.bind(this);      
+      this.angle = angle;       
     }
 
     getXY () {      
@@ -323,8 +325,8 @@ function init() {
       this.startHeight = 300;  // meters
     }
     
-    addVertex(e) {
-      super.addVertex(e);
+    addVertex(point) {
+      super.addVertex(point);
       this.printResults(this.calculateTime());       
     }
  
@@ -418,8 +420,9 @@ function init() {
       var outputDiv = document.getElementById("outputConsole");
       var flightIsPossible = false;         
 
-      if (time.length == 0) flightIsPossible = true;  // empty Path
-      else {
+      if (time.length == 0) {
+        flightIsPossible = true;  // empty Path
+      } else {
         if (time[time.length - 1] != -1) flightIsPossible = true;
       }
       
@@ -435,6 +438,7 @@ function init() {
 
             currentVertex.properties.set("hintContent", "h=" + 
                                          Math.floor(height) + "м");
+                                                                                  
             currentVertex = currentVertex.nextVertex;
           }
         }
@@ -444,14 +448,6 @@ function init() {
       } else { 
         heightOutput.data.set("content", "Невозможно!");           
       }
-         /*  
-      var windAngleLabel = document.getElementById("windanglelabel");
-      var windValueLabel = document.getElementById("windvaluelabel");
-      
-      windAngleLabel.innerHTML = "Направление ветра: " + 
-                                     this.wind.getDirection();
-      windValueLabel.innerHTML = "Скорость ветра: " + 
-                                     this.wind.value + " м/с"; */
 
       windOutput.data.set("content", "Ветер: " + 
         this.wind.value + " м/с, " + this.wind.getDirection());                                     
@@ -460,20 +456,49 @@ function init() {
   
   var flight = new Flight(map);
   flight.printResults(flight.calculateTime());
-  map.events.add("click", flight.addVertex);
+
+  map.events.add("click", function(e) {
+    var point = e.get('coords'); 
+    flight.addVertex(point);
+  });
+
+  /*
+  map.events.add("dblclick", function(e) {  
+
+    console.log("dbl");
+    var point = e.get('coords');    
+    var currentVertex = flight.lastVertex;  
+    
+    console.log(flight.numberOfVertices);
+    for(var i=0; i < flight.numberOfVertices; i++) {
+      var currentVertex2;
+      var currentPoint = currentVertex.geometry.getCoordinates();
+      var dist = ymaps.coordSystem.geo.getDistance(point, currentPoint);
+      if (dist < 50) {
+        console.log("less");
+        currentVertex2 = currentVertex.prevVertex;
+        flight.removeVertex(currentVertex);
+      }      
+      currentVertex = currentVertex2;
+    }       
+  });
+  */
   
-  
-  function createButtonControlElement(title='', image='') {
+  // Template for App Buttons
+  function createButtonControlElement(title='', 
+                                      image='', 
+                                      cssclass='inputControlElement') {
     // Yandex Maps Control Element 
     // for some value input 
     var inputElement = new ymaps.control.Button({
       data: {
         title: title,
-        image: image          
+        image: image, 
+        cssclass: cssclass        
       },  
       options: {
         layout: ymaps.templateLayoutFactory.createClass(
-          "<div title='{{data.title}}' class='inputControlElement'>" +
+          "<div title='{{data.title}}' class='{{data.cssclass}}'>" + 
             "<img class='iconimage' src='{{data.image}}'>" +           
           "</div>"
         ),
@@ -483,49 +508,65 @@ function init() {
     return inputElement;
   }   
   
+  // Create App Buttons 
   var clearButton = createButtonControlElement("Очистить", "images/icon_eraser.svg");
-  clearButton.events.add("click", flight.clear);
-  
+  clearButton.events.add("click", flight.clear); 
   var settingsButton = createButtonControlElement("Настройки", "images/icon_settings.svg");
-  settingsButton.events.add("click", function() {$("#settingsModal").modal();});
- 
-  var windButton = createButtonControlElement("Настройка ветра", "images/icon_arrow.svg");
+  settingsButton.events.add("click", function() {
+    $("#settingsMenuBackground").show();        
+  });
+  $("#settingsMenuBackground").click(function() {
+    $("#settingsMenuBackground").hide();     
+  });
+  $("#settingsPreventDiv").click(function(e) {
+    e.stopPropagation();
+    $("#settingsMenuBackground").hide();    
+  });  
   
+  var windButton = createButtonControlElement("Настройка ветра", "images/icon_arrow.svg");
   var helpButton = createButtonControlElement("Справка", "images/icon_help.svg");
-  helpButton.events.add("click", function() {$("#helpModal").modal();});
-
+  helpButton.events.add("click", function() {
+    $("#helpMenuBackground").show();
+  });
+  $("#helpMenuBackground").click(function() {
+    $("#helpMenuBackground").hide();  
+  });
+  $("#helpPreventDiv").click(function(e) {
+    e.stopPropagation();
+    $("#helpMenuBackground").hide();    
+  });
+  
   // For mobile case we add button that block map movings   
-  if(isMobile) {
-    
+  if(isMobile) {  
     var blockButton = createButtonControlElement("Блокировать карту", "images/icon_block.svg");
-    var mapIsBlocked = false;
-    
+    var mapIsBlocked = false;    
     function noscroll() {
       window.scrollTo(0, 0);
-    }
-    
+    }    
     blockButton.events.add("click", function() {
       mapIsBlocked = !mapIsBlocked;
       if (mapIsBlocked) {
         map.behaviors.disable(['drag']);
         window.addEventListener('scroll', noscroll);
+        blockButton.data.set('cssclass', 'pressedInputControlElement');      
       } else { 
         map.behaviors.enable(['drag']);
         window.removeEventListener('scroll', noscroll);
+        blockButton.data.set('cssclass', 'inputControlElement');
       }      
     });
   }
 
 
   var windSettingsElementLayout =   
-    ymaps.templateLayoutFactory.createClass([
-      '<div class="settingsElement">',                  
+    ymaps.templateLayoutFactory.createClass([      
+      '<div class="settingsElement">',      
         '<form>',
           '<div class="form-group">',
             '<label for="windangleinput" id="windanglelabel">',
               'Направление ветра',
             '</label>',
-            '<input type="range" class="form-control-range"', 
+            '<input type="range" class="slider"', 
                    'id="windangleinput"',
                    'min="-180" max="180"',
                    'step="5"',
@@ -535,7 +576,7 @@ function init() {
             '<label for="windvalueinput" id="windvaluelabel">',
               'Скорость ветра',
             '</label>',
-            '<input type="range" class="form-control-range"',
+            '<input type="range" class="slider"',
                    'id="windvalueinput"',
                    'min="0" max="10"',
                    'onkeydown="return false;">',
@@ -587,78 +628,58 @@ function init() {
   windButton.events.add("click", function() {
     windSettingsIsOn = !windSettingsIsOn;
     if (windSettingsIsOn) {
-      map.controls.add(windSettingsElement, {position: {top: 45, right: 10}});      
+      map.controls.add(windSettingsElement, {position: {top: 45, right: 10}});   
       arrow.arrowPlacemark.geometry.setCoordinates(map.getCenter());
-            
+      windButton.data.set('cssclass', 'pressedInputControlElement');        
     } else {
-       map.controls.remove(windSettingsElement);
+      map.controls.remove(windSettingsElement);
+      windButton.data.set('cssclass', 'InputControlElement'); 
     }   
   }); 
 
-  
-  addCustomControlElements();
-  
-  // Different custom elements disposition
-  // for Mobile and Desktop
-  function addCustomControlElements() {
-    if (isMobile) {  // Mobile
-      map.controls.add(clearButton, {position: {top: 45, left: 10}});
-      map.controls.add(settingsButton, {position: {top: 75, left: 10}});
-      map.controls.add(windButton, {position: {top: 105, left: 10}});
-      map.controls.add(helpButton, {position: {top: 135, left: 10}});
-      map.controls.add(blockButton, {position: {top: 165, left: 10}});   
-    } else {  // Desktop 
-      map.controls.add(clearButton, {float: 'right'});
-      map.controls.add(settingsButton, {float: 'right'});
-      map.controls.add(windButton, {float: 'right'});
-      map.controls.add(helpButton, {float: 'right'});
-    }   
+  map.controls.add(clearButton, {position: {top: 45, left: 10}});
+  map.controls.add(settingsButton, {position: {top: 75, left: 10}});
+  map.controls.add(windButton, {position: {top: 105, left: 10}});
+  map.controls.add(helpButton, {position: {top: 135, left: 10}});
+  if (isMobile) {
+    map.controls.add(blockButton, {position: {top: 165, left: 10}});
   }
-  
-      
-  (function createSettingsMenuMap() { 
-    // Settings (modal) menu initialization 
-    //   Create dz select list  
-    for(var i=0; i<dz.length; i++) {
-      $("#dz").append("<option>" + dz[i].name + "</option>");    
-    }
-      
-    $("#dz").on("change", function(e) {
-      var mapCenter = dz[this.selectedIndex].mapCenter;      
-      map.setCenter(mapCenter, defaultZoom); 
-      arrow.arrowPlacemark.geometry.setCoordinates(mapCenter);
-    });    
-    
-    $("#chutehorvel").val(flight.chute.horizontalVel);
-    $("#chutevervel").val(flight.chute.verticalVel);
-    $("#startHeight").val(flight.startHeight); 
-    $("#settingsModal").on("hide.bs.modal", closeSettingsModal);
-
-    function closeSettingsModal() {      
-      var ch = $("#chutehorvel").val();
-      if (!isNaN(ch)) {
-        flight.chute.horizontalVel = Number.parseFloat(ch);
-      } else {
-        $("chutehorvel").val(flight.chute.horizontalVel);
-      }
         
-      var cv = $("#chutevervel").val();
-      if (!isNaN(cv)) {
-        flight.chute.verticalVel= Number.parseFloat(cv);    
-      } else {
-        $("#chutevervel").val(flight.chute.verticalVel);
-      }
-      
-      var s = $("#startHeight").val();
-      if (!isNaN(s)) {
-        flight.startHeight = Number.parseFloat(s);    
-      } else {
-        $("#startHeight").val(flight.startHeight);
-      }  
-      
-      flight.printResults(flight.calculateTime());
-    }
-  })();  
+  // Settings menu initialization 
+  //   Create dz select list  
+  for(var i=0; i<dz.length; i++) {
+    $("#dz").append("<option>" + dz[i].name + "</option>");    
+  }  
+  $("#dz").on("change", function() {
+    var mapCenter = dz[this.selectedIndex].mapCenter;      
+    map.setCenter(mapCenter, defaultZoom); 
+    arrow.arrowPlacemark.geometry.setCoordinates(mapCenter);
+  });      
+  $("#chutehorvel").val(flight.chute.horizontalVel);
+  $("#chutevervel").val(flight.chute.verticalVel);
+  $("#startHeight").val(flight.startHeight); 
+  
+  $("#chutehorvel, #chutevervel, #startHeight").on("change", function () {      
+    var ch = $("#chutehorvel").val();
+    if (!isNaN(ch)) {
+      flight.chute.horizontalVel = Number.parseFloat(ch);
+    } else {
+      $("chutehorvel").val(flight.chute.horizontalVel);
+    }      
+    var cv = $("#chutevervel").val();
+    if (!isNaN(cv)) {
+      flight.chute.verticalVel= Number.parseFloat(cv);    
+    } else {
+      $("#chutevervel").val(flight.chute.verticalVel);
+    }    
+    var s = $("#startHeight").val();
+    if (!isNaN(s)) {
+      flight.startHeight = Number.parseFloat(s);    
+    } else {
+      $("#startHeight").val(flight.startHeight);
+    }      
+    flight.printResults(flight.calculateTime());
+  });
   
 
   // Change Wind parameters by keyboard
@@ -697,5 +718,4 @@ function init() {
         break;
     }  
   });   
- 
 }
