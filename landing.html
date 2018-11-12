@@ -17,7 +17,9 @@
  
   <!-- Dz & Height Window (hidden at the beginning) -->
   <div id="dzHeightMenu" class="menu">
-    <div class="windowCross" id="dzHeightMenuCross"></div>
+    <div class="windowCrossRectangle" id="dzHeightMenuRectangle">
+      <div class="windowCross" id="dzHeightMenuCross"></div>
+    </div> 
     <div class="container" style="margin-top: 8px;">
       <!-- Choose DZ input -->
       <div class="form-group">
@@ -30,30 +32,34 @@
       <div class="form-group">
         <label for="startHeight">Начальная высота (м)</label>
         <input type="text" id="startHeight">               
-      </div>                       
+      </div>    
     </div>  <!-- class="container" -->   
   </div>  <!-- id = "dzHeightMenu" -->
     
   <!-- Chute Window (hidden at the beginning) -->  
   <div id="chuteMenu" class="menu">
-    <div class="windowCross" id="chuteMenuCross"></div>  
-    <div class="container" style="margin-top: 8px;">       
+    <div class="windowCrossRectangle" id="chuteMenuRectangle">
+      <div class="windowCross" id="chuteMenuCross"></div>
+    </div>      
+    <div class="container" style="margin-top: 8px;">        
       <!-- Chute Horizontal Velocity Input -->
       <div class="form-group">
         <label for="chutehorvel">Горизонтальная скорость парашюта (м/c)</label>
         <input type="text" id="chutehorvel">               
-      </div>
+      </div>         
       <!-- Chute Vertical Velocity Input -->
       <div class="form-group"> 
         <label for="chutevervel">Вертикальная скорость парашюта (м/c)</label>
         <input type="text" id="chutevervel">               
-      </div>                        
+      </div>          
     </div>  <!-- class="container" -->     
   </div>  <!-- id="chuteMenu" -->
   
   <!-- Wind Window (hidden at the beginning) -->  
-  <div id="windMenu" class="menu"> 
-    <div class="windowCross" id="windMenuCross"></div>
+  <div id="windMenu" class="menu">
+    <div class="windowCrossRectangle" id="windMenuRectangle">  
+      <div class="windowCross" id="windMenuCross"></div>
+    </div>  
     <div class="container" style="margin-top: 8px;">  
       <div class="form-group">
         <label for="windDirectionInput" id="windDirectionLabel">
@@ -84,11 +90,13 @@
   </div> <!-- id="windMenu" -->
 
   <!-- Help Window (hidden at the beginning) -->  
-  <div id="helpMenu" class="menu"> 
-    <div class="windowCross" id="helpMenuCross"></div>
+  <div id="helpMenu" class="menu">
+    <div class="windowCrossRectangle" id="helpMenuRectangle">  
+      <div class="windowCross" id="helpMenuCross"></div>
+    </div>
     <div class="container" style="margin-top: 8px;"> 
       <h5>Справка</h5>
-      <p>Программа вычисляет изменение высоты парашюта вдоль заданной Траектории
+      <p>Программа определяет изменение высоты парашюта вдоль заданной Траектории
       полета.</p>
       <p>Траектория полета парашюта задается в форме ломаной линии 
       на Яндекс.Карте.

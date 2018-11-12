@@ -42,12 +42,23 @@ function init() {
 
   var searchControl = map.controls.get('searchControl');
   searchControl.options.set('size', 'small');
-  searchControl.options.set('noPlacemark', true);  
-  searchControl.events.add('resultshow', function() {
+  searchControl.options.set('noPlacemark', true);
+  searchControl.options.set('noSelect', true);  
+  searchControl.events.add('resultshow', function(e) {
+    if (typeof flight !== 'undefined') {
+      // variable 'flight' will be defined later
+      flight.clear();
+    }  
     map.setZoom(defaultZoom);
-    arrow.arrowPlacemark.geometry.setCoordinates(map.getCenter());
+    if (typeof arrow !== 'undefined') {
+      arrow.geometry.setCoordinates(map.getCenter());
+    }  
+    var index = e.get('index');    
+    var geoObjectsArray = searchControl.getResultsArray();
+    var resultName = geoObjectsArray[index].properties.get('name');
+
     var newDz = {
-      name: searchControl.getRequestString(), 
+      name: resultName, 
       mapCenter: map.getCenter()
     };    
     dz.push(newDz);    
@@ -84,17 +95,16 @@ function init() {
   map.controls.add(windOutput, {float: 'left'}); 
   
     
-  class Arrow {
+  class Arrow extends ymaps.Placemark {
     // Yandex Maps Placemark for Wind Arrow
     // CSS for Arrow see in landing.css
-    constructor(map) {
-      this.map = map;
-      
+    constructor(center, isMobile) {      
       var arrowStartSize = 25;
-      var arrowStartRadius = 10;  // radius of start active area for Arrow
+      // radius of start active area for Arrow
+      var arrowStartRadius = isMobile ? arrowStartSize : arrowStartSize/2;   
     
-      this.arrowPlacemark = new ymaps.Placemark(
-        this.map.getCenter(), 
+      super(
+        center, 
         {
           rotation: 90, 
           size: arrowStartSize
@@ -113,98 +123,126 @@ function init() {
         }
       );
 
-      this.map.geoObjects.add(this.arrowPlacemark); 
-         
-      this.map.events.add('boundschange', function (e) {
-        var newZoom = e.get('newZoom'),
-              oldZoom = e.get('oldZoom');
-        if (newZoom != oldZoom) {
-          
-          var size = (2**(newZoom - 16))*arrowStartSize;
-          
-          var shape = 
-            {
-              type: 'Circle',
-              coordinates: [size/2, size/2],
-              radius: (2**(newZoom - 16))*arrowStartRadius
-            };
-          
-          this.arrowPlacemark.options.set('iconShape', shape);      
-          this.arrowPlacemark.properties.set('size', size);  
-          // properties.set call rebuild of Placemark, 
-          // so, properties.set should stay after options.set
-        }
-      }.bind(this));       
+      this.arrowStartSize = arrowStartSize;
+      this.arrowStartRadius = arrowStartRadius;    
     }
    
     rotate(angle) {
-      this.arrowPlacemark.properties.set('rotation', (-1)*angle + 90);      
+      this.properties.set('rotation', (-1)*angle + 90);      
     }
-
-    /*
-    moveTo(point) {  // point = [x, y]
-      this.arrowPlacemark.geomentry.setCoordinates(point); 
-    }   */ 
+    
+    changeSize(newZoom) {
+      var size = (2**(newZoom - 16))*(this.arrowStartSize);
+      
+      var shape = 
+        {
+          type: 'Circle',
+          coordinates: [size/2, size/2],
+          radius: (2**(newZoom - 16))*(this.arrowStartRadius)
+        };
+      
+      this.options.set('iconShape', shape);      
+      this.properties.set('size', size);
+      // properties.set call rebuild of Placemark, 
+      // so, properties.set should stay after options.set      
+    }    
   }
-  var arrow = new Arrow(map); 
+  
+  var arrow = new Arrow(map.getCenter(), isMobile);   
+
+  map.geoObjects.add(arrow);      
+  map.events.add('boundschange', function (e) {
+    var newZoom = e.get('newZoom'),
+          oldZoom = e.get('oldZoom');
+    if (newZoom != oldZoom) {
+      arrow.changeSize(newZoom);
+    }
+  });   
+
+  
+  class YmapsVertexCircle extends ymaps.Circle {
+    constructor(point, radius) {
+      super([point, radius]);
+      this.options.set("fillColor", "#0000FF");
+      this.options.set("strokeColor", "#0000FF"); 
+    }
+  } 
 
   
   // List of vertices and lines of Path (ymaps.Circle, ymaps.Polyline) 
   // All class methods change map  
   // (because map is object and is copied by link)
   class Path {  
-    constructor(map) {
+    constructor(map, isMobile) {
       this.firstVertex = null;
       this.lastVertex = null;
       this.numberOfVertices = 0;
       this.map = map;
-      this.vertexRadius = 7;  // in meters
-            
+      // radius for image circle vertices, in meters
+      this.vertexRadius = 7;
+      // radius for outer invisible circles, in meters    
+      this.vertexOuterRadius = isMobile ? this.vertexRadius*4 : this.vertexRadius;     
+       
       this.addVertex = this.addVertex.bind(this);
       this.removeVertex = this.removeVertex.bind(this);
       this.clear = this.clear.bind(this);    
     }
     
-    addVertex(point) {  // point = [x, y], Yandex.Maps coordinates
+    addVertex(point) {  // point = [x, y], Yandex.Maps coordinates,
+      // bigger invisible circle is for more comfortable 
+      // touching in Mobile case      
+      var currentVertex = new ymaps.Circle([
+        point, 
+        this.vertexOuterRadius
+      ], {}, {
+        fillOpacity: 0,
+        strokeOpacity: 0, 
+        strokeWidth: 0
+      });  
 
-      var currentVertex = new ymaps.Circle([point, this.vertexRadius]); 
-            
-      
       currentVertex.events.add('dblclick', function(e) {
         e.stopPropagation();  // remove standart zoom for double click
-        var removingVertex = e.get('target');
-        this.removeVertex(removingVertex);
+        this.removeVertex(currentVertex);
       }.bind(this));
             
-      if (this.numberOfVertices > 0) {     
+        
+      if (this.numberOfVertices > 0) {
         var lastPoint = this.lastVertex.geometry.getCoordinates();
         
+        currentVertex.image = new YmapsTriangleVertex(lastPoint, point);
+      
         // We remove previous last circle. Add next line. 
         // Add previuos last circle. Add last circle.
         // The reason: lines should be UNDER circles        
-        this.map.geoObjects.remove(this.lastVertex);  
-        
+        this.map.geoObjects.remove(this.lastVertex);
+        this.map.geoObjects.remove(this.lastVertex.image);        
+       
+        // We change last Triengle vertex to Circle vertex 
+        this.lastVertex.image = new YmapsVertexCircle(lastPoint, this.vertexRadius);
+  
         this.lastVertex.nextLine = new ymaps.Polyline([lastPoint, point]);
         this.lastVertex.nextVertex = currentVertex;
         
         this.map.geoObjects.add(this.lastVertex.nextLine);   
+        this.map.geoObjects.add(this.lastVertex.image);
         this.map.geoObjects.add(this.lastVertex);
 
         currentVertex.prevVertex = this.lastVertex;
-      } else {
+      } else {  // this.numberOfVertices = 0;
+        currentVertex.image = new YmapsVertexCircle(point, this.vertexRadius);        
         this.firstVertex = currentVertex;
       }
 
-      this.map.geoObjects.add(currentVertex);   
+      this.map.geoObjects.add(currentVertex.image);
+      this.map.geoObjects.add(currentVertex);
+      
       this.lastVertex = currentVertex;        
       this.numberOfVertices++;      
     }
     
     removeVertex(removingVertex) {      
-      //e.stopPropagation();  // remove standart zoom for double click
-
-      //var removingVertex = e.get('target');
       this.map.geoObjects.remove(removingVertex);
+      this.map.geoObjects.remove(removingVertex.image);
       
       var prevVertex = removingVertex.prevVertex;
       var nextVertex = removingVertex.nextVertex;
@@ -222,7 +260,9 @@ function init() {
           var nextPoint = nextVertex.geometry.getCoordinates();
           
           this.map.geoObjects.remove(prevVertex);  // lines should be UNDER circles
+          this.map.geoObjects.remove(prevVertex.image);
           this.map.geoObjects.remove(nextVertex);
+          this.map.geoObjects.remove(nextVertex.image);
           
           var currentLine = new ymaps.Polyline([prevPoint, nextPoint]);
           this.map.geoObjects.add(currentLine);
@@ -231,18 +271,45 @@ function init() {
           prevVertex.nextVertex = nextVertex;
           nextVertex.prevVertex = prevVertex;
           
+          this.map.geoObjects.add(prevVertex.image);
           this.map.geoObjects.add(prevVertex); 
-          this.map.geoObjects.add(nextVertex);    
+
+          // case when nextVertex is lastVertex 
+          // and so we have to change direction of 
+          // arrow (triangle) of lastVertex
+          if (nextVertex.nextVertex == undefined) {             
+            nextVertex.image = new YmapsTriangleVertex(prevPoint, nextPoint);     
+          }         
+          this.map.geoObjects.add(nextVertex.image);
+          this.map.geoObjects.add(nextVertex);
         } else if (nextVertex == undefined) {  // last circle case    
           var removingLine = prevVertex.nextLine;
           map.geoObjects.remove(removingLine);
           this.lastVertex = prevVertex;
           prevVertex.nextVertex = null;
-          prevVertex.nextLine = null;      
+          prevVertex.nextLine = null;
+          if (prevVertex.prevVertex != undefined) {
+            this.map.geoObjects.remove(prevVertex.image);
+            this.map.geoObjects.remove(prevVertex);
+            var prevPrevPoint = prevVertex.prevVertex.geometry.getCoordinates();
+            var prevPoint = prevVertex.geometry.getCoordinates();            
+            prevVertex.image = new YmapsTriangleVertex(prevPrevPoint, prevPoint);
+            this.map.geoObjects.add(prevVertex.image);
+            this.map.geoObjects.add(prevVertex);            
+          }          
         } else {  // first circle case
           this.map.geoObjects.remove(removingVertex.nextLine); 
-          removingVertex.nextVertex.prevVertex = null;
-          this.firstVertex = removingVertex.nextVertex;            
+          nextVertex.prevVertex = null;
+          this.firstVertex = nextVertex;           
+          
+          if (this.numberOfVertices == 2) {
+            var p = nextVertex.geometry.getCoordinates();
+            map.geoObjects.remove(nextVertex);
+            map.geoObjects.remove(nextVertex.image);
+            nextVertex.image = new YmapsVertexCircle(p, this.vertexRadius);
+            map.geoObjects.add(nextVertex.image);
+            map.geoObjects.add(nextVertex);
+          }            
         }
       } else {  // case: only one circle
         this.lastVertex = null;
@@ -253,12 +320,16 @@ function init() {
      
     clear() {
       
+      if (this.numberOfVertices == 0 ) return;
+      
       var currentVertex = this.lastVertex;  
       this.map.geoObjects.remove(currentVertex);
+      this.map.geoObjects.remove(currentVertex.image);
       
       for(var i=1; i < this.numberOfVertices; i++) {
         currentVertex = currentVertex.prevVertex; 
         this.map.geoObjects.remove(currentVertex);
+        this.map.geoObjects.remove(currentVertex.image);
         this.map.geoObjects.remove(currentVertex.nextLine);
       }
       
@@ -314,7 +385,7 @@ function init() {
   
   class Flight extends Path {
     constructor(map) {
-      super(map);
+      super(map, isMobile);
       this.chute = new Chute(10, 5);
       this.wind = new Wind(5, 0);  // West wind, 5 m/sec
       this.startHeight = 300;  // meters
@@ -330,8 +401,8 @@ function init() {
       this.printResults(this.calculateTime()); 
     }
     
-    clear(e) {
-      super.clear(e);
+    clear() {
+      super.clear();
       this.printResults(this.calculateTime());
     }
 
@@ -433,6 +504,9 @@ function init() {
 
             currentVertex.properties.set("hintContent", "h=" + 
                                          Math.floor(height) + "м");
+                                         
+            currentVertex.properties.set("ballonContentBody", "h=" + 
+                             Math.floor(height) + "м");                                         
                                                                                   
             currentVertex = currentVertex.nextVertex;
           }
@@ -449,7 +523,7 @@ function init() {
     }    
   }
   
-  var flight = new Flight(map);
+  var flight = new Flight(map, isMobile);
   flight.printResults(flight.calculateTime());
 
   map.events.add("click", function(e) {
@@ -498,7 +572,7 @@ function init() {
       currentButton.windowIsOn = !currentButton.windowIsOn;
       if (currentButton.windowIsOn) {
         $(windowjQuerySelector).show();      
-        arrow.arrowPlacemark.geometry.setCoordinates(map.getCenter());
+        arrow.geometry.setCoordinates(map.getCenter());
         currentButton.data.set('cssclass', 'pressedInputControlElement');
 
         if ((pressedButton != null) && (pressedButton != currentButton)) {
@@ -512,7 +586,7 @@ function init() {
     });
         
     // Cross closing of window element
-    $(windowjQuerySelector + "Cross").click(function() {
+    $(windowjQuerySelector + "Rectangle").click(function() {
       turnOffButton(currentButton);  
       pressedButton = null;      
     });
@@ -525,10 +599,12 @@ function init() {
     turningOffButton.windowIsOn = false;
     turningOffButton.data.set('cssclass', 'inputControlElement');
   }   
-   
+
+  
   // Clear Button
   var clearButton = createButtonControlElement("Очистить", "images/icon_eraser.svg");
   clearButton.events.add("click", flight.clear);
+
   
   // Dz and Start Height Button
   var dzHeightButton = createButtonControlElement("Настройки", "images/icon_settings.svg");
@@ -541,7 +617,8 @@ function init() {
   $("#dz").on("change", function() {
     var mapCenter = dz[this.selectedIndex].mapCenter;      
     map.setCenter(mapCenter, defaultZoom); 
-    arrow.arrowPlacemark.geometry.setCoordinates(mapCenter);
+    arrow.geometry.setCoordinates(mapCenter);
+    flight.clear();
   });
   
   $("#startHeight").val(flight.startHeight); 
@@ -576,40 +653,16 @@ function init() {
     if (( chutevervel>=0) && (chutevervel<=50)) {
       flight.chute.verticalVel = chutevervel;    
     } 
-    $("#chutevervel").val(flight.chute.verticalVel);
-           
+    $("#chutevervel").val(flight.chute.verticalVel);          
     flight.printResults(flight.calculateTime());
   }); 
-
+  
   
   // Help Button
   var helpButton = createButtonControlElement("Справка", "images/icon_help.svg");
   connectButtonToWindow(helpButton, "#helpMenu");
 
   
-  // For mobile case we add button that block map movings   
-  /*
-  if(isMobile) {  
-    var blockButton = createButtonControlElement("Блокировать карту", "images/icon_block.svg");
-    var mapIsBlocked = false;    
-    function noscroll() {
-      window.scrollTo(0, 0);
-    }    
-    blockButton.events.add("click", function() {
-      mapIsBlocked = !mapIsBlocked;
-      if (mapIsBlocked) {
-        map.behaviors.disable(['drag']);
-        window.addEventListener('scroll', noscroll);
-        blockButton.data.set('cssclass', 'pressedInputControlElement');      
-      } else { 
-        map.behaviors.enable(['drag']);
-        window.removeEventListener('scroll', noscroll);
-        blockButton.data.set('cssclass', 'inputControlElement');
-      }      
-    });
-  } */
-
-
   // Wind Button
   var windButton = createButtonControlElement("Настройка ветра", "images/icon_arrow.svg");  
   connectButtonToWindow(windButton, "#windMenu");
@@ -633,7 +686,16 @@ function init() {
     flight.printResults(flight.calculateTime());
   });
 
-
+  
+  // To loose focus after pressing Enter on <input>
+  // This is for dzHeightMenu and chuteMenu  
+  $("input").keypress(function(e) {
+    if (e.keyCode === 13) {  // Enter keycode
+      $("input").blur();  // Forced loose of focus
+    }    
+  });    
+  
+  
   // Change Wind by keyboard
   $("html").keydown(function(e) { 
     var key = e.which;
@@ -676,13 +738,74 @@ function init() {
   map.controls.add(dzHeightButton, {position: {top: 45, left: 10}});
   map.controls.add(chuteButton, {position: {top: 75, left: 10}});
   map.controls.add(windButton, {position: {top: 105, left: 10}});
-  map.controls.add(helpButton, {position: {top: 135, left: 10}}); 
-  
+  map.controls.add(helpButton, {position: {top: 135, left: 10}});   
   map.controls.add(clearButton, {position: {top: 165, left: 10}});
-  
-  /*
-  if (isMobile) {
-    map.controls.add(blockButton, {position: {top: 165, left: 10}});
-  }*/
-  
+
+
+  // point1, point2 - two points with geodesic coordinates. 
+  // Object is Yandex maps triangle, 
+  // such that vector (point1, point2) and that triangle 
+  // form arrow
+  class YmapsTriangleVertex extends ymaps.Polygon {
+    constructor(point1, point2) {    
+      var latitude = point1[0],
+          scale = 0.00008,
+          geodesicArrowVector = subVectors(point2, point1),
+          localArrowVector = toLocalVector(geodesicArrowVector, latitude, scale);         
+
+      localArrowVector = normaliseVector(localArrowVector);                
+
+      var v = [[-2, 1], [-2, -1], [0, 0]];
+      var p = [];                 
+      for(var i=0; i<3; i++) {   
+        v[i] = rotateVector(v[i], localArrowVector);
+        p[i] = addVectors(point2, toGeodesicVector(v[i], latitude, scale));
+      }
+      
+      super([[p[0], p[1], p[2]]]);
+      this.options.set("fillColor", "#0000FF");
+      this.options.set("strokeColor", "#0000FF");
+
+      // scale: we want our local coordinates to be 
+      // of the same size as 1 (m) for our arrow  
+      function toLocalVector(geodesicVector, latitude, scale) {  
+        var vx = geodesicVector[0]/scale;
+        var vy = (geodesicVector[1]/scale) * 
+                  Math.cos((Math.PI/180)*latitude);
+        return([vx, vy]);
+      }
+      
+      function toGeodesicVector(localVector, latitude, scale) {
+        var vlat = localVector[0]*scale;
+        var vlon = (localVector[1]*scale) / 
+                    Math.cos((Math.PI/180)*latitude);
+        return([vlat, vlon]);
+      }
+
+      function normaliseVector(v) {
+        var d = Math.sqrt(v[0]**2 + v[1]**2);
+        if (d>0) {
+          return ([v[0]/d, v[1]/d]);
+        }         
+        return 0;
+      }
+
+      // n = (cos(alpha), sin(alpha)), 
+      // alpha is angle of rotation
+      function rotateVector(v, n) {
+        var wx = n[0]*v[0] - n[1]*v[1];
+        var wy = n[1]*v[0] + n[0]*v[1];
+        return ([wx, wy]);        
+      }
+
+      function addVectors(p1, p2) {
+        return([p1[0] + p2[0], p1[1] + p2[1]]);
+      } 
+      
+      function subVectors(p1, p2) {
+        return([p1[0] - p2[0], p1[1] - p2[1]]);
+      }             
+    }        
+  }
+      
 }
