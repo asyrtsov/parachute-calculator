@@ -5,7 +5,7 @@ ymaps.modules.define('Arrow', [
 function(provide, Placemark, templateLayoutFactory) {
 
   class Arrow extends Placemark {
-    // Yandex Maps Placemark for Wind Arrow
+    // Yandex Maps Placemark for Windsock
     // CSS for Arrow see in landing.css
     constructor(center, isMobile) {      
       var arrowStartSize = 25;
