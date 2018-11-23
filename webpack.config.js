@@ -1,18 +1,29 @@
+const glob = require('glob');
 const path = require('path');
 
 module.exports = {
- entry: {
-   Arrow: './src/scripts/Arrow.js', 
-   YmapsCircleVertex: './src/scripts/YmapsCircleVertex.js',
-   YmapsTriangleVertex: './src/scripts/YmapsTriangleVertex.js', 
-   Path: './src/scripts/Path.js', 
-   Chute: './src/scripts/Chute.js',
-   Wind: './src/scripts/Wind.js',
-   Flight: './src/scripts/Flight.js', 
-   index: './src/scripts/index.js'
- },
+  mode: 'development',   
+  entry: glob.sync('./src/scripts/*.js'),   
   output: {
-   filename: '[name].bundle.js',
+    filename: 'main.bundle.js',
     path: path.resolve(__dirname, 'dist/scripts')
-  }
+  }, 
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: [
+          'style-loader',
+          'css-loader'
+        ]
+      },       
+      {
+         test: /\.(png|svg|jpg|gif)$/,
+         use: [
+          'file-loader'
+        ]
+      }     
+    ]
+  },  
+  watch: true  
 };
