@@ -31,7 +31,7 @@ function init() {
     }    
   );
   
-  map.setType("yandex#satellite");  // sputnik view    
+  map.setType("yandex#satellite");  // view from space    
   map.cursors.push('arrow');  
   map.controls.remove('trafficControl');  
   map.controls.remove('zoomControl');
@@ -54,16 +54,14 @@ function init() {
     'Chute',
     'Path',    
     'Calculator', 
-    'Arrow', 
-    'AppButton'
+    'Arrow'
   ]).spread(function (
 
     Wind, 
     Chute,
     Path,      
     Calculator, 
-    Arrow, 
-    AppButton
+    Arrow
   ) {
     
     var wind = new Wind(5, 0);     // West wind, 5 m/sec      
@@ -119,7 +117,7 @@ function init() {
     windOutput.print(wind);
     map.controls.add(windOutput, {float: 'left'}); 
     
-    
+    // Windsock creation
     var arrow = new Arrow(map.getCenter(), isMobile);        
     map.geoObjects.add(arrow);      
     map.events.add('boundschange', function (e) {
@@ -134,30 +132,19 @@ function init() {
     // Only one button can be pressed at once
     // pressedButton is currently pressed button
     var pressedButton = null;
-
     
     // Clear Button
     var clearButton = createButtonControlElement("Очистить", "images/icon_eraser.svg");
-    //var clearButton = new AppButton("Очистить", "images/icon_eraser.svg");
     clearButton.events.add("click", function() {
       path.clear();
       heightOutput.print([startHeight]);
     });
-
     
-    // Dz and Start Height Button
+    // DzStartHeight Button
     var dzHeightButton = createButtonControlElement("Настройки", "images/icon_settings.svg");
-    /*
-    var dzHeightButton = new AppButton("Настройки", 
-                                        "images/icon_settings.svg", 
-                                        "inputControlElement", 
-                                        "#dzHeightMenu",
-                                        arrow, 
-                                        pressedButton); */
-
     connectButtonToWindow(dzHeightButton, "#dzHeightMenu");  
 
-    // Dz and Start Height menu initialization 
+    // DzStartHeight Window initialization 
     for(var i=0; i<dz.length; i++) {
       $("#dz").append("<option>" + dz[i].name + "</option>");    
     }  
@@ -191,6 +178,9 @@ function init() {
     $("#chutehorvel").val(chute.horizontalVel);
     $("#chutevervel").val(chute.verticalVel);
 
+    /**
+     * Change Chute velocity in Chute Window.
+     */     
     $("#chutehorvel, #chutevervel").on("change", function () {      
       var chutehorvel = Number.parseFloat($("#chutehorvel").val());
       if ((chutehorvel>=0) && (chutehorvel<=25)) {
@@ -202,28 +192,28 @@ function init() {
       if (( chutevervel>=0) && (chutevervel<=50)) {
         chute.verticalVel = chutevervel;    
       } 
-      $("#chutevervel").val(chute.verticalVel);
-      //flight.setChute(chute);        
+      $("#chutevervel").val(chute.verticalVel);        
       
       printHeight(calculator.calculateHeight());
     }); 
-    
-    
+        
     // Help Button
     var helpButton = createButtonControlElement("Справка", "images/icon_help.svg");
     connectButtonToWindow(helpButton, "#helpMenu");
 
-    
     // Wind Button
     var windButton = createButtonControlElement("Настройка ветра", "images/icon_arrow.svg");  
     connectButtonToWindow(windButton, "#windMenu");
 
-        
+    // Draw scales for Wind Window    
     drawWindScales(); 
       
     $("#windDirectionInput").val(wind.angle);
     $("#windValueInput").val(wind.value);
     
+    /**
+     * Change Wind Direction in Wind Window.
+     */    
     $("#windDirectionInput").on('input change', function() {
       var angleStr = $("#windDirectionInput").val();          
       var angle = Number.parseInt(angleStr);
@@ -232,7 +222,10 @@ function init() {
       var height = calculator.calculateHeight();            
       printWindHeight(wind, height);      
     });
-    
+
+    /**
+     * Change Wind Value in Wind Window.
+     */     
     $("#windValueInput").on('input change', function() {
       var valueStr = $("#windValueInput").val();
       var value = Number.parseInt(valueStr);    
@@ -246,12 +239,14 @@ function init() {
     // This is for dzHeightMenu and chuteMenu  
     $("input").keypress(function(e) {
       if (e.keyCode === 13) {  // Enter keycode
-        $("input").blur();  // Forced loose of focus
+        $("input").blur();     // Forced loose of focus
       }    
     });    
     
     
-    // Change Wind by keyboard
+    /**
+     * Change Wind by keyboard.
+     */
     $("html").keydown(function(e) { 
       var key = e.which;
       switch(key) {
@@ -321,10 +316,13 @@ function init() {
       $("#dz").children()[dz.length - 1].selected = true;    
     });
 
-    // Template for App Output Elements (Wind and Height)
+    
+    /**
+     * Template for Output Windows.
+     * @param {string} content - output data.
+     * @return {ymaps.control.Button} outputElement       
+     */
     function createOutputControlElement(content = '') {
-      // Yandex Maps Control Element 
-      // for some values output
       
       var outputElement = new ymaps.control.Button({
         data: {content: content},  
@@ -339,13 +337,11 @@ function init() {
       return outputElement;
     }
 
-
     function printHeight(height) {
       path.printHeightHints(height);       
       heightOutput.print(height);       
     }    
-    
-    
+        
     function printWindHeight(wind, height) {
       windOutput.print(wind);
       path.printHeightHints(height);       
@@ -353,12 +349,16 @@ function init() {
     }  
 
 
-     // Template for App (Yandex.maps) buttons
+    /**
+     * Template for Menu Buttons.
+     * @param {string} title - button hint.
+     * @param {string} image - button icon.
+     * @param {string} cssclass - button css.     
+     * @return {ymaps.control.Button} inputElement       
+     */    
     function createButtonControlElement(title='', 
                                         image='', 
                                         cssclass='inputControlElement') {
-      // Yandex Maps Control Element 
-      // for some value input 
       var inputElement = new ymaps.control.Button({
         data: {
           title: title,
@@ -378,10 +378,14 @@ function init() {
     }      
 
 
-    // Connect Yandex.maps buttons to windows (html elements)
+    /**
+     * Connect Menu Buttons to Output Html Windows:
+     *   when you press the button, the window will be shown, 
+     *   when you press again - it will disapear.
+     * @param {ymaps.control.Button} currentButton
+     * @param {string} windowjQuerySelector - jQuery selector for Window.
+     */
     function connectButtonToWindow(currentButton, windowjQuerySelector) {
-      // currentButton is Yandex maps api Button Control Element, 
-      // windowjQuerySelector (string) is a jQuery selector for window
       currentButton.windowIsOn = false;
       currentButton.windowjQuerySelector = windowjQuerySelector;  
       
@@ -409,8 +413,10 @@ function init() {
       });
     }
     
-    // Auxiliary function for connectButtonToWindow function. 
-    // It responds for turning off button and corresponding window  
+    /**
+     * Auxiliary function for connectButtonToWindow function. 
+     * It responds for turning off button and corresponding window.
+     */     
     function turnOffButton(turningOffButton) {
       $(turningOffButton.windowjQuerySelector).hide();
       turningOffButton.windowIsOn = false;
@@ -418,7 +424,11 @@ function init() {
     }  
     
 
-    // Wind menu initialization
+    /**
+     * Draw scales for Wind Window:
+     *   wind direction scale (E, N, W, S, E),
+     *   wind velocity scale (0, ..., 10 m/s)
+     */
     function drawWindScales() {
       // Create legend for direction range input
       var directionPlateSpan = 5;
@@ -453,7 +463,7 @@ function init() {
         "text-align": "center"
       });
 
-        // Create legend for value range input
+      // Create legend for value range input
       var maxWindVelocity = 10;
       for(var i=0; i<maxWindVelocity + 1; i++) {    
         $("#windValueInputScale").append("<div class='valueScale' id='v" + i + "'>" + i + "</div>");
@@ -475,9 +485,6 @@ function init() {
         "text-align": "right"
       });  
     }  
-
-
-
-    
+  
   });      
 }

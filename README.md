@@ -1,7 +1,7 @@
 # parachute-calculator
 
-Парашютный калькулятор - это оболочка Яндекс.карт, которая 
-определяет изменение высоты парашюта вдоль заданной траектории.
+The parachute calculator is a Yandex.Maps shell, which
+determines the change in the height of the parachute along the given path.
 
-Данная программа может быть использована только для предварительного анализа. 
-Перед прыжками в незнакомом месте обязательно консультируйтесь с инструкторами.
+This program can only be used for preliminary analysis.
+Before jumping in an unfamiliar place, be sure to consult with the instructors.

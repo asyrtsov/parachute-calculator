@@ -8,22 +8,5 @@ module.exports = {
     filename: 'main.bundle.js',
     path: path.resolve(__dirname, 'dist/scripts')
   }, 
-  module: {
-    rules: [
-      {
-        test: /\.css$/,
-        use: [
-          'style-loader',
-          'css-loader'
-        ]
-      },       
-      {
-         test: /\.(png|svg|jpg|gif)$/,
-         use: [
-          'file-loader'
-        ]
-      }     
-    ]
-  },  
   watch: true  
 };
