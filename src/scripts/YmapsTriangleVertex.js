@@ -1,14 +1,20 @@
-// point1, point2 - two points with geodesic coordinates. 
-// Object is Yandex maps triangle, 
-// such that vector (point1, point2) and that triangle 
-// form arrow
-      
 ymaps.modules.define('YmapsTriangleVertex', [
-    'Polygon'    
+  'Polygon'    
 ],
 function(provide, Polygon) {
-  
+ 
+  /** 
+   * Let point1, point2 - two points with geodesic coordinates. 
+   * Object is Yandex maps triangle, 
+   * such that vector (point1, point2) and that triangle 
+   * form arrow (end of path).
+   * Size of arrow is determined by scale varialable. 
+   */ 
   class YmapsTriangleVertex extends Polygon {
+    /**
+     * @param {number[]} point1 - Yandex.Maps coordinates, point has form [x, y].
+     * @param {number[]} point2 - Yandex.Maps coordinates.    
+     */
     constructor(point1, point2) {    
       var latitude = point1[0],
           scale = 0.00008,

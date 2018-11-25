@@ -1,12 +1,15 @@
+/** @module Arrow */
 ymaps.modules.define('Arrow', [
-    'Placemark',
-    'templateLayoutFactory'        
+  'Placemark',
+  'templateLayoutFactory'        
 ],
 function(provide, Placemark, templateLayoutFactory) {
-
+  
+  /**
+   * Yandex Maps Placemark for Arrow (Windsock). 
+   */
   class Arrow extends Placemark {
-    // Yandex Maps Placemark for Windsock
-    // CSS for Arrow see in landing.css
+
     constructor(center, isMobile) {      
       var arrowStartSize = 25;
       // radius of start active area for Arrow
@@ -36,10 +39,16 @@ function(provide, Placemark, templateLayoutFactory) {
       this.arrowStartRadius = arrowStartRadius;    
     }
    
+   /**
+    * Rotate arrow
+    */
     rotate(angle) {
       this.properties.set('rotation', (-1)*angle + 90);      
     }
     
+    /**
+     * Arrow will have different size for different Zoom.
+     */
     changeSize(newZoom) {
       var size = (2**(newZoom - 16))*(this.arrowStartSize);
       

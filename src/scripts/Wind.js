@@ -2,20 +2,30 @@ ymaps.modules.define('Wind', [],
 function(provide) {
 
   class Wind {
+    /** 
+     * Wind in polar coordinate system.
+     * @param {number} value - in m/sec.
+     * @param {number} angle - between current wind and west wind, in degree.     
+     */
     constructor(value, angle) {
-      // polar coordinate system: value in m/sec, angle in degree
       this.value = value;
       this.angle = angle;    
     }
-
+    
+    /**
+     * Calculate wind coordinates in cartesian coordinate system.
+     * @return {number[]} [vx, vy] - coordinates, in m/sec.
+     */
     getXY () {      
-      var radiandirection = this.angle * ((2*Math.PI)/360);      
-      // vector of wind (vx, vy), meters/sec
+      var radiandirection = this.angle * ((2*Math.PI)/360);       
       var vx = this.value * Math.cos(radiandirection);
       var vy = this.value * Math.sin(radiandirection);
       return [vx, vy];      
     } 
-     
+    
+    /**
+     * Get name of wind direction (E, N, W, S, ...)
+     */    
     getDirection() {     
       var angleSwitch = Math.floor((this.angle + 180 + 22)/45);
       var direction;

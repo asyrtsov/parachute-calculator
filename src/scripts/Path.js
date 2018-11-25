@@ -36,7 +36,6 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
       this.removeVertex = this.removeVertex.bind(this);
       this.clear = this.clear.bind(this);    
     }
-
     
     /**
      * Add new vertex to Path and to map.
@@ -44,9 +43,7 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
      * @param {number[]} point - Yandex.Maps coordinates, point = [x, y].
      * @return {Circle} lastVertex
      */
-    addVertex(point) {  // point = [x, y], Yandex.Maps coordinates,
-      // bigger invisible circle is for more comfortable 
-      // touching in Mobile case
+    addVertex(point) {  
 
       var map = this.map;
       
@@ -95,7 +92,6 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
       return(this.lastVertex);       
     }
 
-    
     /**
      * Remove vertex from Path and from map.
      * @param {Circle} removingVertex
@@ -179,7 +175,6 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
       
       this.length--;
     }
-
     
     /** Remove all vetrices and line segments from Path and from map. */    
     clear() {
@@ -201,7 +196,6 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
       this.length = 0;
       this.lastVertex = null;  
     }
-
 
     /**
      * Print heights in vertices hints.
