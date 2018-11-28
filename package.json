@@ -1,12 +1,13 @@
 {
   "author": "asyrtsov <alekseivs@mail.ru>",
   "name": "parachute-calculator",
-  "description": "Parachute calculator for Yandex.Maps",
+  "description": "Yandex.Maps Parachute Ruler",
   "version": "1.0.0",
   "license": "GPL-3.0",
   "keywords": [
-    "yandex",
+    "yandex", 
     "maps",
+    "ruler", 
     "parachute"
   ],
   "homepage": "https://github.com/asyrtsov/parachute-calculator#readme",

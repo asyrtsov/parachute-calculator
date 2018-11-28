@@ -89,6 +89,7 @@ function init() {
     
     heightOutput.print([startHeight]);        
     map.controls.add(heightOutput, {float: 'left'});
+
     
     map.events.add("click", function(e) {
       var point = e.get('coords');
@@ -102,11 +103,19 @@ function init() {
         path.printHeightHints(height);       
         heightOutput.print(height);             
       });
-            
+      
+      lastVertex.events.add('drag', function() {
+        path.dragVertex(lastVertex);
+        var height = calculator.calculateHeight();
+        path.printHeightHints(height);       
+        heightOutput.print(height);          
+      }); 
+                  
       var height = calculator.calculateHeight();
       path.printHeightHints(height);       
       heightOutput.print(height);        
-    });      
+    }); 
+    
             
     // Wind output  
     var windOutput = createOutputControlElement();

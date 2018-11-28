@@ -4,20 +4,51 @@ ymaps.modules.define('YmapsTriangleVertex', [
 function(provide, Polygon) {
  
   /** 
-   * Let point1, point2 - two points with geodesic coordinates. 
-   * Object is Yandex maps triangle, 
+   * Let point1, point2 - two points with Yandex.maps (geodesic) coordinates. 
+   * YmapsTriangleVertex is Yandex maps triangle, 
    * such that vector (point1, point2) and that triangle 
    * form arrow (end of path).
    * Size of arrow is determined by scale varialable. 
    */ 
   class YmapsTriangleVertex extends Polygon {
     /**
-     * @param {number[]} point1 - Yandex.Maps coordinates, point has form [x, y].
+     * @param {number[]} point1 - Yandex.Maps coordinates.
      * @param {number[]} point2 - Yandex.Maps coordinates.    
      */
-    constructor(point1, point2) {    
+    constructor(point1, point2) {
+      // four square brackets is a must, 
+      // non empty super constructor is a must     
+      super([[point2, point2, point2]]);   
+   
+      // scale determines arrow size
+      this.scale = 0.00008;
+            
+      this.geometry.setCoordinates([
+        this.calculateVertices(point1, point2)
+      ]); 
+      
+      this.options.set("fillColor", "#0000FF");
+      this.options.set("strokeColor", "#0000FF");            
+    }
+
+    /**
+     * @param {number[]} point1 - Yandex.Maps coordinates.
+     * @param {number[]} point2 - Yandex.Maps coordinates.    
+     */    
+    setCoordinates (point1, point2) {
+      this.geometry.setCoordinates([
+        this.calculateVertices(point1, point2)
+      ]);  
+    }
+    
+    /**
+     * @param {number[]} point1 - Yandex.Maps point coordinates.
+     * @param {number[]} point2 - Yandex.Maps point coordinates.
+     * @return {number[][]} p - Array of vertices of YmapsTriangleVertex.      
+     */     
+    calculateVertices (point1, point2) {
+      var scale = this.scale;        
       var latitude = point1[0],
-          scale = 0.00008,
           geodesicArrowVector = subVectors(point2, point1),
           localArrowVector = toLocalVector(geodesicArrowVector, latitude, scale);         
 
@@ -29,11 +60,9 @@ function(provide, Polygon) {
         v[i] = rotateVector(v[i], localArrowVector);
         p[i] = addVectors(point2, toGeodesicVector(v[i], latitude, scale));
       }
+            
+      return(p);
       
-      super([[p[0], p[1], p[2]]]);
-      this.options.set("fillColor", "#0000FF");
-      this.options.set("strokeColor", "#0000FF");
-
       // scale: we want our local coordinates to be 
       // of the same size as 1 (m) for our arrow  
       function toLocalVector(geodesicVector, latitude, scale) {  
@@ -72,7 +101,7 @@ function(provide, Polygon) {
       
       function subVectors(p1, p2) {
         return([p1[0] - p2[0], p1[1] - p2[1]]);
-      }             
+      }   
     }        
   }
   
