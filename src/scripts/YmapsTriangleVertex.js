@@ -15,7 +15,7 @@ function(provide, Polygon) {
      * @param {number[]} point1 - Yandex.Maps coordinates.
      * @param {number[]} point2 - Yandex.Maps coordinates.    
      */
-    constructor(point1, point2) {
+    constructor(point1, point2, zIndex=0) {
       // four square brackets is a must, 
       // non empty super constructor is a must     
       super([[point2, point2, point2]]);   
@@ -28,7 +28,8 @@ function(provide, Polygon) {
       ]); 
       
       this.options.set("fillColor", "#0000FF");
-      this.options.set("strokeColor", "#0000FF");            
+      this.options.set("strokeColor", "#0000FF");
+      this.options.set("zIndex", zIndex);      
     }
 
     /**

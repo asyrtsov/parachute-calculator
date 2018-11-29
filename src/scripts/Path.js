@@ -32,7 +32,13 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
       this.vertexRadius = 7;
       // radius for outer invisible circles, in meters    
       this.vertexOuterRadius = isMobile ? 4*this.vertexRadius : 2*this.vertexRadius;     
-       
+
+      // On the map: line segments should be under vertex images, 
+      // vertex images should be under vertices
+      this.vertexZIndex = 2;
+      this.imageZIndex = 1;
+      this.lineZIndex = 0;
+  
       //this.addVertex = this.addVertex.bind(this);
       //this.removeVertex = this.removeVertex.bind(this);
       //this.dragVertex = this.dragVertex.bind(this);
@@ -46,9 +52,8 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
      * @return {Circle} lastVertex
      */
     addVertex(point) {  
-
       var map = this.map;
-      
+           
       var vertex = new ymaps.Circle([
         point, 
         this.vertexOuterRadius
@@ -57,38 +62,32 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
         // vertex will be invisible
         fillOpacity: 0,
         strokeOpacity: 0, 
-        strokeWidth: 0
+        strokeWidth: 0, 
+        zIndex: this.vertexZIndex
       });  
               
       if (this.length > 0) {
-        var lastPoint = this.lastVertex.geometry.getCoordinates();
-        
-        vertex.image = new YmapsTriangleVertex(lastPoint, point);
-      
-        // We remove previous vertex. Add next line segment. 
-        // Add previuos vertex. Add current vertex.
-        // The reason: line segments should be UNDER vertices        
-        map.geoObjects.remove(this.lastVertex);
+                          
+        var lastPoint = this.lastVertex.geometry.getCoordinates();    
+                
+        this.lastVertex.nextLine = 
+          new ymaps.Polyline([lastPoint, point], {}, {zIndex: this.lineZIndex});
+          
+        map.geoObjects.add(this.lastVertex.nextLine); 
+                
+        // We change last Triengle vertex to Circle vertex
         map.geoObjects.remove(this.lastVertex.image);        
-       
-        // We change last Triengle vertex to Circle vertex 
-        this.lastVertex.image = new YmapsCircleVertex(lastPoint, this.vertexRadius);
-  
-        this.lastVertex.nextLine = new ymaps.Polyline([lastPoint, point]);
-        this.lastVertex.nextVertex = vertex;
-        
-        map.geoObjects.add(this.lastVertex.nextLine);   
+        this.lastVertex.image = 
+          new YmapsCircleVertex(lastPoint, this.vertexRadius, this.imageZIndex);
         map.geoObjects.add(this.lastVertex.image);
-        map.geoObjects.add(this.lastVertex);
-        
-        console.log(this.lastVertex.image);
-        console.log(this.lastVertex);
-        
-
-        vertex.prevVertex = this.lastVertex;
+                        
+        this.lastVertex.nextVertex = vertex;
+        vertex.prevVertex = this.lastVertex;                
+                
+        vertex.image = new YmapsTriangleVertex(lastPoint, point, this.imageZIndex);
       } else {  // this.length = 0;
-        vertex.image = new YmapsCircleVertex(point, this.vertexRadius);        
-        this.firstVertex = vertex;
+        this.firstVertex = vertex;      
+        vertex.image = new YmapsCircleVertex(point, this.vertexRadius, this.imageZIndex);  
       }
 
       map.geoObjects.add(vertex.image);
@@ -96,7 +95,7 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
       
       this.lastVertex = vertex;        
       this.length++; 
-
+      
       return(this.lastVertex);       
     }
 
@@ -124,30 +123,24 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
           
           var prevPoint = prevVertex.geometry.getCoordinates();
           var nextPoint = nextVertex.geometry.getCoordinates();
-          
-          map.geoObjects.remove(prevVertex);  // lines should be UNDER circles
-          map.geoObjects.remove(prevVertex.image);
-          map.geoObjects.remove(nextVertex);
-          map.geoObjects.remove(nextVertex.image);
-          
-          var currentLine = new ymaps.Polyline([prevPoint, nextPoint]);
+                    
+          var currentLine = 
+            new ymaps.Polyline([prevPoint, nextPoint], {}, {zIndex: this.lineZIndex});
           this.map.geoObjects.add(currentLine);
           
           prevVertex.nextLine = currentLine;
           prevVertex.nextVertex = nextVertex;
           nextVertex.prevVertex = prevVertex;
           
-          map.geoObjects.add(prevVertex.image);
-          map.geoObjects.add(prevVertex); 
-
           // case when nextVertex is lastVertex 
           // and so we have to change direction of 
           // arrow (triangle) of lastVertex
-          if (nextVertex.nextVertex == undefined) {             
-            nextVertex.image = new YmapsTriangleVertex(prevPoint, nextPoint);     
+          if (nextVertex.nextVertex == undefined) {
+            map.geoObjects.remove(nextVertex.image);            
+            nextVertex.image = 
+              new YmapsTriangleVertex(prevPoint, nextPoint, this.imageZIndex);
+            map.geoObjects.add(nextVertex.image);            
           }         
-          map.geoObjects.add(nextVertex.image);
-          map.geoObjects.add(nextVertex);
         } else if (nextVertex == undefined) {  // last vertex case   
           var removingLine = prevVertex.nextLine;
           map.geoObjects.remove(removingLine);
@@ -156,25 +149,23 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
           prevVertex.nextLine = null; 
           if (prevVertex.prevVertex != undefined) {
             map.geoObjects.remove(prevVertex.image);
-            map.geoObjects.remove(prevVertex);
             var prevPrevPoint = prevVertex.prevVertex.geometry.getCoordinates();
             var prevPoint = prevVertex.geometry.getCoordinates();            
-            prevVertex.image = new YmapsTriangleVertex(prevPrevPoint, prevPoint);
-            map.geoObjects.add(prevVertex.image);
-            map.geoObjects.add(prevVertex);            
+            prevVertex.image = 
+              new YmapsTriangleVertex(prevPrevPoint, prevPoint, this.imageZIndex);
+            map.geoObjects.add(prevVertex.image);            
           }          
-        } else {  // first circle case
+        } else {  // first vertex case
           map.geoObjects.remove(removingVertex.nextLine); 
           nextVertex.prevVertex = null;
           this.firstVertex = nextVertex;           
           
           if (this.length == 2) {
             var p = nextVertex.geometry.getCoordinates();
-            map.geoObjects.remove(nextVertex);
             map.geoObjects.remove(nextVertex.image);
-            nextVertex.image = new YmapsCircleVertex(p, this.vertexRadius);
+            nextVertex.image = 
+              new YmapsCircleVertex(p, this.vertexRadius, this.imageZIndex);
             map.geoObjects.add(nextVertex.image);
-            map.geoObjects.add(nextVertex);
           }            
         }
       } else {  // case: only one circle
