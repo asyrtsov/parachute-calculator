@@ -13,7 +13,8 @@ function(provide, Polygon) {
   class YmapsTriangleVertex extends Polygon {
     /**
      * @param {number[]} point1 - Yandex.Maps coordinates.
-     * @param {number[]} point2 - Yandex.Maps coordinates.    
+     * @param {number[]} point2 - Yandex.Maps coordinates. 
+     * @param {number} zIndex - z-index of Polygon.     
      */
     constructor(point1, point2, zIndex=0) {
       // four square brackets is a must, 

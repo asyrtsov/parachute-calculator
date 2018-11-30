@@ -90,33 +90,76 @@ function init() {
     heightOutput.print([startHeight]);        
     map.controls.add(heightOutput, {float: 'left'});
 
-    
-    map.events.add("click", function(e) {
+  
+    map.events.add('click', processMapClick); 
+ 
+    function processMapClick(e) {
       var point = e.get('coords');
       
-      var lastVertex = path.addVertex(point);
-           
-      lastVertex.events.add('dblclick', function(e) {
-        e.stopPropagation();  // remove standart zoom for double click
-        path.removeVertex(lastVertex);
-        var height = calculator.calculateHeight();
-        path.printHeightHints(height);       
-        heightOutput.print(height);             
-      });
+      var [lastVertex, lastLine] = path.addVertex(point);
+            
+      if (lastLine != null) {
+        lastLine.events.add('click', 
+                            processLineClick(lastLine));
+      }
+
+      function processLineClick(lastLine) {
+        return (function(e) {
+          e.stopPropagation();
+          //console.log("click");           
+          var point = e.get('coords');
+          var [vertex, prevLine, nextLine] = path.divideLine(lastLine, point);
+          
+          vertex.events.add('dblclick', 
+                              processVertexDblClick(vertex));
+                             
+          vertex.events.add('drag', 
+                              processVertexDrag(vertex));                             
+                              
+          prevLine.events.add('click', 
+                      processLineClick(prevLine));                    
+
+          nextLine.events.add('click', 
+                              processLineClick(nextLine));                                 
+        });
+      }
+
       
-      lastVertex.events.add('drag', function() {
-        path.dragVertex(lastVertex);
-        var height = calculator.calculateHeight();
-        path.printHeightHints(height);       
-        heightOutput.print(height);          
-      }); 
-                  
+      lastVertex.events.add('dblclick', 
+                            processVertexDblClick(lastVertex));
+                     
+      function processVertexDblClick(lastVertex) {
+        return (function(e) {
+          e.stopPropagation();  // remove standart zoom for double click
+          var newLine = path.removeVertex(lastVertex);
+          if (newLine != null) {
+            newLine.events.add('click', 
+                            processLineClick(newLine));       
+          }
+          var height = calculator.calculateHeight();
+          path.printHeightHints(height);       
+          heightOutput.print(height);             
+        });
+      }      
+       
+      lastVertex.events.add('drag', 
+                            processVertexDrag(lastVertex)); 
+
+      function processVertexDrag(lastVertex) {
+        return (function(e) { 
+          path.dragVertex(lastVertex);
+          var height = calculator.calculateHeight();
+          path.printHeightHints(height);       
+          heightOutput.print(height);          
+        });
+      }
+      
       var height = calculator.calculateHeight();
       path.printHeightHints(height);       
       heightOutput.print(height);        
-    }); 
-    
-            
+    }
+ 
+          
     // Wind output  
     var windOutput = createOutputControlElement();
     windOutput.print = function(wind) {        

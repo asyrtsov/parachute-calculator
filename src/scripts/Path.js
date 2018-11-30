@@ -49,7 +49,7 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
      * Add new vertex to Path and to map.
      * Add corresponding line segment to Path and to map.
      * @param {number[]} point - Yandex.Maps coordinates, point = [x, y].
-     * @return {Circle} lastVertex
+     * @return {Array} New last vertex and new last line segment of Path.
      */
     addVertex(point) {  
       var map = this.map;
@@ -70,10 +70,10 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
                           
         var lastPoint = this.lastVertex.geometry.getCoordinates();    
                 
-        this.lastVertex.nextLine = 
-          new ymaps.Polyline([lastPoint, point], {}, {zIndex: this.lineZIndex});
-          
-        map.geoObjects.add(this.lastVertex.nextLine); 
+
+        var newLine = 
+          new ymaps.Polyline([lastPoint, point], {}, {zIndex: this.lineZIndex});          
+        map.geoObjects.add(newLine); 
                 
         // We change last Triengle vertex to Circle vertex
         map.geoObjects.remove(this.lastVertex.image);        
@@ -82,7 +82,10 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
         map.geoObjects.add(this.lastVertex.image);
                         
         this.lastVertex.nextVertex = vertex;
-        vertex.prevVertex = this.lastVertex;                
+        vertex.prevVertex = this.lastVertex;
+        
+        this.lastVertex.nextLine = newLine; 
+        newLine.prevVertex = this.lastVertex;        
                 
         vertex.image = new YmapsTriangleVertex(lastPoint, point, this.imageZIndex);
       } else {  // this.length = 0;
@@ -96,12 +99,77 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
       this.lastVertex = vertex;        
       this.length++; 
       
-      return(this.lastVertex);       
+      return([
+        vertex, 
+        (this.length > 1) ? vertex.prevVertex.nextLine : null      
+      ]);       
     }
+    
+        
+    /**
+     * Divide line segment of Path by point.
+     * Point should be on that line segment. 
+     * @param {Polyline} line
+     * @param {number[]} point - Yandex.maps coordinates.
+     * @return {Array} New vertex and two new line segments of Path.     
+     */        
+    divideLine(line, point) {
+      var map = this.map;
+
+      var prevVertex = line.prevVertex,
+          nextVertex = line.prevVertex.nextVertex;
+          
+      var prevPoint = prevVertex.geometry.getCoordinates(), 
+          nextPoint = nextVertex.geometry.getCoordinates();
+
+      var vertex = new ymaps.Circle([
+        point, 
+        this.vertexOuterRadius
+      ], {}, {
+        draggable: true,
+        // vertex will be invisible
+        fillOpacity: 0,
+        strokeOpacity: 0, 
+        strokeWidth: 0, 
+        zIndex: this.vertexZIndex
+      });
+      
+      vertex.image = new YmapsCircleVertex(point, this.vertexRadius, this.imageZIndex);
+    
+      var newLine1 = 
+        new ymaps.Polyline([prevPoint, point], {}, {zIndex: this.lineZIndex});      
+
+      var newLine2 = 
+        new ymaps.Polyline([point, nextPoint], {}, {zIndex: this.lineZIndex});        
+
+      vertex.prevVertex = prevVertex;
+      vertex.nextVertex = nextVertex;
+      
+      prevVertex.nextVertex = vertex;
+      nextVertex.prevVertex = vertex;
+ 
+      prevVertex.nextLine = newLine1;
+      vertex.nextLine = newLine2;
+      
+      newLine1.prevVertex = prevVertex;
+      newLine2.prevVertex = vertex;
+      
+      this.length++;
+
+      map.geoObjects.remove(line);
+      map.geoObjects.add(vertex.image);
+      map.geoObjects.add(vertex);
+      map.geoObjects.add(newLine1);
+      map.geoObjects.add(newLine2);
+
+      return([vertex, newLine1, newLine2]);      
+    }
+    
 
     /**
      * Remove vertex from Path and from map.
      * @param {Circle} removingVertex
+     * @return {Polyline} Line between previous and next vertices. 
      */    
     removeVertex(removingVertex) {
       var map = this.map;
@@ -111,6 +179,8 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
       
       var prevVertex = removingVertex.prevVertex;
       var nextVertex = removingVertex.nextVertex;
+      
+      var newLine = null;
       
       if (this.length > 1) {
         if ((prevVertex != undefined) && (nextVertex != undefined)) {
@@ -124,13 +194,16 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
           var prevPoint = prevVertex.geometry.getCoordinates();
           var nextPoint = nextVertex.geometry.getCoordinates();
                     
-          var currentLine = 
+          newLine = 
             new ymaps.Polyline([prevPoint, nextPoint], {}, {zIndex: this.lineZIndex});
-          this.map.geoObjects.add(currentLine);
+          this.map.geoObjects.add(newLine);
           
-          prevVertex.nextLine = currentLine;
+          prevVertex.nextLine = newLine;
           prevVertex.nextVertex = nextVertex;
           nextVertex.prevVertex = prevVertex;
+          
+          newLine.prevVertex = prevVertex;
+          
           
           // case when nextVertex is lastVertex 
           // and so we have to change direction of 
@@ -173,6 +246,7 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
       }
       
       this.length--;
+      return(newLine);
     }
 
     

@@ -6,7 +6,8 @@ function(provide, Circle) {
   class YmapsCircleVertex extends Circle {
     /**
      * @param {number[]} center - Yandex.Maps coordinates.
-     * @param {number} radius     
+     * @param {number} radius
+     * @param {number} zIndex - z-index of Circle.     
      */
     constructor(center, radius, zIndex=0) {
       super([center, radius]);
