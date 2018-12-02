@@ -31,7 +31,7 @@ function(provide, Placemark, templateLayoutFactory) {
             type: 'Circle',
             coordinates: [arrowStartSize/2, arrowStartSize/2],
             radius: arrowStartRadius
-          }  
+          }          
         }
       );
 

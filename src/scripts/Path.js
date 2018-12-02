@@ -1,11 +1,12 @@
 /** @module Path */      
 ymaps.modules.define('Path', [
   'Circle', 
-  'Polyline', 
+  'Polyline',
+  'Placemark',  
   'YmapsCircleVertex', 
   'YmapsTriangleVertex'  
 ],
-function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {     
+function(provide, Circle, Polyline, Placemark, YmapsCircleVertex, YmapsTriangleVertex) {     
   /**
    * List of vertices and line segments of Chute Path.
    * Line segments connect vertices.
@@ -35,9 +36,12 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
 
       // On the map: line segments should be under vertex images, 
       // vertex images should be under vertices
-      this.vertexZIndex = 2;
+      this.vertexZIndex = 2;      
       this.imageZIndex = 1;
       this.lineZIndex = 0;
+
+      // Distance from vertex to it's heightPlacemark
+      this.heightPlacemarkShift = 0.0002;
   
       //this.addVertex = this.addVertex.bind(this);
       //this.removeVertex = this.removeVertex.bind(this);
@@ -64,7 +68,17 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
         strokeOpacity: 0, 
         strokeWidth: 0, 
         zIndex: this.vertexZIndex
-      });  
+      });
+
+      // Placemark for Height of Chute ot this vertex
+      vertex.heightPlacemark = new ymaps.Placemark(
+        [point[0] + this.heightPlacemarkShift, point[1]], 
+        {}, 
+        {
+          preset: 'islands#blackStretchyIcon', 
+          cursor: 'arrow'
+        }
+      );      
               
       if (this.length > 0) {
                           
@@ -92,13 +106,14 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
         this.firstVertex = vertex;      
         vertex.image = new YmapsCircleVertex(point, this.vertexRadius, this.imageZIndex);  
       }
-
+      
       map.geoObjects.add(vertex.image);
       map.geoObjects.add(vertex);
-      
+      map.geoObjects.add(vertex.heightPlacemark);
+            
       this.lastVertex = vertex;        
       this.length++; 
-      
+   
       return([
         vertex, 
         (this.length > 1) ? vertex.prevVertex.nextLine : null      
@@ -135,7 +150,17 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
       });
       
       vertex.image = new YmapsCircleVertex(point, this.vertexRadius, this.imageZIndex);
-    
+
+      // Placemark for Height of Chute ot this vertex
+      vertex.heightPlacemark = new ymaps.Placemark(
+        [point[0] + this.heightPlacemarkShift, point[1]], 
+        {}, 
+        {
+          preset: 'islands#blackStretchyIcon', 
+          cursor: 'arrow'
+        }
+      ); 
+      
       var newLine1 = 
         new ymaps.Polyline([prevPoint, point], {}, {zIndex: this.lineZIndex});      
 
@@ -159,9 +184,10 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
       map.geoObjects.remove(line);
       map.geoObjects.add(vertex.image);
       map.geoObjects.add(vertex);
+      map.geoObjects.add(vertex.heightPlacemark);
       map.geoObjects.add(newLine1);
       map.geoObjects.add(newLine2);
-
+            
       return([vertex, newLine1, newLine2]);      
     }
     
@@ -176,6 +202,10 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
     
       map.geoObjects.remove(removingVertex);
       map.geoObjects.remove(removingVertex.image);
+      
+      if (removingVertex.heightPlacemark != undefined) {
+        map.geoObjects.remove(removingVertex.heightPlacemark);  
+      }
       
       var prevVertex = removingVertex.prevVertex;
       var nextVertex = removingVertex.nextVertex;
@@ -259,7 +289,13 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
       
       // new vertex coordinates
       var point = vertex.geometry.getCoordinates();
-
+      
+      
+      if (vertex.heightPlacemark != undefined) {
+        vertex.heightPlacemark.geometry.setCoordinates(
+          [point[0] + this.heightPlacemarkShift, point[1]]
+        );
+      } 
                        
       var nextVertex = vertex.nextVertex;
       var prevVertex = vertex.prevVertex;  
@@ -335,12 +371,14 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
       var vertex = this.lastVertex;  
       map.geoObjects.remove(vertex);
       map.geoObjects.remove(vertex.image);
+      map.geoObjects.remove(vertex.heightPlacemark);
       
       for(var i=1; i < this.length; i++) {
         vertex = vertex.prevVertex; 
         map.geoObjects.remove(vertex);
         map.geoObjects.remove(vertex.image);
         map.geoObjects.remove(vertex.nextLine);
+        map.geoObjects.remove(vertex.heightPlacemark);
       }
       
       this.length = 0;
@@ -356,11 +394,15 @@ function(provide, Circle, Polyline, YmapsCircleVertex, YmapsTriangleVertex) {
         var vertex = this.firstVertex;      
         for(var i=0; i<height.length; i++) {
           vertex.properties.set("hintContent", "h=" + 
-                                       Math.floor(height[i]) + "м");        
+                                       Math.floor(height[i]) + "м");
+          vertex.heightPlacemark.properties.set("iconContent", "h=" + 
+                                       Math.floor(height[i]) + "м");
+                                       
           vertex = vertex.nextVertex;
         }
         for(var i=height.length; i<this.length; i++) {
-          vertex.properties.set("hintContent", "Невозможно!");        
+          vertex.properties.set("hintContent", "Невозможно!");
+          vertex.heightPlacemark.properties.set("hintContent", "Невозможно!");            
           vertex = vertex.nextVertex;                    
         }
       }      
