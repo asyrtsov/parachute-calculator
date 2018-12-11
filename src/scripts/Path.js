@@ -3,15 +3,22 @@ ymaps.modules.define('Path', [
   'Circle', 
   'Polyline',
   'Placemark',  
-  'YmapsCircleVertex', 
-  'YmapsTriangleVertex'  
+  'CircleVertex', 
+  'TriangleVertex'  
 ],
-function(provide, Circle, Polyline, Placemark, YmapsCircleVertex, YmapsTriangleVertex) {     
+function(
+  provide, 
+  Circle, 
+  Polyline, 
+  Placemark, 
+  CircleVertex, 
+  TriangleVertex
+) {     
   /**
    * List of vertices and line segments of Chute Path.
    * Line segments connect vertices.
    * Last vertex consist of one outer invisible Circle (ymaps.Circle)  
-   * and arrow (YmapsTriangleVertex object that extends ymaps.Polyline).
+   * and arrow (TriangleVertex object that extends ymaps.Polyline).
    * Other vertices consist of one outer invisible Circle (ymaps.Circle)
    * and one visible inner Circle (ymaps.Circle). 
    * Outer vertex circles are invisible and serve for handy clicking  
@@ -87,12 +94,19 @@ function(provide, Circle, Polyline, Placemark, YmapsCircleVertex, YmapsTriangleV
 
         var newLine = 
           new ymaps.Polyline([lastPoint, point], {}, {zIndex: this.lineZIndex});          
-        map.geoObjects.add(newLine); 
+        map.geoObjects.add(newLine);
+
+       
+        //var newEdge = new PathEdge(lastPoint, point);          
+        //map.geoObjects.add(newEdge.image);
+        //console.log(newEdge.image); 
+       
+        
                 
         // We change last Triengle vertex to Circle vertex
         map.geoObjects.remove(this.lastVertex.image);        
         this.lastVertex.image = 
-          new YmapsCircleVertex(lastPoint, this.vertexRadius, this.imageZIndex);
+          new CircleVertex(lastPoint, this.vertexRadius, this.imageZIndex);
         map.geoObjects.add(this.lastVertex.image);
                         
         this.lastVertex.nextVertex = vertex;
@@ -101,10 +115,10 @@ function(provide, Circle, Polyline, Placemark, YmapsCircleVertex, YmapsTriangleV
         this.lastVertex.nextLine = newLine; 
         newLine.prevVertex = this.lastVertex;        
                 
-        vertex.image = new YmapsTriangleVertex(lastPoint, point, this.imageZIndex);
+        vertex.image = new TriangleVertex(lastPoint, point, this.imageZIndex);
       } else {  // this.length = 0;
         this.firstVertex = vertex;      
-        vertex.image = new YmapsCircleVertex(point, this.vertexRadius, this.imageZIndex);  
+        vertex.image = new CircleVertex(point, this.vertexRadius, this.imageZIndex);  
       }
       
       map.geoObjects.add(vertex.image);
@@ -149,7 +163,7 @@ function(provide, Circle, Polyline, Placemark, YmapsCircleVertex, YmapsTriangleV
         zIndex: this.vertexZIndex
       });
       
-      vertex.image = new YmapsCircleVertex(point, this.vertexRadius, this.imageZIndex);
+      vertex.image = new CircleVertex(point, this.vertexRadius, this.imageZIndex);
 
       // Placemark for Height of Chute ot this vertex
       vertex.heightPlacemark = new ymaps.Placemark(
@@ -241,7 +255,7 @@ function(provide, Circle, Polyline, Placemark, YmapsCircleVertex, YmapsTriangleV
           if (nextVertex.nextVertex == undefined) {
             map.geoObjects.remove(nextVertex.image);            
             nextVertex.image = 
-              new YmapsTriangleVertex(prevPoint, nextPoint, this.imageZIndex);
+              new TriangleVertex(prevPoint, nextPoint, this.imageZIndex);
             map.geoObjects.add(nextVertex.image);            
           }         
         } else if (nextVertex == undefined) {  // last vertex case   
@@ -255,7 +269,7 @@ function(provide, Circle, Polyline, Placemark, YmapsCircleVertex, YmapsTriangleV
             var prevPrevPoint = prevVertex.prevVertex.geometry.getCoordinates();
             var prevPoint = prevVertex.geometry.getCoordinates();            
             prevVertex.image = 
-              new YmapsTriangleVertex(prevPrevPoint, prevPoint, this.imageZIndex);
+              new TriangleVertex(prevPrevPoint, prevPoint, this.imageZIndex);
             map.geoObjects.add(prevVertex.image);            
           }          
         } else {  // first vertex case
@@ -267,7 +281,7 @@ function(provide, Circle, Polyline, Placemark, YmapsCircleVertex, YmapsTriangleV
             var p = nextVertex.geometry.getCoordinates();
             map.geoObjects.remove(nextVertex.image);
             nextVertex.image = 
-              new YmapsCircleVertex(p, this.vertexRadius, this.imageZIndex);
+              new CircleVertex(p, this.vertexRadius, this.imageZIndex);
             map.geoObjects.add(nextVertex.image);
           }            
         }
@@ -395,14 +409,14 @@ function(provide, Circle, Polyline, Placemark, YmapsCircleVertex, YmapsTriangleV
         for(var i=0; i<height.length; i++) {
           vertex.properties.set("hintContent", "h=" + 
                                        Math.floor(height[i]) + "м");
-          vertex.heightPlacemark.properties.set("iconContent", "h=" + 
+          vertex.heightPlacemark.properties.set("iconContent",
                                        Math.floor(height[i]) + "м");
                                        
           vertex = vertex.nextVertex;
         }
         for(var i=height.length; i<this.length; i++) {
-          vertex.properties.set("hintContent", "Невозможно!");
-          vertex.heightPlacemark.properties.set("hintContent", "Невозможно!");            
+          vertex.properties.set("hintContent", "&#x26D4;");
+          vertex.heightPlacemark.properties.set("iconContent", "Сюда не долететь!");        
           vertex = vertex.nextVertex;                    
         }
       }      

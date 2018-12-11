@@ -15,10 +15,13 @@ function(provide) {
       this.wind = wind;  
       this.startHeight = startHeight;      
     }
-    
-    
+        
     setStartHeight(startHeight) {
       this.startHeight = startHeight;
+    }
+    
+    getStartHeight() {
+      return(this.startHeight);
     }
     
     /** 
@@ -63,7 +66,7 @@ function(provide) {
       for(var i=1; i < path.length; i++) {
                 
         // Let's find right norm basis (e, f), first vector of which
-        // has the same direction with vector prevPointcurrentPoint
+        // has the same direction with vector {prevPoint, currentPoint}
           
         var nextVertex = currentVertex.nextVertex;
        

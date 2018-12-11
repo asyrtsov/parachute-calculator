@@ -10,13 +10,13 @@ function(provide, Placemark, templateLayoutFactory) {
    */
   class Arrow extends Placemark {
 
-    constructor(center, isMobile) {      
+    constructor(map, isMobile) {      
       var arrowStartSize = 25;
       // radius of start active area for Arrow
       var arrowStartRadius = isMobile ? arrowStartSize : arrowStartSize/2; 
         
       super(
-        center, 
+        map.getCenter(), 
         {
           rotation: 90, 
           size: arrowStartSize
@@ -34,9 +34,18 @@ function(provide, Placemark, templateLayoutFactory) {
           }          
         }
       );
-
+      
       this.arrowStartSize = arrowStartSize;
-      this.arrowStartRadius = arrowStartRadius;    
+      this.arrowStartRadius = arrowStartRadius;   
+
+      // Change arrow size when map zoom was changed.    
+      map.events.add('boundschange', function (e) {
+        var newZoom = e.get('newZoom'),
+              oldZoom = e.get('oldZoom');
+        if (newZoom != oldZoom) {
+          this.changeSize(newZoom);
+        }
+      }.bind(this));      
     }
    
    /**

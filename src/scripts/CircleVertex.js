@@ -1,9 +1,9 @@
-ymaps.modules.define('YmapsCircleVertex', [
+ymaps.modules.define('CircleVertex', [
   'Circle'       
 ],
 function(provide, Circle) {
   
-  class YmapsCircleVertex extends Circle {
+  class CircleVertex extends Circle {
     /**
      * @param {number[]} center - Yandex.Maps coordinates.
      * @param {number} radius
@@ -16,6 +16,6 @@ function(provide, Circle) {
       this.options.set("zIndex", zIndex);       
     }
   } 
-  provide(YmapsCircleVertex);  
+  provide(CircleVertex);  
 });      
       
