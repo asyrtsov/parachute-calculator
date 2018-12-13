@@ -51,10 +51,12 @@ function init() {
     // Later use calculator.getStartHeight() for height value.
     var startHeight = 300;   // meters
     
-    var calculator = new Calculator(path, wind, chute, startHeight);      
+    var calculator = new Calculator(path, wind, chute, startHeight);
+    path.calculator = calculator;    
         
     var heightOutput = new HeightOutputElement(path, calculator.getStartHeight());   
     map.controls.add(heightOutput, {float: 'left'});
+    path.heightOutput = heightOutput;
         
     var windOutput = new WindOutputElement(wind);
     map.controls.add(windOutput, {float: 'left'});  
@@ -63,11 +65,14 @@ function init() {
     var arrow = new Arrow(map, isMobile);        
     map.geoObjects.add(arrow); 
     
-        
-    map.addClickEvent(path, calculator, heightOutput);
+          
+    map.events.add('click', function(e) {
+      var point = e.get('coords');
+      path.addVertex(point);      
+    });
     
 
-                
+    
     addButtons(map, path, calculator, heightOutput);
 
     function addButtons(map, path, calculator, heightOutput) {
@@ -80,7 +85,7 @@ function init() {
       var clearButton = createButtonControlElement("Очистить", "images/icon_eraser.svg");
       clearButton.events.add("click", function() {
         path.clear();
-        heightOutput.print([calculator.getStartHeight()]);
+        //heightOutput.print([calculator.getStartHeight()]);
       });
       
       // DzStartHeight Button
@@ -420,10 +425,7 @@ function init() {
       $("#dz").children()[dz.length - 1].selected = true;    
     });
 
-    
-
-
-    
+     
     function printHeight(height) {
       path.printHeightHints(height);       
       heightOutput.print(height);       
@@ -435,12 +437,6 @@ function init() {
       path.printHeightHints(height);       
       heightOutput.print(height)
     }  
-
-
-   
-
-
-
 
   });      
 }

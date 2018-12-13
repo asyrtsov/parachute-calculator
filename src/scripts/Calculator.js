@@ -13,7 +13,10 @@ function(provide) {
       this.path = path;
       this.chute = chute;
       this.wind = wind;  
-      this.startHeight = startHeight;      
+      this.startHeight = startHeight;
+
+      // Array of heights in all vertices of path.
+      this.height = [];        
     }
         
     setStartHeight(startHeight) {
@@ -32,15 +35,15 @@ function(provide) {
      * to fly this Path.
      */      
     calculateHeight() {
-      var height = [];
+      this.height = [];
       var time = this.calculateTime();
       
-      height[0] = this.startHeight;
+      this.height[0] = this.startHeight;
       for(var i=1; i<time.length; i++) {
-        height[i] = height[i-1] - time[i] * this.chute.verticalVel;
+        this.height[i] = this.height[i-1] - time[i] * this.chute.verticalVel;
       }
       
-      return(height);
+      return(this.height);
     }
 
     /** 

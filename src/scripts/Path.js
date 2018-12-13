@@ -4,7 +4,9 @@ ymaps.modules.define('Path', [
   'Polyline',
   'Placemark',  
   'CircleVertex', 
-  'TriangleVertex'  
+  'TriangleVertex',
+  'Vertex', 
+  'Edge'  
 ],
 function(
   provide, 
@@ -12,11 +14,12 @@ function(
   Polyline, 
   Placemark, 
   CircleVertex, 
-  TriangleVertex
+  TriangleVertex, 
+  Vertex, 
+  Edge
 ) {     
   /**
-   * List of vertices and line segments of Chute Path.
-   * Line segments connect vertices.
+   * List of vertices and edges of Chute Path.
    * Last vertex consist of one outer invisible Circle (ymaps.Circle)  
    * and arrow (TriangleVertex object that extends ymaps.Polyline).
    * Other vertices consist of one outer invisible Circle (ymaps.Circle)
@@ -49,6 +52,11 @@ function(
 
       // Distance from vertex to it's heightPlacemark
       this.heightPlacemarkShift = 0.0002;
+      
+      
+      this.calculator = null;
+      this.heightOutput = null;
+      
   
       //this.addVertex = this.addVertex.bind(this);
       //this.removeVertex = this.removeVertex.bind(this);
@@ -64,45 +72,19 @@ function(
      */
     addVertex(point) {  
       var map = this.map;
-           
-      var vertex = new ymaps.Circle([
-        point, 
-        this.vertexOuterRadius
-      ], {}, {
-        draggable: true,
-        // vertex will be invisible
-        fillOpacity: 0,
-        strokeOpacity: 0, 
-        strokeWidth: 0, 
-        zIndex: this.vertexZIndex
-      });
-
-      // Placemark for Height of Chute ot this vertex
-      vertex.heightPlacemark = new ymaps.Placemark(
-        [point[0] + this.heightPlacemarkShift, point[1]], 
-        {}, 
-        {
-          preset: 'islands#blackStretchyIcon', 
-          cursor: 'arrow'
-        }
-      );      
+      
+      var vertex = new Vertex(point, this.vertexOuterRadius, this);
+            
+      var newEdge = null;
               
       if (this.length > 0) {
                           
         var lastPoint = this.lastVertex.geometry.getCoordinates();    
                 
-
-        var newLine = 
-          new ymaps.Polyline([lastPoint, point], {}, {zIndex: this.lineZIndex});          
-        map.geoObjects.add(newLine);
-
-       
-        //var newEdge = new PathEdge(lastPoint, point);          
-        //map.geoObjects.add(newEdge.image);
-        //console.log(newEdge.image); 
-       
+        newEdge = new Edge(lastPoint, point, this); 
         
-                
+        map.geoObjects.add(newEdge);
+               
         // We change last Triengle vertex to Circle vertex
         map.geoObjects.remove(this.lastVertex.image);        
         this.lastVertex.image = 
@@ -112,8 +94,8 @@ function(
         this.lastVertex.nextVertex = vertex;
         vertex.prevVertex = this.lastVertex;
         
-        this.lastVertex.nextLine = newLine; 
-        newLine.prevVertex = this.lastVertex;        
+        this.lastVertex.nextLine = newEdge; 
+        newEdge.prevVertex = this.lastVertex;        
                 
         vertex.image = new TriangleVertex(lastPoint, point, this.imageZIndex);
       } else {  // this.length = 0;
@@ -124,92 +106,69 @@ function(
       map.geoObjects.add(vertex.image);
       map.geoObjects.add(vertex);
       map.geoObjects.add(vertex.heightPlacemark);
-            
+    
       this.lastVertex = vertex;        
-      this.length++; 
+      this.length++;
+
+      this.calculateAndPrintHeights();     
    
-      return([
-        vertex, 
-        (this.length > 1) ? vertex.prevVertex.nextLine : null      
-      ]);       
+      return([vertex, newEdge]);       
     }
     
-        
+            
     /**
-     * Divide line segment of Path by point.
+     * Divide edge of Path by point.
      * Point should be on that line segment. 
      * @param {Polyline} line
      * @param {number[]} point - Yandex.maps coordinates.
      * @return {Array} New vertex and two new line segments of Path.     
      */        
-    divideLine(line, point) {
+    divideEdge(edge, point) {
       var map = this.map;
 
-      var prevVertex = line.prevVertex,
-          nextVertex = line.prevVertex.nextVertex;
+      var prevVertex = edge.prevVertex,
+          nextVertex = edge.prevVertex.nextVertex;
           
       var prevPoint = prevVertex.geometry.getCoordinates(), 
           nextPoint = nextVertex.geometry.getCoordinates();
-
-      var vertex = new ymaps.Circle([
-        point, 
-        this.vertexOuterRadius
-      ], {}, {
-        draggable: true,
-        // vertex will be invisible
-        fillOpacity: 0,
-        strokeOpacity: 0, 
-        strokeWidth: 0, 
-        zIndex: this.vertexZIndex
-      });
-      
+          
+      var vertex = new Vertex(point, this.vertexOuterRadius, this);            
       vertex.image = new CircleVertex(point, this.vertexRadius, this.imageZIndex);
-
-      // Placemark for Height of Chute ot this vertex
-      vertex.heightPlacemark = new ymaps.Placemark(
-        [point[0] + this.heightPlacemarkShift, point[1]], 
-        {}, 
-        {
-          preset: 'islands#blackStretchyIcon', 
-          cursor: 'arrow'
-        }
-      ); 
       
-      var newLine1 = 
-        new ymaps.Polyline([prevPoint, point], {}, {zIndex: this.lineZIndex});      
-
-      var newLine2 = 
-        new ymaps.Polyline([point, nextPoint], {}, {zIndex: this.lineZIndex});        
-
+      var newEdge1 = new Edge(prevPoint, point, this);
+      var newEdge2 = new Edge(point, nextPoint, this);
+      
       vertex.prevVertex = prevVertex;
       vertex.nextVertex = nextVertex;
       
       prevVertex.nextVertex = vertex;
       nextVertex.prevVertex = vertex;
  
-      prevVertex.nextLine = newLine1;
-      vertex.nextLine = newLine2;
+      prevVertex.nextLine = newEdge1;
+      vertex.nextLine = newEdge2;
       
-      newLine1.prevVertex = prevVertex;
-      newLine2.prevVertex = vertex;
+      newEdge1.prevVertex = prevVertex;
+      newEdge2.prevVertex = vertex;
       
       this.length++;
 
-      map.geoObjects.remove(line);
+      map.geoObjects.remove(edge);
       map.geoObjects.add(vertex.image);
       map.geoObjects.add(vertex);
       map.geoObjects.add(vertex.heightPlacemark);
-      map.geoObjects.add(newLine1);
-      map.geoObjects.add(newLine2);
+      map.geoObjects.add(newEdge1);
+      map.geoObjects.add(newEdge2);
+      
+      this.calculateAndPrintHeights();
             
-      return([vertex, newLine1, newLine2]);      
+      return([vertex, newEdge1, newEdge2]);      
     }
     
 
     /**
      * Remove vertex from Path and from map.
-     * @param {Circle} removingVertex
-     * @return {Polyline} Line between previous and next vertices. 
+     * @param {Vertex} removingVertex
+     * @return {Polyline} Edge between previous and next vertices. 
      */    
     removeVertex(removingVertex) {
       var map = this.map;
@@ -224,29 +183,29 @@ function(
       var prevVertex = removingVertex.prevVertex;
       var nextVertex = removingVertex.nextVertex;
       
-      var newLine = null;
+      var newEdge = null;
       
       if (this.length > 1) {
         if ((prevVertex != undefined) && (nextVertex != undefined)) {
           
-          var removingLine1 = prevVertex.nextLine;
-          var removingLine2 = removingVertex.nextLine;
+          var removingEdge1 = prevVertex.nextLine;
+          var removingEdge2 = removingVertex.nextLine;
           
-          map.geoObjects.remove(removingLine1);
-          map.geoObjects.remove(removingLine2);
+          map.geoObjects.remove(removingEdge1);
+          map.geoObjects.remove(removingEdge2);
           
           var prevPoint = prevVertex.geometry.getCoordinates();
           var nextPoint = nextVertex.geometry.getCoordinates();
-                    
-          newLine = 
-            new ymaps.Polyline([prevPoint, nextPoint], {}, {zIndex: this.lineZIndex});
-          this.map.geoObjects.add(newLine);
           
-          prevVertex.nextLine = newLine;
+          newEdge = new Edge(prevPoint, nextPoint, this); 
+
+          this.map.geoObjects.add(newEdge);
+          
+          prevVertex.nextLine = newEdge;
           prevVertex.nextVertex = nextVertex;
           nextVertex.prevVertex = prevVertex;
           
-          newLine.prevVertex = prevVertex;
+          newEdge.prevVertex = prevVertex;
           
           
           // case when nextVertex is lastVertex 
@@ -259,8 +218,8 @@ function(
             map.geoObjects.add(nextVertex.image);            
           }         
         } else if (nextVertex == undefined) {  // last vertex case   
-          var removingLine = prevVertex.nextLine;
-          map.geoObjects.remove(removingLine);
+          var removingEdge = prevVertex.nextLine;
+          map.geoObjects.remove(removingEdge);
           this.lastVertex = prevVertex;
           prevVertex.nextVertex = null;
           prevVertex.nextLine = null; 
@@ -283,34 +242,38 @@ function(
             nextVertex.image = 
               new CircleVertex(p, this.vertexRadius, this.imageZIndex);
             map.geoObjects.add(nextVertex.image);
-          }            
+          }
+          
+          // If we remove first vertex, initial height will change. 
+          this.calculator.setStartHeight(this.calculator.height[1]);
+          $("#startHeight").val(Math.floor(this.calculator.height[1]));
+          
         }
       } else {  // case: only one circle
         this.lastVertex = null;
       }
       
       this.length--;
-      return(newLine);
+      
+      this.calculateAndPrintHeights();
+            
+      return(newEdge);
     }
 
     
     /**
      * Drag vertex with neibour line segments.
-     * @param {Circle} vertex
+     * @param {Vertex} vertex
      */     
     dragVertex(vertex) {
       var map = this.map;
       
+      
+      this.calculateAndPrintHeights();
+      
       // new vertex coordinates
       var point = vertex.geometry.getCoordinates();
-      
-      
-      if (vertex.heightPlacemark != undefined) {
-        vertex.heightPlacemark.geometry.setCoordinates(
-          [point[0] + this.heightPlacemarkShift, point[1]]
-        );
-      } 
-                       
+                             
       var nextVertex = vertex.nextVertex;
       var prevVertex = vertex.prevVertex;  
       
@@ -396,8 +359,25 @@ function(
       }
       
       this.length = 0;
-      this.lastVertex = null;  
+      this.lastVertex = null; 
+
+
+      this.heightOutput.print([this.calculator.getStartHeight()]);
+      
     }
+
+
+
+    /**
+     * Print heights in vertex hints and in 
+     * height output window.
+     */
+    calculateAndPrintHeights() {
+      var height = this.calculator.calculateHeight();
+      this.printHeightHints(height);       
+      this.heightOutput.print(height);               
+    }    
+    
 
     /**
      * Print heights in vertices hints.
@@ -420,7 +400,8 @@ function(
           vertex = vertex.nextVertex;                    
         }
       }      
-    }   
+    }
+    
   }
   
   provide(Path);      
