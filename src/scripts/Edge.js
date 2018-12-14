@@ -17,6 +17,7 @@ function(provide, Polyline) {
      
       this.path = path;
      
+      // Process clicking on edge
       this.events.add('click', function(e) {
         e.stopPropagation();          
         var point = e.get('coords');

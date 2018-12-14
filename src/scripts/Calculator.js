@@ -1,13 +1,15 @@
 /** @module Calculator */
 ymaps.modules.define('Calculator', [],
 function(provide) {
-
+  /**
+   * This class calculates heights at vertices of path.  
+   */
   class Calculator {
     /**
-     * @param {Path} path - list of vertices and line segments of Chute Path.
-     * @param {Wind} wind - wind velocity
-     * @param {Chute} chute - chute velocity
-     * @param {number} startHeight - start height of chute, in meters.   
+     * @param {Path} path - list of vertices and edges of Chute Path.
+     * @param {Wind} wind - Wind velocity.
+     * @param {Chute} chute - Chute velocity.
+     * @param {number} startHeight - Start height of chute, in meters.   
      */
     constructor(path, wind, chute, startHeight) {      
       this.path = path;
@@ -29,7 +31,7 @@ function(provide) {
     
     /** 
      * Calculate heightes in vertices of Chute Path.
-     * @return {number[]} height. 
+     * @return {number[]} this.height. 
      * Here height[i]  = height at the ith vertex of Path (in meters).
      * If height.length < path.length than it is impossible
      * to fly this Path.

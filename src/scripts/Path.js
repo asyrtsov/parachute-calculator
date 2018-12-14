@@ -20,10 +20,10 @@ function(
 ) {     
   /**
    * List of vertices and edges of Chute Path.
-   * Last vertex consist of one outer invisible Circle (ymaps.Circle)  
-   * and arrow (TriangleVertex object that extends ymaps.Polyline).
-   * Other vertices consist of one outer invisible Circle (ymaps.Circle)
-   * and one visible inner Circle (ymaps.Circle). 
+   * Last vertex consist of one outer invisible Circle (Vertex class that 
+   * extends ymaps.Circle) and arrow-trianlge (TriangleVertex class that extends ymaps.Polyline).
+   * Other vertices consist of one outer invisible Circle (Vertex class)
+   * and one visible inner Circle (CircleVertex class that extends ymaps.Circle). 
    * Outer vertex circles are invisible and serve for handy clicking  
    * vertices.
    */  
@@ -52,23 +52,16 @@ function(
 
       // Distance from vertex to it's heightPlacemark
       this.heightPlacemarkShift = 0.0002;
-      
-      
+            
       this.calculator = null;
-      this.heightOutput = null;
-      
-  
-      //this.addVertex = this.addVertex.bind(this);
-      //this.removeVertex = this.removeVertex.bind(this);
-      //this.dragVertex = this.dragVertex.bind(this);
-      //this.clear = this.clear.bind(this);          
+      this.heightOutput = null;        
     }
     
     /**
      * Add new vertex to Path and to map.
-     * Add corresponding line segment to Path and to map.
+     * Add corresponding edge to Path and to map.
      * @param {number[]} point - Yandex.Maps coordinates, point = [x, y].
-     * @return {Array} New last vertex and new last line segment of Path.
+     * @return {Array} New last vertex and new last edge of Path.
      */
     addVertex(point) {  
       var map = this.map;
@@ -119,9 +112,9 @@ function(
     /**
      * Divide edge of Path by point.
      * Point should be on that line segment. 
-     * @param {Polyline} line
+     * @param {Edge} edge
      * @param {number[]} point - Yandex.maps coordinates.
-     * @return {Array} New vertex and two new line segments of Path.     
+     * @return {Array} New vertex and two new edges of Path.     
      */        
     divideEdge(edge, point) {
       var map = this.map;
@@ -164,11 +157,10 @@ function(
       return([vertex, newEdge1, newEdge2]);      
     }
     
-
     /**
      * Remove vertex from Path and from map.
      * @param {Vertex} removingVertex
-     * @return {Polyline} Edge between previous and next vertices. 
+     * @return {(Edge|null)} Edge between previous and next vertices. 
      */    
     removeVertex(removingVertex) {
       var map = this.map;
@@ -259,16 +251,14 @@ function(
             
       return(newEdge);
     }
-
-    
+   
     /**
-     * Drag vertex with neibour line segments.
+     * Drag vertex with neibour edges.
      * @param {Vertex} vertex
      */     
     dragVertex(vertex) {
       var map = this.map;
-      
-      
+          
       this.calculateAndPrintHeights();
       
       // new vertex coordinates
@@ -339,7 +329,7 @@ function(
     }
 
     
-    /** Remove all vetrices and line segments from Path and from map. */    
+    /** Remove all vetrices and edges from Path and from map. */    
     clear() {
       var map = this.map;
            
@@ -361,11 +351,8 @@ function(
       this.length = 0;
       this.lastVertex = null; 
 
-
-      this.heightOutput.print([this.calculator.getStartHeight()]);
-      
+      this.heightOutput.print([this.calculator.getStartHeight()]);     
     }
-
 
 
     /**
@@ -400,9 +387,7 @@ function(
           vertex = vertex.nextVertex;                    
         }
       }      
-    }
-    
-  }
-  
+    }   
+  }  
   provide(Path);      
 });      
