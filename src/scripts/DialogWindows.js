@@ -1,7 +1,7 @@
-ymaps.modules.define('Window', [],
+ymaps.modules.define('DialogWindows', [],
 function(provide) {
 
-  var Window = {};
+  var DialogWindows = {};
   /**
    * @param {Object[]} dz
    * @param {string} dz[].name - Name of DZ.
@@ -15,7 +15,7 @@ function(provide) {
    * @param {Chute} chute
    * @param {Wind} wind 
    */
-  Window.initHtmlWindows = function (
+  DialogWindows.initializeWindows = function (
     dz,
     defaultZoom,     
     map, 
@@ -28,17 +28,17 @@ function(provide) {
     wind
   ) {
 
-    initDzStartHeightWindow();
+    initSettingsWindow();
     initChuteWindow();
     initWindWindow();
     
    
     /**
-     * Dz and Start Height Window initialization:
+     * Settings (Dz and Start Height Window) initialization:
      *   default options for <input> tags, 
      *   events 'change' for <input> tags.
      */
-    function initDzStartHeightWindow() {
+    function initSettingsWindow() {
       // Set default options: dz array
       for(var i=0; i<dz.length; i++) {
         $("#dz").append("<option>" + dz[i].name + "</option>");    
@@ -67,7 +67,7 @@ function(provide) {
     }    
               
     /** 
-     * Chute menu initialization.
+     * Chute Window initialization.
      */
     function initChuteWindow() {
       $("#chutehorvel").val(chute.horizontalVel);
@@ -91,7 +91,7 @@ function(provide) {
     }    
 
     /** 
-     * Wind menu initialization.
+     * Wind Window initialization.
      */    
     function initWindWindow() {
       // Set default value      
@@ -207,5 +207,5 @@ function(provide) {
     }            
   }
 
-  provide(Window);  
+  provide(DialogWindows);  
 });  

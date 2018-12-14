@@ -36,16 +36,23 @@ function(provide, Map, ZoomControl) {
     }
     
     
-    setSearchProcessor(path, heightOutput, calculator, arrow, dz) {
+    setSearchProcessor(path, heightOutput, calculator, arrow, dz, defaultZoom) {
+      
+      this.path = path;
+      this.heightOutput = heightOutput;
+      this.calculator = calculator;
+      this.arrow = arrow;
+      this.dz = dz;
+      this.defaultZoom = defaultZoom;
       
       this.searchControl.events.add('resultshow', function(e) {
                 
-        path.clear();
-        heightOutput.print([calculator.getStartHeight()]);
+        this.path.clear();
+        this.heightOutput.print([this.calculator.getStartHeight()]);
          
-        this.setZoom(defaultZoom);
+        this.setZoom(this.defaultZoom);
          
-        arrow.geometry.setCoordinates(this.getCenter());
+        this.arrow.geometry.setCoordinates(this.getCenter());
          
         var index = e.get('index');    
         var geoObjectsArray = this.searchControl.getResultsArray();
@@ -55,9 +62,9 @@ function(provide, Map, ZoomControl) {
           name: resultName, 
           mapCenter: this.getCenter()
         };    
-        dz.push(newDz);    
+        this.dz.push(newDz);    
         $("#dz").append("<option>" + newDz.name + "</option>");    
-        $("#dz").children()[dz.length - 1].selected = true;    
+        $("#dz").children()[this.dz.length - 1].selected = true;    
       }.bind(this));      
     }
         

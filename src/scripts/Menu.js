@@ -2,9 +2,14 @@ ymaps.modules.define('Menu', [
   'MenuButton'
 ],
 function(provide, MenuButton) {
-
+  /**
+   * Set of buttons in the left side of screen.
+   */
   class Menu {
-
+    /**
+     * @param {Map} map
+     * @param {Path} path
+     */
     constructor(map, path) {
       
       this.path = path;      
