@@ -1,5 +1,10 @@
-ymaps.modules.define('DialogWindows', [],
-function(provide) {
+ymaps.modules.define('DialogWindows', [
+  'Output'
+],
+function(
+  provide, 
+  Output  
+) {
 
   var DialogWindows = {};
   /**
@@ -28,9 +33,15 @@ function(provide) {
     wind
   ) {
 
+    initHeightOutputWindow();
     initSettingsWindow();
     initChuteWindow();
     initWindWindow();
+    
+    
+    function initHeightOutputWindow() {
+      heightOutput.print([calculator.getStartHeight()]);      
+    }
     
    
     /**
@@ -51,19 +62,71 @@ function(provide) {
         heightOutput.print([calculator.getStartHeight()]);
       });
       
-      $("#startHeight").val(calculator.getStartHeight()); 
-      
-      $("#startHeight").on("change", function () {       
-        var s = $("#startHeight").val();
+      $("#startHeight").val(calculator.getStartHeight());
+      $("#startHeight").prop("disabled", !path.getPathDirection());
+                        
+      $("#startHeight").change(function () {       
+        var s = $(this).val();
         var n = Number.parseFloat(s);
-        if ((n >= 4) && (n <= 4000)) {
+        if ((n >= 0) && (n <= 4000)) {
           calculator.setStartHeight(n);      
         }
-        $("#startHeight").val(calculator.getStartHeight());
-
-        //calculator.setStartHeight(startHeight);      
-        printHeight(calculator.calculateHeight());            
+        //$(this).val(calculator.getStartHeight());
+   
+        calculator.calculateHeight();   
+        Output.print(calculator, heightOutput, path);   
+   
+        //printHeight(calculator.calculateHeight());
+        //$("#finalHeight").val(Math.floor(calculator.getFinalHeight()));        
       });
+
+      
+      $("#finalHeight").val(calculator.getFinalHeight()); 
+      $("#finalHeight").prop("disabled", path.getPathDirection());
+      
+      $("#finalHeight").change(function () {       
+        var s = $(this).val();
+        var n = Number.parseFloat(s);
+        if ((n >= 0) && (n <= 4000)) {
+          calculator.setFinalHeight(n);      
+        }
+        //$(this).val(calculator.getFinalHeight());
+        
+        
+        calculator.calculateHeight();   
+        Output.print(calculator, heightOutput, path);           
+   
+        //printHeight(calculator.calculateHeight());
+        //$("#startHeight").val(Math.floor(calculator.getStartHeight()));        
+      });
+
+      
+      $("#pathDirection").change(function() {
+        var isChecked = $(this).prop("checked");
+        //console.log(!isChecked);        
+        //calculator.setPathDirection(!isChecked);
+        path.pathDirection = !isChecked;
+
+        //path.clear();
+        
+        if (isChecked) {  // Reverse path direction
+          $("#finalHeight").prop("disabled", false);
+          $("#startHeight").prop("disabled", true);
+          //$("#startHeight").val(0);
+          //calculator.setStartHeight(0);
+          //heightOutput.print([0]);
+        } else {  // Direct path direction
+          $("#finalHeight").prop("disabled", true);
+          $("#startHeight").prop("disabled", false);
+        
+          //$("#startHeight").val(300);
+          //calculator.setStartHeight(300);
+          //heightOutput.print([300]);
+        } 
+        
+        //printHeight(calculator.calculateHeight());         
+      });
+      
     }    
               
     /** 
@@ -85,8 +148,11 @@ function(provide) {
           chute.verticalVel = chutevervel;    
         } 
         $("#chutevervel").val(chute.verticalVel);        
+
+        calculator.calculateHeight();   
+        Output.print(calculator, heightOutput, path);    
         
-        printHeight(calculator.calculateHeight());
+        //printHeight(calculator.calculateHeight());
       });
     }    
 
@@ -104,8 +170,15 @@ function(provide) {
         var angle = Number.parseInt(angleStr);
         arrow.rotate(angle);
         wind.angle = angle;
-        var height = calculator.calculateHeight();            
-        printWindHeight(wind, height);      
+
+        
+        calculator.calculateHeight();   
+        Output.print(calculator, heightOutput, path);
+        windOutput.print(wind);        
+        
+        
+        //var height = calculator.calculateHeight();            
+        //printWindHeight(wind, height);      
       });
 
       // Change Wind Value in Wind Window.   
@@ -113,8 +186,15 @@ function(provide) {
         var valueStr = $("#windValueInput").val();
         var value = Number.parseInt(valueStr);    
         wind.value = value;
-        var height = calculator.calculateHeight();       
-        printWindHeight(wind, height);
+        
+        
+        calculator.calculateHeight();   
+        Output.print(calculator, heightOutput, path);
+        windOutput.print(wind);        
+
+       
+        //var height = calculator.calculateHeight();       
+        //printWindHeight(wind, height);
       });
       
       // Draw scales for Wind Window    
@@ -187,11 +267,11 @@ function(provide) {
      * Print heights in placemarks of path vertices and 
      * in Height output element.
      * @param {number[]} height - Array of heights at path vertices.
-     */     
+     */  /*   
     function printHeight(height) {
       path.printHeightHints(height);       
       heightOutput.print(height);       
-    }  
+    }  */
 
     /**
      * Print heights in placemarks of path vertices and 
@@ -199,12 +279,12 @@ function(provide) {
      * Print Wind direction and value in Wind output element.
      * @param {Wind} wind
      * @param {number[]} height - Array of heights at path vertices.
-     */     
+     */    /* 
     function printWindHeight(wind, height) {
       windOutput.print(wind);
       path.printHeightHints(height);       
       heightOutput.print(height)
-    }            
+    }    */        
   }
 
   provide(DialogWindows);  

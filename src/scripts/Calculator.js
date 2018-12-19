@@ -2,35 +2,73 @@
 ymaps.modules.define('Calculator', [],
 function(provide) {
   /**
-   * This class calculates heights at vertices of path.  
+   * This class calculates heights at all vertices of path.  
    */
   class Calculator {
     /**
      * @param {Path} path - list of vertices and edges of Chute Path.
      * @param {Wind} wind - Wind velocity.
      * @param {Chute} chute - Chute velocity.
-     * @param {number} startHeight - Start height of chute, in meters.   
+     * @param {number} [startHeight] - Start (and final) height of chute, in meters.
+     * @param {boolean} [pathDirection] - If true, calculator calculates 
+     * heights from start height, if false - from final height.
      */
-    constructor(path, wind, chute, startHeight) {      
+    constructor(path, wind, chute, startHeight = 300) {      
       this.path = path;
       this.chute = chute;
-      this.wind = wind;  
+      this.wind = wind;
+      
       this.startHeight = startHeight;
-
+      this.finalHeight = startHeight;
+      
+      //this.pathDirection = pathDirection;
+  
       // Array of heights in all vertices of path.
       this.height = [];        
     }
         
     setStartHeight(startHeight) {
-      this.startHeight = startHeight;
+      if (this.path.getPathDirection()) {
+        this.startHeight = startHeight;
+        /* this.calculateHeight();
+        if (this.height.length > 0) {
+          this.finalHeight = this.height[this.height - 1];
+        } else {
+          this.finalHeight = this.startHeight;
+        }  */
+      }
+      return(this.path.getPathDirection());      
+    }
+
+    setFinalHeight(finalHeight) {
+      if (!this.path.getPathDirection()) {
+        this.finalHeight = finalHeight;
+        /*this.calculateHeight();
+        
+        if (this.height.length > 0) {
+          this.startHeight = this.height[0];
+        } else {
+          this.startHeight = this.finalHeight;
+        }   */       
+      }
+      return(this.path.getPathDirection());      
     }
     
     getStartHeight() {
       return(this.startHeight);
     }
     
+    getFinalHeight() {
+      return(this.finalHeight);
+    }    
+
+    getHeight() {
+      return(this.height);
+    }
+    
+    
     /** 
-     * Calculate heightes in vertices of Chute Path.
+     * Calculate heightes in all vertices of Chute Path.
      * @return {number[]} this.height. 
      * Here height[i]  = height at the ith vertex of Path (in meters).
      * If height.length < path.length than it is impossible
@@ -38,14 +76,32 @@ function(provide) {
      */      
     calculateHeight() {
       this.height = [];
-      var time = this.calculateTime();
       
-      this.height[0] = this.startHeight;
+      if (this.path.length == 0) return(this.height); 
+            
+      var time = this.calculateTime();
+              
+      this.height[0] = 0;
+            
       for(var i=1; i<time.length; i++) {
         this.height[i] = this.height[i-1] - time[i] * this.chute.verticalVel;
       }
       
-      return(this.height);
+      if (this.path.getPathDirection()) {
+        for(var i=0; i<this.height.length; i++) {
+          this.height[i] += this.startHeight;
+        }
+        this.finalHeight = this.height[this.height.length - 1];         
+        
+      } else { 
+        var h = this.finalHeight - this.height[this.height.length - 1];
+        for(var i=0; i<this.height.length; i++) {
+          this.height[i] += h;
+        }
+        this.startHeight = this.height[0];        
+      }
+      
+      return(this.height);      
     }
 
     /** 
@@ -62,7 +118,7 @@ function(provide) {
       var path = this.path;
       var chute = this.chute;
       var wind = this.wind;
-      var startHeight = this.startHeight;
+      //var startHeight = this.startHeight;
       
       var currentVertex = path.firstVertex;
       

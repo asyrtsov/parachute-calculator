@@ -1,22 +1,18 @@
 /** @module Path */      
-ymaps.modules.define('Path', [
-  'Circle', 
-  'Polyline',
-  'Placemark',  
+ymaps.modules.define('Path', [ 
   'CircleVertex', 
   'TriangleVertex',
   'Vertex', 
-  'Edge'  
+  'PathEdge', 
+  'Output'  
 ],
 function(
   provide, 
-  Circle, 
-  Polyline, 
-  Placemark, 
   CircleVertex, 
   TriangleVertex, 
   Vertex, 
-  Edge
+  PathEdge, 
+  Output
 ) {     
   /**
    * List of vertices and edges of Chute Path.
@@ -30,25 +26,30 @@ function(
   class Path {
     /**
      * @param {Map} map - link to Yandex map.
-     * @param {boolean} isMobile   
+     * @param {boolean} isMobile
+     * @param {boolean} pathDirection - If true, we add new vertex to the start of Path; 
+     * if false, we add it to end of Path.     
      */  
-    constructor(map, isMobile) {
+    constructor(map, isMobile, pathDirection = true) {
       this.map = map;
       this.firstVertex = null;
       this.lastVertex = null;
       // number of vertices
       this.length = 0;
+      
+      this.pathDirection = pathDirection;
             
       // radius for inner circle vertices, in meters
-      this.vertexRadius = 7;
+      this.vertexRadius = isMobile ? 4 : 4;
       // radius for outer invisible circles, in meters    
-      this.vertexOuterRadius = isMobile ? 4*this.vertexRadius : 2*this.vertexRadius;     
+      this.vertexOuterRadius = isMobile ? 6*this.vertexRadius : 3*this.vertexRadius;     
 
       // On the map: line segments should be under vertex images, 
       // vertex images should be under vertices
       this.vertexZIndex = 2;      
-      this.imageZIndex = 1;
-      this.lineZIndex = 0;
+      this.vertexImageZIndex = 1;
+      this.edgeZIndex = 0;
+      this.edgeImageZIndex = -1;
 
       // Distance from vertex to it's heightPlacemark
       this.heightPlacemarkShift = 0.0002;
@@ -56,7 +57,16 @@ function(
       this.calculator = null;
       this.heightOutput = null;        
     }
+
     
+    setPathDirection(pathDirection) {
+      this.pathDirection = pathDirection;
+    }
+    
+    getPathDirection() {
+      return(this.pathDirection);      
+    }     
+        
     /**
      * Add new vertex to Path and to map.
      * Add corresponding edge to Path and to map.
@@ -68,42 +78,92 @@ function(
       
       var vertex = new Vertex(point, this.vertexOuterRadius, this);
             
-      var newEdge = null;
+      //var newEdge = null;
               
       if (this.length > 0) {
-                          
-        var lastPoint = this.lastVertex.geometry.getCoordinates();    
                 
-        newEdge = new Edge(lastPoint, point, this); 
+        if (this.pathDirection) { 
+          // We should add vertex to the end of path
+                                  
+          var lastPoint = this.lastVertex.geometry.getCoordinates();
+
+          vertex.image = new TriangleVertex(lastPoint, point, this.vertexImageZIndex);
+
+          var newEdge = new PathEdge(lastPoint, vertex.image.getEdgePoint(), this); 
+          map.geoObjects.add(newEdge); 
+          map.geoObjects.add(newEdge.image);        
+          
+                 
+          // We change last Triengle vertex to Circle vertex
+          map.geoObjects.remove(this.lastVertex.image);        
+          this.lastVertex.image = 
+            new CircleVertex(lastPoint, this.vertexRadius, this.vertexImageZIndex);
+          map.geoObjects.add(this.lastVertex.image);
+
+          
+          // lastVertex image changed from triangle to circle.
+          // So edge from lastVertex.prevVertex to lastVertex should be lengthen.
+          if (this.lastVertex.prevVertex != null) {
+            var lastlastPoint = this.lastVertex.prevVertex.geometry.getCoordinates();
+            var lastEdge = this.lastVertex.prevVertex.nextLine;
+            lastEdge.setCoordinates(lastlastPoint, lastPoint);          
+          }
+                                 
+          this.lastVertex.nextVertex = vertex;
+          vertex.prevVertex = this.lastVertex;
+          
+          this.lastVertex.nextLine = newEdge; 
+          newEdge.prevVertex = this.lastVertex;  
+
+          this.lastVertex = vertex;         
+        } else { 
+          // We should add vertex to the beginning of path  
+
+          var firstPoint = this.firstVertex.geometry.getCoordinates(); 
+          
+          var newEdge = null;
+          
+          if (this.length == 1) {
+
+            map.geoObjects.remove(this.firstVertex.image);
+            this.firstVertex.image = new TriangleVertex(point, firstPoint, this.vertexImageZIndex);
+            map.geoObjects.add(this.firstVertex.image);
+
+            newEdge = new PathEdge(point, this.firstVertex.image.getEdgePoint(), this); 
+                             
+          } else {
+            newEdge = new PathEdge(point, firstPoint, this);              
+          }
+          
+          map.geoObjects.add(newEdge); 
+          map.geoObjects.add(newEdge.image); 
+          
+          vertex.nextVertex = this.firstVertex;
+          this.firstVertex.prevVertex = vertex;
+          vertex.nextLine = newEdge;
+          newEdge.prevVertex = vertex;
+          this.firstVertex = vertex; 
+          
+          vertex.image = new CircleVertex(point, this.vertexRadius, this.vertexImageZIndex);         
+        }                
         
-        map.geoObjects.add(newEdge);
-               
-        // We change last Triengle vertex to Circle vertex
-        map.geoObjects.remove(this.lastVertex.image);        
-        this.lastVertex.image = 
-          new CircleVertex(lastPoint, this.vertexRadius, this.imageZIndex);
-        map.geoObjects.add(this.lastVertex.image);
-                        
-        this.lastVertex.nextVertex = vertex;
-        vertex.prevVertex = this.lastVertex;
-        
-        this.lastVertex.nextLine = newEdge; 
-        newEdge.prevVertex = this.lastVertex;        
-                
-        vertex.image = new TriangleVertex(lastPoint, point, this.imageZIndex);
-      } else {  // this.length = 0;
-        this.firstVertex = vertex;      
-        vertex.image = new CircleVertex(point, this.vertexRadius, this.imageZIndex);  
+      } else {  // this.length == 0;
+        this.firstVertex = vertex;
+        this.lastVertex = vertex;         
+        vertex.image = new CircleVertex(point, this.vertexRadius, this.vertexImageZIndex);  
       }
       
       map.geoObjects.add(vertex.image);
       map.geoObjects.add(vertex);
       map.geoObjects.add(vertex.heightPlacemark);
     
-      this.lastVertex = vertex;        
+       
       this.length++;
 
-      this.calculateAndPrintHeights();     
+      //this.calculateAndPrintHeights();
+
+      this.calculator.calculateHeight();   
+      Output.print(this.calculator, this.heightOutput, this);      
    
       return([vertex, newEdge]);       
     }
@@ -126,11 +186,18 @@ function(
           nextPoint = nextVertex.geometry.getCoordinates();
           
       var vertex = new Vertex(point, this.vertexOuterRadius, this);            
-      vertex.image = new CircleVertex(point, this.vertexRadius, this.imageZIndex);
+      vertex.image = new CircleVertex(point, this.vertexRadius, this.vertexImageZIndex);
       
-      var newEdge1 = new Edge(prevPoint, point, this);
-      var newEdge2 = new Edge(point, nextPoint, this);
+
+      var newEdge1 = new PathEdge(prevPoint, point, this);
       
+      // In case when nextVertex is lastVertex
+      if (nextVertex.nextVertex == null) {
+        nextPoint = nextVertex.image.getEdgePoint();
+      }  
+      
+      var newEdge2 = new PathEdge(point, nextPoint, this);
+         
       vertex.prevVertex = prevVertex;
       vertex.nextVertex = nextVertex;
       
@@ -146,13 +213,18 @@ function(
       this.length++;
 
       map.geoObjects.remove(edge);
+      map.geoObjects.remove(edge.image);
       map.geoObjects.add(vertex.image);
       map.geoObjects.add(vertex);
       map.geoObjects.add(vertex.heightPlacemark);
       map.geoObjects.add(newEdge1);
       map.geoObjects.add(newEdge2);
+      map.geoObjects.add(newEdge1.image);
+      map.geoObjects.add(newEdge2.image);      
       
-      this.calculateAndPrintHeights();
+      //this.calculateAndPrintHeights();
+      this.calculator.calculateHeight();   
+      Output.print(this.calculator, this.heightOutput, this);         
             
       return([vertex, newEdge1, newEdge2]);      
     }
@@ -184,21 +256,24 @@ function(
           var removingEdge2 = removingVertex.nextLine;
           
           map.geoObjects.remove(removingEdge1);
+          map.geoObjects.remove(removingEdge1.image);
           map.geoObjects.remove(removingEdge2);
+          map.geoObjects.remove(removingEdge2.image);
           
           var prevPoint = prevVertex.geometry.getCoordinates();
           var nextPoint = nextVertex.geometry.getCoordinates();
-          
-          newEdge = new Edge(prevPoint, nextPoint, this); 
 
-          this.map.geoObjects.add(newEdge);
           
-          prevVertex.nextLine = newEdge;
+          //newEdge = new Edge(prevPoint, nextPoint, this);
+          //this.map.geoObjects.add(newEdge);
+
+          
+          //prevVertex.nextLine = newEdge;
           prevVertex.nextVertex = nextVertex;
           nextVertex.prevVertex = prevVertex;
           
-          newEdge.prevVertex = prevVertex;
           
+          var nextEdgePoint = null;
           
           // case when nextVertex is lastVertex 
           // and so we have to change direction of 
@@ -206,25 +281,61 @@ function(
           if (nextVertex.nextVertex == undefined) {
             map.geoObjects.remove(nextVertex.image);            
             nextVertex.image = 
-              new TriangleVertex(prevPoint, nextPoint, this.imageZIndex);
-            map.geoObjects.add(nextVertex.image);            
-          }         
+              new TriangleVertex(prevPoint, nextPoint, this.vertexImageZIndex);
+            map.geoObjects.add(nextVertex.image); 
+           
+            nextEdgePoint = nextVertex.image.getEdgePoint();            
+                       
+          } else {
+            nextEdgePoint = nextPoint;            
+          }
+          
+          newEdge = new PathEdge(prevPoint, nextEdgePoint, this);
+          this.map.geoObjects.add(newEdge);
+          this.map.geoObjects.add(newEdge.image);
+          
+          newEdge.prevVertex = prevVertex;
+          prevVertex.nextLine = newEdge;
+          
+          
+          
         } else if (nextVertex == undefined) {  // last vertex case   
-          var removingEdge = prevVertex.nextLine;
+          var removingEdge = prevVertex.nextLine;          
           map.geoObjects.remove(removingEdge);
+          
+          
+          map.geoObjects.remove(removingEdge.image);
+          
+          
           this.lastVertex = prevVertex;
           prevVertex.nextVertex = null;
           prevVertex.nextLine = null; 
           if (prevVertex.prevVertex != undefined) {
             map.geoObjects.remove(prevVertex.image);
+                        
             var prevPrevPoint = prevVertex.prevVertex.geometry.getCoordinates();
             var prevPoint = prevVertex.geometry.getCoordinates();            
             prevVertex.image = 
-              new TriangleVertex(prevPrevPoint, prevPoint, this.imageZIndex);
-            map.geoObjects.add(prevVertex.image);            
-          }          
+              new TriangleVertex(prevPrevPoint, prevPoint, this.vertexImageZIndex);
+            map.geoObjects.add(prevVertex.image);
+            
+
+            prevVertex.prevVertex.nextLine.setCoordinates(prevPrevPoint, prevVertex.image.getEdgePoint());            
+            
+          }
+
+          // If we remove last vertex (pathDirection == false), 
+          // initial height will change.
+          if (!this.pathDirection) {
+            var n = this.calculator.height.length;             
+            this.calculator.setFinalHeight(this.calculator.height[n-2]);
+            $("#finalHeight").val(Math.floor(this.calculator.height[n-2]));
+          } 
+          
         } else {  // first vertex case
-          map.geoObjects.remove(removingVertex.nextLine); 
+          map.geoObjects.remove(removingVertex.nextLine);
+          map.geoObjects.remove(removingVertex.nextLine.image);
+          
           nextVertex.prevVertex = null;
           this.firstVertex = nextVertex;           
           
@@ -232,13 +343,16 @@ function(
             var p = nextVertex.geometry.getCoordinates();
             map.geoObjects.remove(nextVertex.image);
             nextVertex.image = 
-              new CircleVertex(p, this.vertexRadius, this.imageZIndex);
+              new CircleVertex(p, this.vertexRadius, this.vertexImageZIndex);
             map.geoObjects.add(nextVertex.image);
           }
           
-          // If we remove first vertex, initial height will change. 
-          this.calculator.setStartHeight(this.calculator.height[1]);
-          $("#startHeight").val(Math.floor(this.calculator.height[1]));
+          // If we remove first vertex (pathPosition == true), 
+          // initial height will change.
+          if (this.pathDirection) {          
+            this.calculator.setStartHeight(this.calculator.height[1]);
+            $("#startHeight").val(Math.floor(this.calculator.height[1]));
+          }
           
         }
       } else {  // case: only one circle
@@ -247,7 +361,9 @@ function(
       
       this.length--;
       
-      this.calculateAndPrintHeights();
+      //this.calculateAndPrintHeights();
+      this.calculator.calculateHeight();   
+      Output.print(this.calculator, this.heightOutput, this);         
             
       return(newEdge);
     }
@@ -259,7 +375,9 @@ function(
     dragVertex(vertex) {
       var map = this.map;
           
-      this.calculateAndPrintHeights();
+      //this.calculateAndPrintHeights();
+      this.calculator.calculateHeight();   
+      Output.print(this.calculator, this.heightOutput, this);   
       
       // new vertex coordinates
       var point = vertex.geometry.getCoordinates();
@@ -275,7 +393,7 @@ function(
       }
 
       // Case: both prevVertex and nextVertex exist,
-      // that is this vertex is not first and not last.     
+      // that is, this vertex is not first and not last.     
       if ((nextVertex != undefined) && (prevVertex != undefined)) {
 
         vertex.image.geometry.setCoordinates(point); 
@@ -286,16 +404,25 @@ function(
         var nextLine = vertex.nextLine;
         var prevLine = prevVertex.nextLine;
         
-        nextLine.geometry.setCoordinates([point, nextPoint]);
-        prevLine.geometry.setCoordinates([prevPoint, point]);        
-      
+        var nextEdgePoint = null;                
         // Case when vertex.nextVertex is lastVertex:
         // in that case your should change 
         // direction of arrow at lastVertex.
         if (nextVertex.nextVertex == undefined) {        
           nextVertex.image.setCoordinates(point, nextPoint);
+          
+          nextEdgePoint = nextVertex.image.getEdgePoint();
+        } else {
+          nextEdgePoint = nextPoint;
         }
-
+        
+        //nextLine.geometry.setCoordinates([point, nextEdgePoint]);
+        //prevLine.geometry.setCoordinates([prevPoint, point]);        
+        
+        nextLine.setCoordinates(point, nextEdgePoint);
+        prevLine.setCoordinates(prevPoint, point); 
+        
+        
         return;        
       }
       
@@ -304,10 +431,16 @@ function(
       if (prevVertex != undefined) {        
         var prevPoint = prevVertex.geometry.getCoordinates();
         var prevLine = prevVertex.nextLine;        
-        prevLine.geometry.setCoordinates([prevPoint, point]);
+
 
         // We should change direction of arrow at the vertex
-        vertex.image.setCoordinates(prevPoint, point);         
+        vertex.image.setCoordinates(prevPoint, point);
+        
+        var edgePoint = vertex.image.getEdgePoint();
+        //prevLine.geometry.setCoordinates([prevPoint, edgePoint]);
+        
+        prevLine.setCoordinates(prevPoint, edgePoint);
+        
         return;        
       }
             
@@ -316,15 +449,25 @@ function(
       vertex.image.geometry.setCoordinates(point);
       
       var nextPoint = nextVertex.geometry.getCoordinates();
-      var nextLine = vertex.nextLine;        
-      nextLine.geometry.setCoordinates([point, nextPoint]);
 
+
+      var nextEdgePoint = null;
       // Case when vertex.nextVertex is lastVertex:
       // in that case your should change 
       // direction of arrow at lastVertex.
       if (nextVertex.nextVertex == undefined) {            
-        nextVertex.image.setCoordinates(point, nextPoint);                  
+        nextVertex.image.setCoordinates(point, nextPoint);
+        nextEdgePoint = nextVertex.image.getEdgePoint();        
+      } else {
+        nextEdgePoint = nextPoint;        
       }
+      
+      var nextLine = vertex.nextLine;        
+      //nextLine.geometry.setCoordinates([point, nextEdgePoint]);
+      
+      nextLine.setCoordinates(point, nextEdgePoint);
+      
+      
       return;            
     }
 
@@ -345,31 +488,41 @@ function(
         map.geoObjects.remove(vertex);
         map.geoObjects.remove(vertex.image);
         map.geoObjects.remove(vertex.nextLine);
+        map.geoObjects.remove(vertex.nextLine.image);
         map.geoObjects.remove(vertex.heightPlacemark);
       }
       
       this.length = 0;
       this.lastVertex = null; 
 
-      this.heightOutput.print([this.calculator.getStartHeight()]);     
+      this.heightOutput.print([this.calculator.getStartHeight()]);
+      
+      if (this.pathDirection) {
+        $("#finalHeight").val($("#startHeight").val());
+      } else {
+        $("#startHeight").val($("#finalHeight").val());
+      }      
     }
 
 
     /**
      * Print heights in vertex hints and in 
      * height output window.
-     */
+     *//*
     calculateAndPrintHeights() {
+      //this.calculator.setPathDirection(this.pathDirection);
       var height = this.calculator.calculateHeight();
       this.printHeightHints(height);       
-      this.heightOutput.print(height);               
-    }    
+      this.heightOutput.print(height);
+      $("#startHeight").val(Math.floor(this.calculator.getStartHeight()));
+      $("#finalHeight").val(Math.floor(this.calculator.getFinalHeight()));       
+    }    */
     
 
     /**
      * Print heights in vertices hints.
      * @param {number[]} height - heights in Path vertices.
-     */     
+     */     /*
     printHeightHints(height) {
       if (this.length > 0) {      
         var vertex = this.firstVertex;      
@@ -387,7 +540,7 @@ function(
           vertex = vertex.nextVertex;                    
         }
       }      
-    }   
+    }   */
   }  
   provide(Path);      
 });      

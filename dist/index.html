@@ -23,6 +23,7 @@
       <div class="windowCross" id="dzHeightMenuCross"></div>
     </div> 
     <div class="container" style="margin-top: 8px;">
+    
       <!-- Choose DZ input -->
       <div class="form-group">
         <label for="dz">Аэродром</label>
@@ -34,7 +35,19 @@
       <div class="form-group">
         <label for="startHeight">Начальная высота (м)</label>
         <input type="text" id="startHeight">               
-      </div>    
+      </div>
+      <!-- Final Height Input -->
+      <div class="form-group">
+        <label for="finalHeight">Конечная высота (м)</label>
+        <input type="text" id="finalHeight">               
+      </div>       
+      <!-- Path Direction Input -->     
+      <div class="form-check" style="padding-bottom: 10px;">
+        <input class="form-check-input" type="checkbox" value="" id="pathDirection">
+        <label class="form-check-label" for="pathDirection">
+          Строить траекторию в обратном порядке
+        </label>
+      </div>                     
     </div>  <!-- class="container" -->   
   </div>  <!-- id = "dzHeightMenu" -->
     
@@ -84,9 +97,7 @@
                id="windValueInput"
                min="0" max="10"
                onkeydown="return false;">
-        <div id="windValueInputScale" class="sliderScale">
-          <!--<script src="scale-scripts/add-wind-value-input-scale.js"></script>-->
-        </div>                  
+        <div id="windValueInputScale" class="sliderScale"></div>                  
       </div>  <!-- class="form-group" -->                 
     </div>  <!-- class="container" -->
   </div> <!-- id="windMenu" -->

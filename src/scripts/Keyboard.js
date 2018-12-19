@@ -1,5 +1,10 @@
-ymaps.modules.define('Keyboard', [],
-function(provide) {
+ymaps.modules.define('Keyboard', [
+  'Output'
+],
+function(
+  provide,
+  Output
+) {
 
   var Keyboard = {};
   
@@ -24,7 +29,7 @@ function(provide) {
   ) {
     
     //  Change Wind by keyboard.
-    $("html").keydown(function(e) { 
+    $(html).keydown(function(e) { 
       var key = e.which;
       switch(key) {
         case 39: 
@@ -34,8 +39,9 @@ function(provide) {
           }  
           arrow.rotate(wind.angle);
           $("#windDirectionInput").val(wind.angle);
-          var height = calculator.calculateHeight(); 
-          printWindHeight(wind, height);             
+          calculatePrintRresults();
+          //var height = calculator.calculateHeight(); 
+          //printWindHeight(wind, height);             
           break;
         case 37: 
           wind.angle -= 5;
@@ -44,24 +50,28 @@ function(provide) {
           }  
           arrow.rotate(wind.angle);
           $("#windDirectionInput").val(wind.angle);
-          var height = calculator.calculateHeight(); 
-          printWindHeight(wind, height);            
+          calculatePrintRresults();
+          //var height = calculator.calculateHeight(); 
+          //printWindHeight(wind, height);            
           break;
         case 38: 
           wind.value++;
           if (wind.value > 10) wind.value = 10;
           $("#windValueInput").val(wind.value);
-          var height = calculator.calculateHeight(); 
-          printWindHeight(wind, height);            
+          calculatePrintRresults();
+          //var height = calculator.calculateHeight(); 
+          //printWindHeight(wind, height);            
           break;
         case 40: 
           wind.value--;
           if (wind.value < 0) wind.value = 0;
           $("#windValueInput").val(wind.value);
-          var height = calculator.calculateHeight(); 
-          printWindHeight(wind, height);            
+          calculatePrintRresults();
+          //var height = calculator.calculateHeight(); 
+          //printWindHeight(wind, height);            
           break;
-      }              
+      }
+      
     });
 
     // To loose focus after pressing Enter on <input>
@@ -71,12 +81,19 @@ function(provide) {
         $("input").blur();     // Forced loose of focus
       }    
     });
-
+    
+    function calculatePrintRresults() {
+      calculator.calculateHeight();   
+      Output.print(calculator, heightOutput, path);
+      windOutput.print(wind);             
+    }
+    
+/*
     function printWindHeight(wind, height) {
       windOutput.print(wind);
       path.printHeightHints(height);       
       heightOutput.print(height)
-    }   
+    }   */
   }
     
   provide(Keyboard);  

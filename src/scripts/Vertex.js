@@ -28,7 +28,7 @@ function(provide, Circle, Placemark) {
       }); 
             
       // Distance from vertex to it's heightPlacemark
-      this.heightPlacemarkShift = 0.0002;
+      this.heightPlacemarkShift = 0.0001;
       
       // Placemark for Height of Chute at this vertex
       this.heightPlacemark = new ymaps.Placemark(
