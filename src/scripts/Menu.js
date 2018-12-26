@@ -3,7 +3,7 @@ ymaps.modules.define('Menu', [
 ],
 function(provide, MenuButton) {
   /**
-   * Set of buttons in the left side of screen.
+   * Set of buttons at the left side of screen.
    */
   class Menu {
     /**

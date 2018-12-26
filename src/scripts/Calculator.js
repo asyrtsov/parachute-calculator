@@ -6,54 +6,42 @@ function(provide) {
    */
   class Calculator {
     /**
+     * If path.getPathDirection() == true (that is, we add vertices 
+     * to the last vertex), then calculator begins computation 
+     * from first vertex and this.startHeight height; 
+     * if path.getPathDirection() == false (that is, we add vertices 
+     * to first vertex), then calculator begins computation 
+     * from lst vertex and this.finalHeight height.
      * @param {Path} path - list of vertices and edges of Chute Path.
      * @param {Wind} wind - Wind velocity.
      * @param {Chute} chute - Chute velocity.
-     * @param {number} [startHeight] - Start (and final) height of chute, in meters.
-     * @param {boolean} [pathDirection] - If true, calculator calculates 
-     * heights from start height, if false - from final height.
+     * @param {number} startHeightDefault - Default Start height of chute, in meters;
+     * it is used for Direct computation.
+     * @param {number} finalHeightDefault - Default Final Height; it is used for 
+     * Back computation.
      */
-    constructor(path, wind, chute, startHeight = 300) {      
+    constructor(path, wind, chute, startHeight, finalHeight) {      
       this.path = path;
       this.chute = chute;
       this.wind = wind;
       
-      this.startHeight = startHeight;
-      this.finalHeight = startHeight;
       
-      //this.pathDirection = pathDirection;
-  
+      this.startHeight = startHeight;
+      this.finalHeight = finalHeight; 
+                  
       // Array of heights in all vertices of path.
       this.height = [];        
     }
         
     setStartHeight(startHeight) {
-      if (this.path.getPathDirection()) {
-        this.startHeight = startHeight;
-        /* this.calculateHeight();
-        if (this.height.length > 0) {
-          this.finalHeight = this.height[this.height - 1];
-        } else {
-          this.finalHeight = this.startHeight;
-        }  */
-      }
-      return(this.path.getPathDirection());      
+      this.startHeight = startHeight; 
     }
 
     setFinalHeight(finalHeight) {
-      if (!this.path.getPathDirection()) {
-        this.finalHeight = finalHeight;
-        /*this.calculateHeight();
-        
-        if (this.height.length > 0) {
-          this.startHeight = this.height[0];
-        } else {
-          this.startHeight = this.finalHeight;
-        }   */       
-      }
-      return(this.path.getPathDirection());      
+      this.finalHeight = finalHeight;  
     }
     
+   
     getStartHeight() {
       return(this.startHeight);
     }
@@ -67,123 +55,143 @@ function(provide) {
     }
     
     
-    /** 
-     * Calculate heightes in all vertices of Chute Path.
-     * @return {number[]} this.height. 
-     * Here height[i]  = height at the ith vertex of Path (in meters).
-     * If height.length < path.length than it is impossible
-     * to fly this Path.
-     */      
+    /**
+     * Condition for using this function: path.length > 0
+     */
     calculateHeight() {
-      this.height = [];
       
-      if (this.path.length == 0) return(this.height); 
-            
-      var time = this.calculateTime();
-              
-      this.height[0] = 0;
-            
-      for(var i=1; i<time.length; i++) {
-        this.height[i] = this.height[i-1] - time[i] * this.chute.verticalVel;
-      }
+      var path = this.path;      
       
-      if (this.path.getPathDirection()) {
-        for(var i=0; i<this.height.length; i++) {
-          this.height[i] += this.startHeight;
-        }
-        this.finalHeight = this.height[this.height.length - 1];         
+      this.height = [];      
+
+      if (path.getPathDirection()) {
+        // Calculations in direct direction
         
-      } else { 
-        var h = this.finalHeight - this.height[this.height.length - 1];
-        for(var i=0; i<this.height.length; i++) {
-          this.height[i] += h;
+        var currentVertex = path.firstVertex;
+               
+        this.height[0] = this.startHeight;
+        
+        for(var i=1; i < path.length; i++) {
+                              
+          var nextVertex = currentVertex.nextVertex;
+         
+          var currentPoint = currentVertex.geometry.getCoordinates();
+          var nextPoint = nextVertex.geometry.getCoordinates();
+
+          var edgeTime = this.calculateTimeEdge(currentPoint, nextPoint); 
+          if (edgeTime == -1) {
+            
+            for(var j=i; j<path.length; j++) {
+              this.height[j] = null;
+            } 
+            break;
+          } else {
+            this.height[i] = this.height[i-1] - edgeTime * this.chute.verticalVel;            
+          }
+          
+          currentVertex = nextVertex;         
         }
+
+        this.finalHeight = this.height[this.height.length - 1]; 
+        
+      } else {
+        // Calculations in back direction        
+        
+        var currentVertex = path.lastVertex;
+        
+        this.height[path.length - 1] = this.finalHeight;        
+        //this.height[path.length - 1] = this.startOrFinalHeight;
+                
+        for(var i = path.length - 2; i >= 0; i--) {
+                              
+          var prevVertex = currentVertex.prevVertex;
+         
+          var currentPoint = currentVertex.geometry.getCoordinates();
+          var prevPoint = prevVertex.geometry.getCoordinates();
+
+          var edgeTime = this.calculateTimeEdge(prevPoint, currentPoint); 
+          if (edgeTime == -1) {
+            for(var j=i; j>=0; j--) {
+              this.height[j] = null;
+            }
+            break;
+          } else {
+            this.height[i] = this.height[i+1] + edgeTime * this.chute.verticalVel;            
+          }
+
+          currentVertex = prevVertex;           
+        }
+        
         this.startHeight = this.height[0];        
       }
-      
-      return(this.height);      
+
+      return(this.height);       
     }
+
+
+    
 
     /** 
-     * Calculate time of Chute flying along Path. In Path vertices.  
-     * @return {number[]} time.
-     * Here time[i]  = time of flying along ith segment of Path (in seconds).
-     * If time.length < path.length, than it is impossible
-     * to fly this Path.
+     * Calculate time of Chute flying along Line Segment (Edge).
+     * @param {number[]} pointA - Yandex Maps Coordinates: (latitude, longitude).
+     * @param {number[]} pointB - Yandex Maps Coordinates: (latitude, longitude).     
+     * @return {number} - Time of flying along line segment [pointA, pointB];      
+     * in seconds; If it is impossible to fly this segment, it returns time = 1.
      */    
-    calculateTime() {  
-    
-      var time = [];  
-                                                 
-      var path = this.path;
+    calculateTimeEdge(pointA, pointB) {
+      
       var chute = this.chute;
-      var wind = this.wind;
-      //var startHeight = this.startHeight;
+      var wind = this.wind; 
       
-      var currentVertex = path.firstVertex;
+      var dist = ymaps.coordSystem.geo.getDistance(pointA, pointB); 
+
+      // Let's find right norm basis (e, f), first vector of which (e)
+      // has the same direction with vector [pointA, pointB].      
+      // Yandex Maps Coordinates: (latitude, longitude)
+      // Latitude is increasing from bottom to top (-90deg, 90deg)
+      // Longitude is increasing from West to East (-180deg, 180deg)
+      var ex = pointB[1] - pointA[1];
+      var ey = pointB[0] - pointA[0]; 
+                               
+      var d = Math.sqrt(ex*ex + ey*ey);
+      ex = ex / d;
+      ey = ey / d;
       
-      if (path.length > 0) time[0] = 0;
+      var fx = -ey;
+      var fy = ex;
       
-      for(var i=1; i < path.length; i++) {
-                
-        // Let's find right norm basis (e, f), first vector of which
-        // has the same direction with vector {prevPoint, currentPoint}
-          
-        var nextVertex = currentVertex.nextVertex;
+      // Let's find coordinates (we, wf) of vector 'wind' in basis (e, f).
+      // (e, f) is orthogonal basis, so we = (wind, e), wf = (wind, f).
+      var [wx, wy] = wind.getXY();
+   
+      var we = wx * ex + wy * ey; 
+      var wf = wx * fx + wy * fy;     
        
-        var currentPoint = currentVertex.geometry.getCoordinates();
-        var nextPoint = nextVertex.geometry.getCoordinates();        
-          
-        var dist = ymaps.coordSystem.geo.getDistance(currentPoint, nextPoint);
-        
-        // Yandex Maps Coordinates: (latitude, longitude)
-        // Latitude is increasing from bottom to top (-90deg, 90deg)
-        // Longitude is increasing from West to East (-180deg, 180deg)
-        var ex = nextPoint[1] - currentPoint[1];
-        var ey = nextPoint[0] - currentPoint[0]; 
-                                 
-        var d = Math.sqrt(ex*ex + ey*ey);
-        ex = ex / d;
-        ey = ey / d;
-        
-        var fx = -ey;
-        var fy = ex;
-        
-        // Let's find coordinates (we, wf) of vector 'wind' in basis (e, f).
-        // (e, f) is orthogonal basis, so we = (wind, e), wf = (wind, f).
-        var [wx, wy] = wind.getXY();
-     
-        var we = wx * ex + wy * ey; 
-        var wf = wx * fx + wy * fy;     
-         
-        // Let's find coordinates (ce, cf) of chute velocity 
-        // in basis (e, f):
-        
-        var cf = (-1)*wf;
-        
-        // it is impossible to fly this segment
-        if (chute.horizontalVel < Math.abs(cf)) break;
-    
-        var ce = Math.sqrt(chute.horizontalVel**2 - cf**2);
-        
-        // We consider only case, where ce > 0 
-        // (it's always the case, if chute velocity is greater than wind velocity)    
-        // In general case you should consider case, 
-        // when ce < 0 (case when diver flies forward with his back)   
-
-        // 0.1 m/sec is too small velocity
-        // So, it is impossible to fly this segment        
-        if (ce + we <= 0.1) {  
-          break;
-        } else {
-          time[i] = dist / (ce + we);                   
-        }
-
-        currentVertex = nextVertex;        
-      }
+      // Let's find coordinates (ce, cf) of chute velocity 
+      // in basis (e, f):
       
-      return(time);        
+      var cf = (-1)*wf;
+      
+      // it is impossible to fly this segment
+      if (chute.horizontalVel < Math.abs(cf)) return(-1);
+  
+      var ce = Math.sqrt(chute.horizontalVel**2 - cf**2);
+      
+      // We consider only case, where ce > 0 
+      // (it's always the case, if chute velocity is greater than wind velocity)    
+      // In general case you should consider case, 
+      // when ce < 0 (case when diver flies forward with his back)   
+
+      // 0.1 m/sec is too small velocity
+      // So, it is impossible to fly this segment        
+      if (ce + we <= 0.1) {  
+        return(-1);
+      } else {
+        var time = dist / (ce + we);
+        return(time);         
+      }     
     }
+   
   }
       
   provide(Calculator);  

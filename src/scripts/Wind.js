@@ -1,5 +1,7 @@
-ymaps.modules.define('Wind', [],
-function(provide) {
+ymaps.modules.define('Wind', [
+  'Constant'
+],
+function(provide, Constant) {
 
   class Wind {
     /** 
@@ -8,10 +10,51 @@ function(provide) {
      * @param {number} angle - between current wind and west wind, in degree.     
      */
     constructor(value, angle) {
-      this.value = value;
-      this.angle = angle;    
+      this.setValue(value);
+      this.setAngle(angle);      
     }
     
+    /**
+     * this.angle will be in interval (-180, 180] degrees.
+     */
+    setAngle(angle) {
+      
+      angle = Math.floor(angle); 
+            
+      if (angle >= 0) {
+        angle = angle % 360;
+      } else {
+        // negative angle case
+        angle = angle * (-1);
+        angle = angle % 360;
+        angle = 360 - angle;        
+      }
+      
+      if (angle > 180) {
+        angle -= 360;
+      }        
+             
+      this.angle = angle;              
+    }
+    
+    /**
+     * @return {boolean} - It returns false if value was out of 
+     * permitted values.
+     */
+    setValue(value) {      
+      if ((value > Constant.maxWindValue) || (value < 0)) return(false);      
+      this.value = value;
+      return(true);      
+    }
+     
+    getAngle() {
+      return(this.angle);
+    }
+    
+    getValue() {
+      return(this.value);
+    }
+        
     /**
      * Calculate wind coordinates in cartesian coordinate system.
      * @return {number[]} [vx, vy] - coordinates, in m/sec.
@@ -42,7 +85,7 @@ function(provide) {
         case 8: direction = "В"; break;    
       }
       
-      return direction;     
+      return(direction);     
     }        
   }
       

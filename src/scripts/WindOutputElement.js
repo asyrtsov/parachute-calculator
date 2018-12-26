@@ -17,7 +17,7 @@ function(provide, OutputElement) {
      */     
     print(wind) {  
       this.data.set("content", "Ветер: " + 
-        wind.value + " м/с, " + wind.getDirection());        
+        wind.getValue() + " м/с, " + wind.getDirection());        
     }           
   } 
   provide(WindOutputElement);  

@@ -29,25 +29,30 @@ function(
   ) {
     
     //  Change Wind by keyboard.
-    $(html).keydown(function(e) { 
+    $("html").keydown(function(e) { 
       var key = e.which;
       switch(key) {
-        case 39: 
+        case 39:
+          wind.setAngle(wind.getAngle() + 5);
+          /*
           wind.angle += 5;
           if (wind.angle > 180) { 
             wind.angle = -180 + (wind.angle - 180);
-          }  
+          } */  
           arrow.rotate(wind.angle);
           $("#windDirectionInput").val(wind.angle);
           calculatePrintRresults();
           //var height = calculator.calculateHeight(); 
           //printWindHeight(wind, height);             
           break;
-        case 37: 
+        case 37:
+
+          wind.setAngle(wind.getAngle() - 5);
+          /*
           wind.angle -= 5;
           if (wind.angle < -180) {
             wind.angle = 180 - (-180 - wind.angle);
-          }  
+          }  */
           arrow.rotate(wind.angle);
           $("#windDirectionInput").val(wind.angle);
           calculatePrintRresults();
@@ -55,16 +60,23 @@ function(
           //printWindHeight(wind, height);            
           break;
         case 38: 
+         
+          wind.setValue(wind.getValue() + 1);
+          /*
           wind.value++;
-          if (wind.value > 10) wind.value = 10;
+          if (wind.value > 10) wind.value = 10; */
           $("#windValueInput").val(wind.value);
           calculatePrintRresults();
           //var height = calculator.calculateHeight(); 
           //printWindHeight(wind, height);            
           break;
         case 40: 
+        
+         wind.setValue(wind.getValue() - 1);
+         
+          /*
           wind.value--;
-          if (wind.value < 0) wind.value = 0;
+          if (wind.value < 0) wind.value = 0; */
           $("#windValueInput").val(wind.value);
           calculatePrintRresults();
           //var height = calculator.calculateHeight(); 
@@ -83,8 +95,12 @@ function(
     });
     
     function calculatePrintRresults() {
-      calculator.calculateHeight();   
-      Output.print(calculator, heightOutput, path);
+      
+      if (path.length > 0) {      
+        calculator.calculateHeight();   
+        Output.print(calculator, heightOutput, path);
+      }
+      
       windOutput.print(wind);             
     }
     

@@ -1,8 +1,9 @@
 ymaps.modules.define('AppMap', [
   'Map', 
-  'control.ZoomControl'  
+  'control.ZoomControl', 
+  'Constant'  
 ],
-function(provide, Map, ZoomControl) {
+function(provide, Map, ZoomControl, Constant) {
   
   class AppMap extends Map {
     /**
@@ -36,14 +37,14 @@ function(provide, Map, ZoomControl) {
     }
     
     
-    setSearchProcessor(path, heightOutput, calculator, arrow, dz, defaultZoom) {
+    setSearchProcessor(path, heightOutput, calculator, arrow, dz) {
       
       this.path = path;
       this.heightOutput = heightOutput;
       this.calculator = calculator;
       this.arrow = arrow;
       this.dz = dz;
-      this.defaultZoom = defaultZoom;
+      this.defaultZoom = Constant.defaultZoom;
       
       this.searchControl.events.add('resultshow', function(e) {
                 

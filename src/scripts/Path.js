@@ -4,7 +4,8 @@ ymaps.modules.define('Path', [
   'TriangleVertex',
   'Vertex', 
   'PathEdge', 
-  'Output'  
+  'Output', 
+  'Constant'  
 ],
 function(
   provide, 
@@ -12,7 +13,8 @@ function(
   TriangleVertex, 
   Vertex, 
   PathEdge, 
-  Output
+  Output, 
+  Constant
 ) {     
   /**
    * List of vertices and edges of Chute Path.
@@ -30,7 +32,7 @@ function(
      * @param {boolean} pathDirection - If true, we add new vertex to the start of Path; 
      * if false, we add it to end of Path.     
      */  
-    constructor(map, isMobile, pathDirection = true) {
+    constructor(map, isMobile, pathDirection) {
       this.map = map;
       this.firstVertex = null;
       this.lastVertex = null;
@@ -156,11 +158,8 @@ function(
       map.geoObjects.add(vertex.image);
       map.geoObjects.add(vertex);
       map.geoObjects.add(vertex.heightPlacemark);
-    
-       
+           
       this.length++;
-
-      //this.calculateAndPrintHeights();
 
       this.calculator.calculateHeight();   
       Output.print(this.calculator, this.heightOutput, this);      
@@ -362,8 +361,11 @@ function(
       this.length--;
       
       //this.calculateAndPrintHeights();
-      this.calculator.calculateHeight();   
-      Output.print(this.calculator, this.heightOutput, this);         
+      if (this.length > 0) {
+        this.calculator.calculateHeight();
+        Output.print(this.calculator, this.heightOutput, this);         
+      }        
+        
             
       return(newEdge);
     }
@@ -476,71 +478,74 @@ function(
     clear() {
       var map = this.map;
            
-      if (this.length == 0 ) return;
+      if (this.length > 0 ) {
       
-      var vertex = this.lastVertex;  
-      map.geoObjects.remove(vertex);
-      map.geoObjects.remove(vertex.image);
-      map.geoObjects.remove(vertex.heightPlacemark);
-      
-      for(var i=1; i < this.length; i++) {
-        vertex = vertex.prevVertex; 
+        var vertex = this.lastVertex;  
         map.geoObjects.remove(vertex);
         map.geoObjects.remove(vertex.image);
-        map.geoObjects.remove(vertex.nextLine);
-        map.geoObjects.remove(vertex.nextLine.image);
         map.geoObjects.remove(vertex.heightPlacemark);
+        
+        for(var i=1; i < this.length; i++) {
+          vertex = vertex.prevVertex; 
+          map.geoObjects.remove(vertex);
+          map.geoObjects.remove(vertex.image);
+          map.geoObjects.remove(vertex.nextLine);
+          map.geoObjects.remove(vertex.nextLine.image);
+          map.geoObjects.remove(vertex.heightPlacemark);
+        }
+        
+        this.length = 0;
+        this.lastVertex = null; 
       }
       
-      this.length = 0;
-      this.lastVertex = null; 
-
-      this.heightOutput.print([this.calculator.getStartHeight()]);
+      var out = this.pathDirection ? 
+        Constant.defaultStartHeight : Constant.defaultFinalHeight;      
       
-      if (this.pathDirection) {
-        $("#finalHeight").val($("#startHeight").val());
-      } else {
-        $("#startHeight").val($("#finalHeight").val());
-      }      
+      this.heightOutput.print(out);
+      $("#startHeight").val(out);
+      $("#finalHeight").val(out);
+      this.calculator.setStartHeight(Constant.defaultStartHeight);
+      this.calculator.setFinalHeight(Constant.defaultFinalHeight); 
+      
+       
     }
 
 
     /**
-     * Print heights in vertex hints and in 
-     * height output window.
-     *//*
-    calculateAndPrintHeights() {
-      //this.calculator.setPathDirection(this.pathDirection);
-      var height = this.calculator.calculateHeight();
-      this.printHeightHints(height);       
-      this.heightOutput.print(height);
-      $("#startHeight").val(Math.floor(this.calculator.getStartHeight()));
-      $("#finalHeight").val(Math.floor(this.calculator.getFinalHeight()));       
-    }    */
-    
-
-    /**
-     * Print heights in vertices hints.
-     * @param {number[]} height - heights in Path vertices.
-     */     /*
-    printHeightHints(height) {
-      if (this.length > 0) {      
-        var vertex = this.firstVertex;      
-        for(var i=0; i<height.length; i++) {
-          vertex.properties.set("hintContent", "h=" + 
-                                       Math.floor(height[i]) + "м");
-          vertex.heightPlacemark.properties.set("iconContent",
-                                       Math.floor(height[i]) + "м");
-                                       
+     * Print heights in vertices ballons and hints.
+     * @param {Array} height - heights in Path vertices.
+     */     
+    printBallonsAndHints(height) {
+      if (this.length > 0 && height.length > 0) {      
+        var vertex = this.firstVertex;
+        
+        var beforeNumber = true;
+            
+        for(var i=0; i < this.length; i++) {
+          
+          if (typeof(height[i]) == 'number') {
+                    
+            vertex.properties.set("hintContent", "h=" + 
+                                         Math.floor(height[i]) + "м");
+            vertex.heightPlacemark.properties.set("iconContent",
+                                         Math.floor(height[i]) + "м");
+            beforeNumber = false;
+                                         
+          } else {
+            if (beforeNumber) {
+              vertex.properties.set("hintContent", "&#x26D4;");
+              vertex.heightPlacemark.properties.set("iconContent", "Отсюда не долететь!");                         
+            } else {
+              vertex.properties.set("hintContent", "&#x26D4;");
+              vertex.heightPlacemark.properties.set("iconContent", "Сюда не долететь!");                             
+            }            
+          }                            
+                                                                              
           vertex = vertex.nextVertex;
         }
-        for(var i=height.length; i<this.length; i++) {
-          vertex.properties.set("hintContent", "&#x26D4;");
-          vertex.heightPlacemark.properties.set("iconContent", "Сюда не долететь!");        
-          vertex = vertex.nextVertex;                    
-        }
       }      
-    }   */
+    }
+  
   }  
   provide(Path);      
 });      

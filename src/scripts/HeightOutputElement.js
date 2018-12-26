@@ -3,21 +3,32 @@ ymaps.modules.define('HeightOutputElement', [
 ],
 function(provide, OutputElement) {
   /**
-   * Window for outputing height in last point of the path. 
+   * Window for outputing height. 
    */
   class HeightOutputElement extends OutputElement {
-    
-    constructor(path, startHeight) {
+
+    /**
+     * @param {number} height
+     */  
+    constructor(height) {
       super();
-      this.path = path;
-      
-      this.print([startHeight]);      
+            
+      this.print(height);      
     }
     
     /**
-     * @param {number[]} height
+     * @param {number} height
      */
-    print(height) {            
+    print(height) {
+      
+      if (typeof(height) == 'number') {
+        this.data.set("content", "Высота: " + Math.floor(height) + " м");               
+      } else {
+        this.data.set("content", "Высота: неопределена");                
+      }
+      
+      //this.data.set("content", message); 
+      /*    
       if (height.length > 0) {      
         if ((height.length == this.path.length) || 
             (this.path.length == 0)) {         
@@ -27,7 +38,7 @@ function(provide, OutputElement) {
           // Impossible to fly to this vertex          
           this.data.set("content", "Высота: неопределена");
         }
-      }      
+      } */     
     }     
   } 
   provide(HeightOutputElement);  

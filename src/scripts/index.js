@@ -32,7 +32,8 @@ function init() {
     'WindOutputElement', 
     'Menu', 
     'DialogWindows', 
-    'Keyboard'
+    'Keyboard', 
+    'Constant'
   ]).spread(function (
     AppMap,
     Wind, 
@@ -44,10 +45,10 @@ function init() {
     WindOutputElement, 
     Menu, 
     DialogWindows, 
-    Keyboard    
+    Keyboard, 
+    Constant   
   ) {
-    var defaultZoom = 16;  
-    var map = new AppMap(dz[0].mapCenter, defaultZoom);
+    var map = new AppMap(dz[0].mapCenter, Constant.defaultZoom);
     
     var wind = new Wind(5, 0);     // West wind, 5 m/sec      
     var chute = new Chute(10, 5);  // Chute velocity = (10, 5) m/s
@@ -56,12 +57,18 @@ function init() {
     var path = new Path(map, isMobile, true); 
         
     // Calculator will make all computations.
-    var calculator = new Calculator(path, wind, chute, 300);
+    var calculator = new Calculator(
+      path, 
+      wind, 
+      chute, 
+      Constant.defaultStartHeight,
+      Constant.defaultFinalHeight
+    );
     path.calculator = calculator;    
 
     
     // Output window at the top left corner of the screen.    
-    var heightOutput = new HeightOutputElement(path, calculator.getStartHeight());   
+    var heightOutput = new HeightOutputElement(Constant.defaultStartHeight);   
     map.controls.add(heightOutput, {float: 'left'});
     path.heightOutput = heightOutput;
 
@@ -91,8 +98,7 @@ function init() {
     // Add events processing for Dialog Windows:
     //   for Settings, Chute, Wind windows.
     DialogWindows.initializeWindows(
-      dz,
-      defaultZoom,      
+      dz,   
       map, 
       arrow, 
       path, 
@@ -120,6 +126,6 @@ function init() {
     // After yandex maps search we should: 
     //   set arrow (windsock) in the center of screen, 
     //   add result of search to Settings Dialog Window.
-    map.setSearchProcessor(path, heightOutput, calculator, arrow, dz, defaultZoom); 
+    map.setSearchProcessor(path, heightOutput, calculator, arrow, dz); 
   });      
 }
