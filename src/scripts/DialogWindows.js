@@ -136,7 +136,14 @@ function(
           calculator.setStartHeight(Constant.defaultStartHeight);
           calculator.setFinalHeight(Constant.defaultFinalHeight);       
         }                                 
-      });      
+      });  
+
+    
+      $("#arrowScale").change(function() {
+        var isChecked = $(this).prop("checked");
+        arrow.setArrowToBeScaled(isChecked);      
+      }); 
+      
     }    
               
     /** 

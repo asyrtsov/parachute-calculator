@@ -1,9 +1,10 @@
 /** @module Arrow */
 ymaps.modules.define('Arrow', [
   'Placemark',
-  'templateLayoutFactory'        
+  'templateLayoutFactory', 
+  'Constant'  
 ],
-function(provide, Placemark, templateLayoutFactory) {
+function(provide, Placemark, templateLayoutFactory, Constant) {
   
   /**
    * Yandex Maps Placemark for Arrow (Windsock). 
@@ -34,20 +35,41 @@ function(provide, Placemark, templateLayoutFactory) {
           }          
         }
       );
-      
+           
       this.arrowStartSize = arrowStartSize;
       this.arrowStartRadius = arrowStartRadius;   
 
-      // Change arrow size when map zoom was changed.    
-      map.events.add('boundschange', function (e) {
+      this.map = map;
+      
+      this.boundChange = function(e) {
         var newZoom = e.get('newZoom'),
               oldZoom = e.get('oldZoom');
         if (newZoom != oldZoom) {
           this.changeSize(newZoom);
         }
-      }.bind(this));      
+      }.bind(this); 
+
+      this.setArrowToBeScaled(true);          
     }
-   
+    
+    /**
+     * Set arrow to be scaled with map zooming or 
+     * not to be scaled
+     * @param {boolean} arrowIsScaled
+     */     
+    setArrowToBeScaled(arrowIsScaled) {
+    
+      if (arrowIsScaled) {
+        this.map.events.add('boundschange', this.boundChange);
+        var zoom = this.map.getZoom();
+        this.changeSize(zoom);
+                
+      } else {
+        this.map.events.remove('boundschange', this.boundChange); 
+        this.changeSize(Constant.defaultZoom);       
+      }       
+    }
+       
    /**
     * Rotate arrow
     */
@@ -59,13 +81,13 @@ function(provide, Placemark, templateLayoutFactory) {
      * Arrow will have different size for different Zoom.
      */
     changeSize(newZoom) {
-      var size = (2**(newZoom - 16))*(this.arrowStartSize);
+      var size = (2**(newZoom - Constant.defaultZoom))*(this.arrowStartSize);
       
       var shape = 
         {
           type: 'Circle',
           coordinates: [size/2, size/2],
-          radius: (2**(newZoom - 16))*(this.arrowStartRadius)
+          radius: (2**(newZoom - Constant.defaultZoom))*(this.arrowStartRadius)
         };
       
       this.options.set('iconShape', shape);      

@@ -536,8 +536,9 @@ function(
               vertex.properties.set("hintContent", "&#x26D4;");
               vertex.heightPlacemark.properties.set("iconContent", "Отсюда не долететь!");                         
             } else {
+              //vertex.heightPlacemark.options.set("preset", "islands#redIcon");
               vertex.properties.set("hintContent", "&#x26D4;");
-              vertex.heightPlacemark.properties.set("iconContent", "Сюда не долететь!");                             
+              vertex.heightPlacemark.properties.set("iconContent", "Сюда не долететь!");        
             }            
           }                            
                                                                               
