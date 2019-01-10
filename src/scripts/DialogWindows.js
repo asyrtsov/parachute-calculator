@@ -1,19 +1,17 @@
 ymaps.modules.define('DialogWindows', [
   'Output', 
-  'Constant'
+  'Constant', 
+  'Arrow'
 ],
 function(
   provide, 
   Output, 
-  Constant  
+  Constant, 
+  Arrow  
 ) {
 
   var DialogWindows = {};
   /**
-   * @param {Object[]} dz
-   * @param {string} dz[].name - Name of DZ.
-   * @param {number[]} dz[].mapCenter - Coordinates of DZ.
-   * @param {number} defaultZoom
    * @param {AppMap} map
    * @param {Path} path
    * @param {HeightOutputElement} heightOutput
@@ -23,20 +21,21 @@ function(
    * @param {Wind} wind 
    */
   DialogWindows.initializeWindows = function (
-    dz,   
     map, 
-    arrow, 
     path, 
     heightOutput, 
     windOutput, 
     calculator, 
     chute, 
-    wind
+    windList
   ) {
+    
+    var wind = windList.currentWind;
+    
 
     initSettingsWindow();
     initChuteWindow();
-    initWindWindow();
+    initWindListWindow();
     
        
     /**
@@ -46,13 +45,14 @@ function(
      */
     function initSettingsWindow() {
       // Set default options: dz array
-      for(var i=0; i<dz.length; i++) {
-        $("#dz").append("<option>" + dz[i].name + "</option>");    
+      for(var i=0; i<map.dz.length; i++) {
+        $("#dz").append("<option>" + map.dz[i].name + "</option>");    
       }  
       $("#dz").on("change", function() {
-        var mapCenter = dz[this.selectedIndex].mapCenter;      
+        var mapCenter = map.dz[this.selectedIndex].mapCenter;      
         map.setCenter(mapCenter, Constant.defaultZoom); 
-        arrow.geometry.setCoordinates(mapCenter);
+        wind.arrow.setCoordinates(mapCenter);
+        //arrow.geometry.setCoordinates(mapCenter);
         
         // path.clear() will print results too
         path.clear();
@@ -136,14 +136,7 @@ function(
           calculator.setStartHeight(Constant.defaultStartHeight);
           calculator.setFinalHeight(Constant.defaultFinalHeight);       
         }                                 
-      });  
-
-    
-      $("#arrowScale").change(function() {
-        var isChecked = $(this).prop("checked");
-        arrow.setArrowToBeScaled(isChecked);      
-      }); 
-      
+      });        
     }    
               
     /** 
@@ -174,23 +167,49 @@ function(
     }    
 
     /** 
-     * Wind Window initialization.
+     * WindList Window initialization.
      */    
-    function initWindWindow() {
-      // Set default value      
-      $("#windDirectionInput").val(wind.getAngle());
-
+    function initWindListWindow() {
       
       $("#windValueInput").prop("max", "" + Constant.maxWindValue);
-      $("#windValueInput").val(wind.getValue());
                   
+      initWindWindow();
+      
+      $("#windHeightInput").on("change", function() {
+        
+        var s = $("#windHeightInput").val();
+        
+        var n = Number.parseFloat(s);
+        
+        if ((n >= 0) && (n <= Constant.maxHeight)) {
+          windList.currentWind.setHeight(n);
+          $("#windHeightInput").val(n);          
+        } else if (windList.numberOfWinds > 1) {
+          windList.currentWind.setHeight(null);
+          $("#windHeightInput").val('');
+        } else {
+          windList.currentWind.setHeight(0);
+          $("#windHeightInput").val(0);
+        }       
+        
+        
+        
+        
+        if (path.length > 0) {
+          calculator.calculateHeight();   
+          Output.print(calculator, heightOutput, path);
+        }
+        
+      });
+      
+                       
       // Change Wind Direction in Wind Window.  
       $("#windDirectionInput").on('input change', function() {
         var angleStr = $("#windDirectionInput").val();          
         var angle = Number.parseInt(angleStr);
-        arrow.rotate(angle);
+        //arrow.rotate(angle);
         
-        wind.setAngle(angle);
+        windList.currentWind.setAngle(angle);
         //wind.angle = angle;
 
         if (path.length > 0) {
@@ -198,7 +217,7 @@ function(
           Output.print(calculator, heightOutput, path);
         }
         
-        windOutput.print(wind);            
+        windOutput.print(windList.currentWind);            
       });
 
       // Change Wind Value in Wind Window.   
@@ -206,7 +225,7 @@ function(
         var valueStr = $("#windValueInput").val();
         var value = Number.parseInt(valueStr);
 
-        wind.setValue(value);
+        windList.currentWind.setValue(value);
         //wind.value = value;
         
         if (path.length > 0) {
@@ -214,11 +233,54 @@ function(
           Output.print(calculator, heightOutput, path);
         }
         
-        windOutput.print(wind);        
+        windOutput.print(windList.currentWind);        
       });
       
       // Draw scales for Wind Window    
-      drawWindScales();     
+      drawWindScales();
+
+      /*
+      $("#addWindButton").on("click", function() {
+        console.log("click");     
+      }); */
+      
+      
+      
+      $("#arrowScale").change(function() {
+        var isChecked = $(this).prop("checked");
+        windList.currentWind.arrow.setArrowToBeScaled(isChecked);               
+      }); 
+      
+      
+      $("#addWind").click(function(){
+        windList.addWind();
+        initWindWindow();        
+      });
+      
+      $("#removeWind").click(function() {
+        console.log("remove");
+        windList.removeCurrentWind();
+        initWindWindow();         
+      });
+      
+      $("#leftCarouselButton").click(function() {
+        console.log("left");
+        windList.moveCurrentPointerToPrev();
+        initWindWindow();         
+      });
+
+      $("#rightCarouselButton").click(function() {
+        console.log("right");
+        windList.moveCurrentPointerToNext();
+        initWindWindow();         
+      }); 
+            
+      function initWindWindow() {
+        $("#windHeightInput").val(windList.currentWind.getHeight());    
+        $("#windDirectionInput").val(windList.currentWind.getAngle());
+        $("#windValueInput").val(windList.currentWind.getValue());                
+      }      
+                  
     }
    
     /**

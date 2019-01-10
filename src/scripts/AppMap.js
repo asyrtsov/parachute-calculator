@@ -10,13 +10,23 @@ function(provide, Map, ZoomControl, Constant) {
      * @param {number[]} center 
      * @param {numner} zoom
      */
-    constructor(center, zoom) {      
+    constructor() {
+
+      // Array of Dropzones and their coordinates.
+      var dz = [
+        {name: "Коломна", mapCenter: [55.091289443603706, 38.917269584802675]}, 
+        {name: "Пущино", mapCenter: [54.78929269708931,37.64268598670033]}, 
+        {name: "Ватулино", mapCenter: [55.663193308717396,36.14121807608322]}
+      ];    
+        
       super("map", {
-        center: center,    
-        zoom: zoom
+        center: dz[0].mapCenter,    
+        zoom: Constant.defaultZoom
       }, {
         suppressMapOpenBlock: true  // remove button 'open in yandex maps'
       });
+      
+      this.dz = dz; 
  
       this.setType("yandex#satellite");  // view from space    
       this.cursors.push('arrow');  
@@ -37,13 +47,12 @@ function(provide, Map, ZoomControl, Constant) {
     }
     
     
-    setSearchProcessor(path, heightOutput, calculator, arrow, dz) {
+    setSearchProcessor(path, heightOutput, calculator, windList) {
       
       this.path = path;
       this.heightOutput = heightOutput;
       this.calculator = calculator;
-      this.arrow = arrow;
-      this.dz = dz;
+      this.wind = windList.currentWind;
       this.defaultZoom = Constant.defaultZoom;
       
       this.searchControl.events.add('resultshow', function(e) {
@@ -53,7 +62,7 @@ function(provide, Map, ZoomControl, Constant) {
          
         this.setZoom(this.defaultZoom);
          
-        this.arrow.geometry.setCoordinates(this.getCenter());
+        this.wind.arrow.setCoordinates(this.getCenter());
          
         var index = e.get('index');    
         var geoObjectsArray = this.searchControl.getResultsArray();

@@ -28,23 +28,22 @@ function(
   class Path {
     /**
      * @param {Map} map - link to Yandex map.
-     * @param {boolean} isMobile
-     * @param {boolean} pathDirection - If true, we add new vertex to the start of Path; 
-     * if false, we add it to end of Path.     
      */  
-    constructor(map, isMobile, pathDirection) {
+    constructor(map) {
       this.map = map;
       this.firstVertex = null;
       this.lastVertex = null;
       // number of vertices
       this.length = 0;
       
-      this.pathDirection = pathDirection;
+      // If pathDirection is true, we add new vertex to the start of Path; 
+      // if false, we add it to end of Path.
+      this.pathDirection = true;
             
       // radius for inner circle vertices, in meters
-      this.vertexRadius = isMobile ? 4 : 4;
+      this.vertexRadius = Constant.isMobile ? 4 : 4;
       // radius for outer invisible circles, in meters    
-      this.vertexOuterRadius = isMobile ? 6*this.vertexRadius : 3*this.vertexRadius;     
+      this.vertexOuterRadius = Constant.isMobile ? 6*this.vertexRadius : 3*this.vertexRadius;     
 
       // On the map: line segments should be under vertex images, 
       // vertex images should be under vertices
@@ -67,7 +66,15 @@ function(
     
     getPathDirection() {
       return(this.pathDirection);      
-    }     
+    }
+
+    setCalculator(calculator) {
+      this.calculator = calculator;
+    }
+
+    setHeightOutput(heightOutput) {
+      this.heightOutput = heightOutput;
+    }    
         
     /**
      * Add new vertex to Path and to map.
@@ -524,21 +531,29 @@ function(
         for(var i=0; i < this.length; i++) {
           
           if (typeof(height[i]) == 'number') {
-                    
+            
+            vertex.printHint("h=" + Math.floor(height[i]) + "м");
+            vertex.printPlacemark(Math.floor(height[i]) + "м");
+                
+            /*                
             vertex.properties.set("hintContent", "h=" + 
                                          Math.floor(height[i]) + "м");
             vertex.heightPlacemark.properties.set("iconContent",
-                                         Math.floor(height[i]) + "м");
+                                         Math.floor(height[i]) + "м"); */
             beforeNumber = false;
                                          
           } else {
             if (beforeNumber) {
-              vertex.properties.set("hintContent", "&#x26D4;");
-              vertex.heightPlacemark.properties.set("iconContent", "Отсюда не долететь!");                         
+              vertex.printHint("&#x26D4;");
+              vertex.printPlacemark("Отсюда не долететь!");
+              //vertex.properties.set("hintContent", "&#x26D4;");
+              //vertex.heightPlacemark.properties.set("iconContent", "Отсюда не долететь!");                         
             } else {
               //vertex.heightPlacemark.options.set("preset", "islands#redIcon");
-              vertex.properties.set("hintContent", "&#x26D4;");
-              vertex.heightPlacemark.properties.set("iconContent", "Сюда не долететь!");        
+              vertex.printHint("&#x26D4;");
+              vertex.printPlacemark("Сюда не долететь!");                
+              //vertex.properties.set("hintContent", "&#x26D4;");
+              //vertex.heightPlacemark.properties.set("iconContent", "Сюда не долететь!");        
             }            
           }                            
                                                                               

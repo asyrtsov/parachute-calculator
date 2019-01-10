@@ -1,17 +1,34 @@
 ymaps.modules.define('Wind', [
-  'Constant'
+  'Constant', 
+  'Arrow'
 ],
-function(provide, Constant) {
+function(provide, Constant, Arrow) {
 
   class Wind {
     /** 
      * Wind in polar coordinate system.
      * @param {number} value - in m/sec.
-     * @param {number} angle - between current wind and west wind, in degree.     
+     * @param {number} angle - Angle between current wind and west wind, in degree.     
+     * @param {number} height - in meters.
      */
-    constructor(value, angle) {
+    constructor(value, angle, height) {
+      
+      this.arrow = new Arrow();        
+      
       this.setValue(value);
-      this.setAngle(angle);      
+      this.setAngle(angle);
+      this.setHeight(height);     
+    }
+    
+    setHeight(height) {
+      console.log(height);
+      if (height != null) {
+        this.arrow.print(height + "м");
+        this.height = height;
+      } else {
+        this.arrow.print("h = ?");
+        this.height = null;
+      }        
     }
     
     /**
@@ -34,7 +51,9 @@ function(provide, Constant) {
         angle -= 360;
       }        
              
-      this.angle = angle;              
+      this.angle = angle;
+      
+      this.arrow.rotate(angle);       
     }
     
     /**
@@ -46,6 +65,7 @@ function(provide, Constant) {
       this.value = value;
       return(true);      
     }
+    
      
     getAngle() {
       return(this.angle);
@@ -53,6 +73,10 @@ function(provide, Constant) {
     
     getValue() {
       return(this.value);
+    }
+    
+    getHeight() {
+      return(this.height);
     }
         
     /**
@@ -86,7 +110,16 @@ function(provide, Constant) {
       }
       
       return(direction);     
-    }        
+    }  
+
+    addToMap(map) {
+      this.arrow.addToMap(map);
+    }
+    
+    removeFromMap(map) {
+      this.arrow.removeFromMap(map);
+    }
+    
   }
       
   provide(Wind);  

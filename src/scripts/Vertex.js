@@ -99,7 +99,20 @@ function(provide, Circle, Placemark) {
       );
       
       this.path.dragVertex(this);         
-    }  
+    }
+    
+    /**
+     * @param {string} str - This will be printed in this.heightPlacemark
+     */    
+    printPlacemark(str) {
+      this.heightPlacemark.properties.set("iconContent", str);           
+    }
+    
+    printHint(str) {
+      this.properties.set("hintContent", str);      
+    }
+    
+        
   } 
   provide(Vertex);  
 }); 

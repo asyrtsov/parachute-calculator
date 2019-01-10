@@ -20,10 +20,10 @@ function(provide) {
      * @param {number} finalHeightDefault - Default Final Height; it is used for 
      * Back computation.
      */
-    constructor(path, wind, chute, startHeight, finalHeight) {      
+    constructor(path, windList, chute, startHeight, finalHeight) {      
       this.path = path;
       this.chute = chute;
-      this.wind = wind;
+      this.wind = windList.currentWind;
       
       
       this.startHeight = startHeight;
