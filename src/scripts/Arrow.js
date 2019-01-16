@@ -7,7 +7,7 @@ ymaps.modules.define('Arrow', [
 function(provide, Placemark, templateLayoutFactory, Constant) {
   
   /**
-   * Yandex Maps Placemark for Arrow (Windsock). 
+   * Yandex Maps Placemark for Wind Arrow. 
    */
   class Arrow extends Placemark {
 

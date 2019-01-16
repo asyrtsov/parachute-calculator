@@ -43,7 +43,11 @@ function(provide, Circle, Placemark) {
       // This varialable will be set up later.
       this.image = null;
       
-      this.path = path;      
+      this.path = path; 
+
+      this.prevVertex = null;
+      this.nextVertex = null;
+      
       this.clickNumber = 0;
       this.placemarkIsShown = true; 
               

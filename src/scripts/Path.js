@@ -103,7 +103,7 @@ function(
           map.geoObjects.add(newEdge.image);        
           
                  
-          // We change last Triengle vertex to Circle vertex
+          // We change last Triangle vertex to Circle vertex
           map.geoObjects.remove(this.lastVertex.image);        
           this.lastVertex.image = 
             new CircleVertex(lastPoint, this.vertexRadius, this.vertexImageZIndex);
@@ -113,6 +113,7 @@ function(
           // lastVertex image changed from triangle to circle.
           // So edge from lastVertex.prevVertex to lastVertex should be lengthen.
           if (this.lastVertex.prevVertex != null) {
+            // that is, lastVertex != firstVertex
             var lastlastPoint = this.lastVertex.prevVertex.geometry.getCoordinates();
             var lastEdge = this.lastVertex.prevVertex.nextLine;
             lastEdge.setCoordinates(lastlastPoint, lastPoint);          
@@ -120,6 +121,8 @@ function(
                                  
           this.lastVertex.nextVertex = vertex;
           vertex.prevVertex = this.lastVertex;
+          
+          vertex.nextVertex = null;
           
           this.lastVertex.nextLine = newEdge; 
           newEdge.prevVertex = this.lastVertex;  
@@ -149,6 +152,9 @@ function(
           
           vertex.nextVertex = this.firstVertex;
           this.firstVertex.prevVertex = vertex;
+          
+          vertex.prevVertex = null;
+          
           vertex.nextLine = newEdge;
           newEdge.prevVertex = vertex;
           this.firstVertex = vertex; 
@@ -157,6 +163,9 @@ function(
         }                
         
       } else {  // this.length == 0;
+        vertex.prevVertex = null;
+        vertex.nextVertex = null;
+      
         this.firstVertex = vertex;
         this.lastVertex = vertex;         
         vertex.image = new CircleVertex(point, this.vertexRadius, this.vertexImageZIndex);  
@@ -246,9 +255,9 @@ function(
       map.geoObjects.remove(removingVertex);
       map.geoObjects.remove(removingVertex.image);
       
-      if (removingVertex.heightPlacemark != undefined) {
+      //if (removingVertex.heightPlacemark != undefined) {
         map.geoObjects.remove(removingVertex.heightPlacemark);  
-      }
+      //}
       
       var prevVertex = removingVertex.prevVertex;
       var nextVertex = removingVertex.nextVertex;
@@ -256,8 +265,9 @@ function(
       var newEdge = null;
       
       if (this.length > 1) {
-        if ((prevVertex != undefined) && (nextVertex != undefined)) {
-          
+        //if ((prevVertex != undefined) && (nextVertex != undefined)) {
+        if ((prevVertex != null) && (nextVertex != null)) {        
+        
           var removingEdge1 = prevVertex.nextLine;
           var removingEdge2 = removingVertex.nextLine;
           
@@ -284,7 +294,9 @@ function(
           // case when nextVertex is lastVertex 
           // and so we have to change direction of 
           // arrow (triangle) of lastVertex
-          if (nextVertex.nextVertex == undefined) {
+          
+          //if (nextVertex.nextVertex == undefined) {
+          if (nextVertex.nextVertex == null) {  
             map.geoObjects.remove(nextVertex.image);            
             nextVertex.image = 
               new TriangleVertex(prevPoint, nextPoint, this.vertexImageZIndex);
@@ -305,7 +317,8 @@ function(
           
           
           
-        } else if (nextVertex == undefined) {  // last vertex case   
+        //} else if (nextVertex == undefined) {  // last vertex case
+        } else if (nextVertex == null) {  // last vertex case        
           var removingEdge = prevVertex.nextLine;          
           map.geoObjects.remove(removingEdge);
           
@@ -316,7 +329,8 @@ function(
           this.lastVertex = prevVertex;
           prevVertex.nextVertex = null;
           prevVertex.nextLine = null; 
-          if (prevVertex.prevVertex != undefined) {
+          //if (prevVertex.prevVertex != undefined) {
+          if (prevVertex.prevVertex != null) {  
             map.geoObjects.remove(prevVertex.image);
                         
             var prevPrevPoint = prevVertex.prevVertex.geometry.getCoordinates();
@@ -396,15 +410,17 @@ function(
       
       // Case: both prevVertex and nextVertex don't exist, 
       // that is, path consists of one vertex
-      if ((nextVertex == undefined) && (prevVertex == undefined)) {
+      //if ((nextVertex == undefined) && (prevVertex == undefined)) {
+      if ((nextVertex == null) && (prevVertex == null)) {        
         vertex.image.geometry.setCoordinates(point);
         return;
       }
 
       // Case: both prevVertex and nextVertex exist,
       // that is, this vertex is not first and not last.     
-      if ((nextVertex != undefined) && (prevVertex != undefined)) {
-
+      //if ((nextVertex != undefined) && (prevVertex != undefined)) {
+      if ((nextVertex != null) && (prevVertex != null)) {
+      
         vertex.image.geometry.setCoordinates(point); 
         
         var nextPoint = nextVertex.geometry.getCoordinates();
@@ -417,7 +433,8 @@ function(
         // Case when vertex.nextVertex is lastVertex:
         // in that case your should change 
         // direction of arrow at lastVertex.
-        if (nextVertex.nextVertex == undefined) {        
+        //if (nextVertex.nextVertex == undefined) {
+        if (nextVertex.nextVertex == null) {          
           nextVertex.image.setCoordinates(point, nextPoint);
           
           nextEdgePoint = nextVertex.image.getEdgePoint();
@@ -437,7 +454,8 @@ function(
       
       // Case: prevVertex exists, nextVertex doesn't exist, 
       // that is, vertex is lastVertex.      
-      if (prevVertex != undefined) {        
+      //if (prevVertex != undefined) {
+      if (prevVertex != null) {         
         var prevPoint = prevVertex.geometry.getCoordinates();
         var prevLine = prevVertex.nextLine;        
 
@@ -464,7 +482,8 @@ function(
       // Case when vertex.nextVertex is lastVertex:
       // in that case your should change 
       // direction of arrow at lastVertex.
-      if (nextVertex.nextVertex == undefined) {            
+      //if (nextVertex.nextVertex == undefined) {
+      if (nextVertex.nextVertex == null) {        
         nextVertex.image.setCoordinates(point, nextPoint);
         nextEdgePoint = nextVertex.image.getEdgePoint();        
       } else {
@@ -511,10 +530,9 @@ function(
       this.heightOutput.print(out);
       $("#startHeight").val(out);
       $("#finalHeight").val(out);
-      this.calculator.setStartHeight(Constant.defaultStartHeight);
-      this.calculator.setFinalHeight(Constant.defaultFinalHeight); 
       
-       
+      this.calculator.boundaryHeights.startHeight = Constant.defaultStartHeight;
+      this.calculator.boundaryHeights.finalHeight = Constant.defaultFinalHeight;    
     }
 
 

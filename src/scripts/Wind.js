@@ -1,15 +1,17 @@
 ymaps.modules.define('Wind', [
-  'Constant', 
   'Arrow'
 ],
-function(provide, Constant, Arrow) {
+function(provide, Arrow) {
 
+  /**
+   * Wind at particular height.  
+   */
   class Wind {
     /** 
      * Wind in polar coordinate system.
-     * @param {number} value - in m/sec.
-     * @param {number} angle - Angle between current wind and west wind, in degree.     
-     * @param {number} height - in meters.
+     * @param {number} value - In m/sec; value must be >= 0.
+     * @param {number} angle - Angle between current wind and West wind; in degrees.    
+     * @param {number || null} height - In meters; height must be >= 0.
      */
     constructor(value, angle, height) {
       
@@ -17,22 +19,28 @@ function(provide, Constant, Arrow) {
       
       this.setValue(value);
       this.setAngle(angle);
-      this.setHeight(height);     
-    }
-    
-    setHeight(height) {
-      console.log(height);
-      if (height != null) {
-        this.arrow.print(height + "м");
-        this.height = height;
-      } else {
-        this.arrow.print("h = ?");
-        this.height = null;
-      }        
+      this.setHeight(height); 
+
+      this.prevWind = null;
+      this.nextWind = null;      
     }
     
     /**
-     * this.angle will be in interval (-180, 180] degrees.
+     * @param {number || null} height - In meters; height must be >= 0.
+     */
+    setHeight(height) {
+      if (height != null) {
+        this.arrow.print(height + "м");        
+      } else {
+        this.arrow.print("h = ?");
+      }
+      
+      this.height = height;      
+    }
+    
+    /**
+     * this.angle will be reduced to interval (-180, 180] degrees.
+     * @param {number} angle
      */
     setAngle(angle) {
       
@@ -50,20 +58,17 @@ function(provide, Constant, Arrow) {
       if (angle > 180) {
         angle -= 360;
       }        
-             
-      this.angle = angle;
-      
-      this.arrow.rotate(angle);       
+            
+      this.arrow.rotate(angle);
+
+      this.angle = angle;            
     }
     
     /**
-     * @return {boolean} - It returns false if value was out of 
-     * permitted values.
+     * @param {number} value - In m/sec; value must be >= 0.
      */
-    setValue(value) {      
-      if ((value > Constant.maxWindValue) || (value < 0)) return(false);      
-      this.value = value;
-      return(true);      
+    setValue(value) {
+      this.value = value;             
     }
     
      

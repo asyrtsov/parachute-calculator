@@ -1,9 +1,11 @@
 ymaps.modules.define('Keyboard', [
-  'Output'
+  'Output', 
+  'Constant'
 ],
 function(
   provide,
-  Output
+  Output, 
+  Constant
 ) {
 
   var Keyboard = {};
@@ -26,31 +28,45 @@ function(
     path
   ) {
     
-    var wind = windList.currentWind;
+    
     
     //  Change Wind by keyboard.
-    $("html").keydown(function(e) { 
+    $("html").keydown(function(e) {
+
+      var wind = windList.currentWind;
+      
+      var angle = wind.getAngle(),
+          value = wind.getValue();
+          
       var key = e.which;
       switch(key) {
         case 39:
-          wind.setAngle(wind.getAngle() + 5);
-          $("#windDirectionInput").val(wind.angle);
+          angle += 5;
+          wind.setAngle(angle);
+          $("#windDirectionInput").val(angle);
           calculatePrintRresults();           
           break;
         case 37:
-          wind.setAngle(wind.getAngle() - 5);
-          $("#windDirectionInput").val(wind.angle);
+          angle -= 5;
+          wind.setAngle(angle);
+          $("#windDirectionInput").val(angle);
           calculatePrintRresults();          
           break;
-        case 38:          
-          wind.setValue(wind.getValue() + 1);
-          $("#windValueInput").val(wind.value);
-          calculatePrintRresults();         
+        case 38:
+          if (value <= Constant.maxWindValue - 1) {
+            value++;            
+            wind.setValue(value);
+            $("#windValueInput").val(value);
+            calculatePrintRresults();
+          }           
           break;
-        case 40:         
-         wind.setValue(wind.getValue() - 1);
-          $("#windValueInput").val(wind.value);
-          calculatePrintRresults();          
+        case 40:
+          if (value >= 1) {
+            value--;
+            wind.setValue(value);          
+            $("#windValueInput").val(value);
+            calculatePrintRresults();
+          }          
           break;
       }
       
@@ -69,7 +85,7 @@ function(
         calculator.calculateHeight();   
         Output.print(calculator, heightOutput, path);
       }      
-      windOutput.print(wind);             
+      windOutput.print(windList.currentWind);             
     }
   }
     

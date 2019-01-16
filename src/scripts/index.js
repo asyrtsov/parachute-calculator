@@ -36,17 +36,23 @@ function init() {
     
     var chute = new Chute(10, 5);  // Chute velocity = (10, 5) m/s 
 
-    var windList = new WindList(map);  // Winds at several heights. 
+    var windList = new WindList(map);  // Winds at several heights.
+    //windList.addNewWind();
+    //windList.setHeightToCurrentWind(100);    
     
     var path = new Path(map);  // List of vertices, edges. 
+    
+    var boundaryHeights = {
+      startHeight: Constant.defaultStartHeight, 
+      finalHeight: Constant.defaultFinalHeight
+    };
         
     // Calculator will make all computations.
     var calculator = new Calculator(
       path, 
-      windList, 
-      chute, 
-      Constant.defaultStartHeight,
-      Constant.defaultFinalHeight
+      chute,       
+      windList,
+      boundaryHeights      
     );
     path.setCalculator(calculator);     
 
@@ -83,7 +89,8 @@ function init() {
       windOutput, 
       calculator, 
       chute, 
-      windList
+      windList, 
+      boundaryHeights
     );
 
     
@@ -100,7 +107,7 @@ function init() {
 
     
     // After yandex maps search we should: 
-    //   set arrow (windsock) in the center of screen, 
+    //   move wind arrows to the current screen, 
     //   add result of search to Settings Dialog Window.
     map.setSearchProcessor(path, heightOutput, calculator, windList); 
   });      

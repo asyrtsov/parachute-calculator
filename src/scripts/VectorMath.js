@@ -41,8 +41,9 @@ function(provide) {
       var d = Math.sqrt(v[0]**2 + v[1]**2);
       if (d>0) {
         return ([v[0]/d, v[1]/d]);
-      }         
-      return 0;
+      } else {        
+        return ([0, 0]);
+      }
     }
 
     /**
