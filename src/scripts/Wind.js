@@ -117,8 +117,8 @@ function(provide, Arrow) {
       return(direction);     
     }  
 
-    addToMap(map) {
-      this.arrow.addToMap(map);
+    addToMap(map, coordinates = null) {
+      this.arrow.addToMap(map, coordinates);
     }
     
     removeFromMap(map) {

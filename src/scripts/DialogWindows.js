@@ -24,7 +24,7 @@ function(
     map, 
     path, 
     heightOutput, 
-    windOutput, 
+    //windOutput, 
     calculator, 
     chute, 
     windList, 
@@ -190,11 +190,13 @@ function(
     function initWindListWindow() {
       
       $("#windValueInput").prop("max", "" + Constant.maxWindValue);
-                  
-      initWindWindow();
-      
+        
+      windList.printCurrentWindWindow();      
+        
+      //initWindWindow();
+            
       $("#windHeightInput").on("change", function() {        
-        // Remember thet #windHeightInput is disabled for firstWind
+        // Remember that #windHeightInput is disabled for firstWind
         
         var s = $("#windHeightInput").val();        
         var n = Number.parseFloat(s);
@@ -221,14 +223,15 @@ function(
         var angleStr = $("#windDirectionInput").val();          
         var angle = Number.parseInt(angleStr);
            
-        windList.currentWind.setAngle(angle);
+        //windList.currentWind.setAngle(angle);
+        windList.setCurrentAngle(angle);
 
         if (path.length > 0) {
           calculator.calculateHeight();   
           Output.print(calculator, heightOutput, path);
         }
         
-        windOutput.print(windList.currentWind);            
+        //windOutput.print(windList.currentWind);            
       });
 
       // Change Wind Value in Wind Window.   
@@ -236,14 +239,15 @@ function(
         var valueStr = $("#windValueInput").val();
         var value = Number.parseInt(valueStr);
 
-        windList.currentWind.setValue(value);
+        //windList.currentWind.setValue(value);
+        windList.setCurrentValue(value);
         
         if (path.length > 0) {
           calculator.calculateHeight();   
           Output.print(calculator, heightOutput, path);
         }
         
-        windOutput.print(windList.currentWind);        
+        //windOutput.print(windList.currentWind);        
       });
       
       // Draw scales for Wind Window    
@@ -254,7 +258,7 @@ function(
         console.log("click");     
       }); */
       
-      
+      $("#arrowScale").prop("checked", windList.firstWind.arrow.getIsScaled());
       
       $("#arrowScale").change(function() {
         var isChecked = $(this).prop("checked");
@@ -264,13 +268,15 @@ function(
       
       $("#addWind").click(function(){
         windList.addNewWind();
-        initWindWindow();        
+        windList.printCurrentWindWindow();
+        //initWindWindow();        
       });
       
       $("#removeWind").click(function() {
         //console.log("remove");
         windList.removeCurrentWind();
-        initWindWindow();
+        windList.printCurrentWindWindow();
+        //initWindWindow();
 
         if (path.length > 0) {
           calculator.calculateHeight();   
@@ -281,13 +287,15 @@ function(
       $("#leftCarouselButton").click(function() {
         //console.log("left");
         windList.moveCurrentPointerToPrev();
-        initWindWindow();         
+        windList.printCurrentWindWindow();
+        //initWindWindow();         
       });
 
       $("#rightCarouselButton").click(function() {
         //console.log("right");
         windList.moveCurrentPointerToNext();
-        initWindWindow();         
+        windList.printCurrentWindWindow();
+        //initWindWindow();         
       }); 
             
       function initWindWindow() {
@@ -300,9 +308,9 @@ function(
         }
         $("#windHeightInput").val(windList.currentWind.getHeight());    
         $("#windDirectionInput").val(windList.currentWind.getAngle());
-        $("#windValueInput").val(windList.currentWind.getValue());                
-      }      
-                  
+        $("#windValueInput").val(windList.currentWind.getValue());  
+        $("#arrowScale").prop("checked", windList.currentWind.arrow.getIsScaled());        
+      }                        
     }
    
     /**

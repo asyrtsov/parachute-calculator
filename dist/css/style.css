@@ -11,6 +11,18 @@
   width: 25px;
 }
 
+.arrow_selected {
+  background-image: url("../images/arrow_selected.svg");
+  background-size: 100%;
+  height: 25px;
+  opacity: 0.9;
+  width: 25px;
+}
+
+
+
+
+
 .outputControlElement, 
 .inputControlElement,
 .pressedInputControlElement {

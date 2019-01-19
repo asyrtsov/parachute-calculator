@@ -16,7 +16,10 @@ if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigat
     maxChuteHorizontalVelocity: 25, 
     maxChuteVerticalVelocity: 15, 
     maxHeight: 4000, 
-    maxWindValue: 10, 
+    maxWindValue: 10,
+    // If we will fly more than maxFlightTime, then 
+    // it is impossible to fly this path
+    maxFlightTime: 3600,     
     isMobile: isMobile    
   }
       

@@ -20,13 +20,15 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
         //map.getCenter(),
         [],        
         {
-          rotation: 90, 
+          arrowClass: "arrow_selected",  
+          //rotation: 90,
+          rotation: 0,           
           size: arrowStartSize
         }, 
         {
           draggable: true,
           iconLayout: templateLayoutFactory.createClass(
-              '<div class="arrow" style="transform: rotate($[properties.rotation]deg);' + 
+              '<div class="$[properties.arrowClass]" style="transform: rotate($[properties.rotation]deg);' + 
               'width: $[properties.size]px; height: $[properties.size]px;"/>'
             ), 
           iconShape: {
@@ -54,6 +56,10 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
           cursor: 'arrow'
         }
       );
+    
+      //this.placemarkIsOn = true;    
+      this.isSelected = false;
+      this.isScaled = true;
             
       // when we drag arrow, we should drag its heightPlacemark too
       this.events.add('drag', function(e) {
@@ -63,6 +69,13 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
           [newPoint[0] + this.heightPlacemarkShift, newPoint[1]]
         );          
       }.bind(this)); 
+      
+      /*
+      this.events.add('click', function(e) {
+        console.log('click');
+      }); */
+      
+      this.map = null;
 
       this.boundChange = this.boundChange.bind(this);
 
@@ -77,13 +90,30 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
         [coordinates[0] + this.heightPlacemarkShift, coordinates[1]]
       );      
     }
-    
-              
+   
+   /**
+    * Change arrow selection
+    * @param {boolean || null} - isSelected    
+    */   
+    setSelection(isSelected = null) {
+
+      this.isSelected = (isSelected == null) ? 
+        !this.isSelected : isSelected; 
+      
+      var arrowClass = this.isSelected ? 'arrow_selected' : 'arrow';      
+      this.properties.set('arrowClass', arrowClass);   
+    }
+
+    getSelection() {
+      return(this.isSelected);
+    }    
+                 
    /**
     * Rotate arrow
     */
     rotate(angle) {
-      this.properties.set('rotation', (-1)*angle + 90);      
+      //this.properties.set('rotation', (-1)*angle + 90);
+      this.properties.set('rotation', (-1)*angle);      
     }
     
     /**
@@ -109,10 +139,18 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
     addToMap(map, coordinates = null) {
       this.map = map;
       map.geoObjects.add(this);
-      map.geoObjects.add(this.heightPlacemark);
       
+      map.geoObjects.add(this.heightPlacemark);
+            
       if (coordinates == null) {
-        coordinates = map.getCenter();
+        var e = 0.005;
+        var mapCenter = map.getCenter();
+        var dlatitude = 
+          (Math.random() - 0.5) * e * Math.cos((Math.PI/180) * mapCenter[0]);
+        var dlongtitude = (Math.random() - 0.5) * e;  
+        coordinates = mapCenter;
+        coordinates[0] += dlatitude;
+        coordinates[1] += dlongtitude;
       }
 
       this.setCoordinates(coordinates);
@@ -122,15 +160,28 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
     
     removeFromMap(map) {
       map.geoObjects.remove(this);
-      map.geoObjects.remove(this.heightPlacemark);             
+      map.geoObjects.remove(this.heightPlacemark);         
     }
-        
+    
+    
+    addPlacemark() {
+      this.map.geoObjects.add(this.heightPlacemark);      
+    } 
+    
+    
+    removePlacemark() {
+      this.map.geoObjects.remove(this.heightPlacemark);      
+    } 
+
+       
     /**
      * Set arrow to be scaled with map zooming or 
      * not to be scaled. Map should be defined. 
      * @param {boolean} arrowIsScaled
      */     
     setArrowToBeScaled(arrowIsScaled) {
+      
+      this.isScaled = arrowIsScaled;
     
       if (arrowIsScaled) {
         this.map.events.add('boundschange', this.boundChange);
@@ -141,6 +192,10 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
         this.map.events.remove('boundschange', this.boundChange); 
         this.changeSize(Constant.defaultZoom);       
       }       
+    }
+    
+    getIsScaled() {
+      return(this.isScaled);
     }
     
     /**

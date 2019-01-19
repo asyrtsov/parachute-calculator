@@ -15,8 +15,11 @@ function(provide, OutputElement) {
     /**
      * @param {Wind} wind
      */     
-    print(wind) {  
-      this.data.set("content", "Ветер: " + 
+    print(wind) {
+      var windHeight = wind.getHeight();
+      windHeight = (windHeight == null) ? '?' : windHeight;
+    
+      this.data.set("content", "Ветер: h = " + windHeight + "м, " +
         wind.getValue() + " м/с, " + wind.getDirection());        
     }           
   } 

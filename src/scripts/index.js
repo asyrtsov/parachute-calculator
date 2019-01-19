@@ -14,7 +14,7 @@ function init() {
     'Path',    
     'Calculator',  
     'HeightOutputElement', 
-    'WindOutputElement', 
+    //'WindOutputElement', 
     'Menu', 
     'DialogWindows', 
     'Keyboard', 
@@ -26,7 +26,7 @@ function init() {
     Path,      
     Calculator, 
     HeightOutputElement,
-    WindOutputElement, 
+    //WindOutputElement, 
     Menu, 
     DialogWindows, 
     Keyboard, 
@@ -64,8 +64,8 @@ function init() {
 
     
     // Output window at the top left corner of the screen.    
-    var windOutput = new WindOutputElement(windList.currentWind);
-    map.controls.add(windOutput, {float: 'left'});  
+    //var windOutput = new WindOutputElement(windList.currentWind);
+    //map.controls.add(windOutput, {float: 'left'});  
 
           
     // Click on the map will add vertice to path    
@@ -86,7 +86,7 @@ function init() {
       map, 
       path, 
       heightOutput, 
-      windOutput, 
+      //windOutput, 
       calculator, 
       chute, 
       windList, 
@@ -99,8 +99,8 @@ function init() {
     //   enter key press on <input> tag - to loose focus after pressing enter.  
     Keyboard.startKeyboardProcessing(
       windList, 
-      calculator, 
-      windOutput, 
+      //calculator, 
+      //windOutput, 
       heightOutput, 
       path
     ); 
