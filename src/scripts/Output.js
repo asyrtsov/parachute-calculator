@@ -3,7 +3,7 @@ function(provide) {
 
   var Output = {};
   
-  Output.print = function(calculator, heightOutput, path) {
+  Output.print = function(calculator, path) {
 
     var heightArray = calculator.getHeight();
     
@@ -14,7 +14,7 @@ function(provide) {
       var startHeight = heightArray[0];
       var finalHeight = heightArray[heightArray.length - 1];
       
-      heightOutput.print(finalHeight);
+      //path.heightOutput.print(finalHeight);
                       
       if (finalHeight == null) {
         $("#finalHeight").val("не определена");      

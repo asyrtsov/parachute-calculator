@@ -22,9 +22,9 @@ function(
    */
   Keyboard.startKeyboardProcessing = function(
     windList, 
-    //calculator, 
+    calculator, 
     //windOutput, 
-    heightOutput, 
+    //heightOutput, 
     path
   ) {
     
@@ -84,8 +84,8 @@ function(
     
     function calculatePrintRresults() {     
       if (path.length > 0) {      
-        path.calculator.calculateHeight();   
-        Output.print(calculator, heightOutput, path);
+        calculator.calculateHeight();   
+        Output.print(calculator, path);
       }      
       //windOutput.print(windList.currentWind);             
     }

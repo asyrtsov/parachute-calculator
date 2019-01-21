@@ -5,7 +5,8 @@ ymaps.modules.define('Path', [
   'Vertex', 
   'PathEdge', 
   'Output', 
-  'Constant'  
+  'Constant', 
+  'HeightOutputElement'  
 ],
 function(
   provide, 
@@ -14,7 +15,8 @@ function(
   Vertex, 
   PathEdge, 
   Output, 
-  Constant
+  Constant, 
+  HeightOutputElement
 ) {     
   /**
    * List of vertices and edges of Chute Path.
@@ -56,7 +58,14 @@ function(
       this.heightPlacemarkShift = 0.0002;
             
       this.calculator = null;
-      this.heightOutput = null;        
+   
+      
+      // Output window at the top left corner of the screen.    
+      
+      this.heightOutput = 
+        new HeightOutputElement(Constant.defaultStartHeight); 
+        
+      //this.map.controls.add(this.heightOutput, {float: 'left'}); 
     }
 
     
@@ -178,7 +187,7 @@ function(
       this.length++;
 
       this.calculator.calculateHeight();   
-      Output.print(this.calculator, this.heightOutput, this);      
+      Output.print(this.calculator, this);      
    
       return([vertex, newEdge]);       
     }
@@ -239,7 +248,7 @@ function(
       
       //this.calculateAndPrintHeights();
       this.calculator.calculateHeight();   
-      Output.print(this.calculator, this.heightOutput, this);         
+      Output.print(this.calculator, this);         
             
       return([vertex, newEdge1, newEdge2]);      
     }
@@ -348,7 +357,9 @@ function(
           // initial height will change.
           if (!this.pathDirection) {
             var n = this.calculator.height.length;             
-            this.calculator.setFinalHeight(this.calculator.height[n-2]);
+            //this.calculator.setFinalHeight(this.calculator.height[n-2]);
+            this.calculator.boundaryHeights.finalHeight = 
+              this.calculator.height[n-2];
             $("#finalHeight").val(Math.floor(this.calculator.height[n-2]));
           } 
           
@@ -370,7 +381,10 @@ function(
           // If we remove first vertex (pathPosition == true), 
           // initial height will change.
           if (this.pathDirection) {          
-            this.calculator.setStartHeight(this.calculator.height[1]);
+            //this.calculator.setStartHeight(this.calculator.height[1]);
+            this.calculator.boundaryHeights.startHeight = 
+              this.calculator.height[1];
+            
             $("#startHeight").val(Math.floor(this.calculator.height[1]));
           }
           
@@ -384,7 +398,7 @@ function(
       //this.calculateAndPrintHeights();
       if (this.length > 0) {
         this.calculator.calculateHeight();
-        Output.print(this.calculator, this.heightOutput, this);         
+        Output.print(this.calculator, this);         
       }        
         
             
@@ -400,7 +414,7 @@ function(
           
       //this.calculateAndPrintHeights();
       this.calculator.calculateHeight();   
-      Output.print(this.calculator, this.heightOutput, this);   
+      Output.print(this.calculator, this);   
       
       // new vertex coordinates
       var point = vertex.geometry.getCoordinates();

@@ -43,14 +43,19 @@ function(provide, Map, ZoomControl, Constant) {
       this.searchControl = this.controls.get('searchControl');
       this.searchControl.options.set('size', 'small');
       this.searchControl.options.set('noPlacemark', true);
-      this.searchControl.options.set('noSelect', true);          
+      this.searchControl.options.set('noSelect', true);
+
+      // remove standart map zoom for double click
+      this.events.add('dblclick', function(e) {
+        e.preventDefault();  
+      });     
     }
     
     
-    setSearchProcessor(path, heightOutput, calculator, windList) {
+    setSearchProcessor(path, calculator, windList) {
       
       this.path = path;
-      this.heightOutput = heightOutput;
+      this.heightOutput = path.heightOutput;
       this.calculator = calculator;
       this.wind = windList.currentWind;
       this.defaultZoom = Constant.defaultZoom;

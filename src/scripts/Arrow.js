@@ -52,7 +52,7 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
         [],         
         {}, 
         {
-          preset: 'islands#blackStretchyIcon', 
+          preset: 'islands#darkOrangeStretchyIcon', 
           cursor: 'arrow'
         }
       );
@@ -69,20 +69,13 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
           [newPoint[0] + this.heightPlacemarkShift, newPoint[1]]
         );          
       }.bind(this)); 
-      
-      /*
-      this.events.add('click', function(e) {
-        console.log('click');
-      }); */
-      
+            
       this.map = null;
 
       this.boundChange = this.boundChange.bind(this);
-
-      //this.map = null;
-      
+            
     }
-    
+
     
     setCoordinates(coordinates) {
       this.geometry.setCoordinates(coordinates);

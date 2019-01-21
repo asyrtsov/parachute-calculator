@@ -23,7 +23,7 @@ function(
   DialogWindows.initializeWindows = function (
     map, 
     path, 
-    heightOutput, 
+    //heightOutput, 
     //windOutput, 
     calculator, 
     chute, 
@@ -74,9 +74,9 @@ function(
      
           if (path.length > 0) {  
             calculator.calculateHeight();   
-            Output.print(calculator, heightOutput, path);   
+            Output.print(calculator, path);   
           } else {
-            heightOutput.print(n);
+            path.heightOutput.print(n);
             boundaryHeights.finalHeight = n;
             $("#finalHeight").val(n);                     
           }
@@ -103,9 +103,9 @@ function(
           
           if (path.length > 0) {
             calculator.calculateHeight();   
-            Output.print(calculator, heightOutput, path);           
+            Output.print(calculator, path);           
           } else {
-            heightOutput.print(n);
+            path.heightOutput.print(n);
             boundaryHeights.startHeight = n;
             $("#startHeight").val(n);                     
           }
@@ -138,7 +138,7 @@ function(
           }   
           
           calculator.calculateHeight();   
-          Output.print(calculator, heightOutput, path);           
+          Output.print(calculator, path);           
         } else { 
           /*
           var out = path.getPathDirection() ? 
@@ -179,7 +179,7 @@ function(
 
         if (path.length > 0) {
           calculator.calculateHeight();   
-          Output.print(calculator, heightOutput, path);    
+          Output.print(calculator, path);    
         }
       });
     }    
@@ -213,7 +213,7 @@ function(
                         
         if (path.length > 0) {
           calculator.calculateHeight();   
-          Output.print(calculator, heightOutput, path);
+          Output.print(calculator, path);
         }        
       });
       
@@ -228,7 +228,7 @@ function(
 
         if (path.length > 0) {
           calculator.calculateHeight();   
-          Output.print(calculator, heightOutput, path);
+          Output.print(calculator, path);
         }
         
         //windOutput.print(windList.currentWind);            
@@ -244,7 +244,7 @@ function(
         
         if (path.length > 0) {
           calculator.calculateHeight();   
-          Output.print(calculator, heightOutput, path);
+          Output.print(calculator, path);
         }
         
         //windOutput.print(windList.currentWind);        
@@ -258,53 +258,25 @@ function(
         console.log("click");     
       }); */
       
+      /*
+      
       $("#arrowScale").prop("checked", windList.firstWind.arrow.getIsScaled());
       
       $("#arrowScale").change(function() {
         var isChecked = $(this).prop("checked");
         windList.currentWind.arrow.setArrowToBeScaled(isChecked);               
-      }); 
+      });   */
       
       
-      $("#addWind").click(function(){
-        windList.addNewWind();
-        windList.printCurrentWindWindow();
-        //initWindWindow();        
-      });
-      
-      $("#removeWind").click(function() {
-        //console.log("remove");
-        windList.removeCurrentWind();
-        windList.printCurrentWindWindow();
-        //initWindWindow();
 
-        if (path.length > 0) {
-          calculator.calculateHeight();   
-          Output.print(calculator, heightOutput, path);
-        }     
-      });
-      
-      $("#leftCarouselButton").click(function() {
-        //console.log("left");
-        windList.moveCurrentPointerToPrev();
-        windList.printCurrentWindWindow();
-        //initWindWindow();         
-      });
-
-      $("#rightCarouselButton").click(function() {
-        //console.log("right");
-        windList.moveCurrentPointerToNext();
-        windList.printCurrentWindWindow();
-        //initWindWindow();         
-      }); 
             
       function initWindWindow() {
         if (windList.currentWind == windList.firstWind) {
           $("#windHeightInput").prop("disabled", true);
-          $("#removeWind").prop("disabled", true);          
+         // $("#removeWind").prop("disabled", true);          
         } else {
           $("#windHeightInput").prop("disabled", false);
-          $("#removeWind").prop("disabled", false);
+         // $("#removeWind").prop("disabled", false);
         }
         $("#windHeightInput").val(windList.currentWind.getHeight());    
         $("#windDirectionInput").val(windList.currentWind.getAngle());

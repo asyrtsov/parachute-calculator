@@ -90,7 +90,7 @@ function(provide, Circle, Placemark) {
           }  
         }.bind(this), 200);
       }  
-    };
+    }
 
     /**
      * Process vertex dragging.

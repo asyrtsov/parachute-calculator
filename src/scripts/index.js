@@ -13,8 +13,6 @@ function init() {
     'Chute',
     'Path',    
     'Calculator',  
-    'HeightOutputElement', 
-    //'WindOutputElement', 
     'Menu', 
     'DialogWindows', 
     'Keyboard', 
@@ -25,8 +23,6 @@ function init() {
     Chute,
     Path,      
     Calculator, 
-    HeightOutputElement,
-    //WindOutputElement, 
     Menu, 
     DialogWindows, 
     Keyboard, 
@@ -37,9 +33,7 @@ function init() {
     var chute = new Chute(10, 5);  // Chute velocity = (10, 5) m/s 
 
     var windList = new WindList(map);  // Winds at several heights.
-    //windList.addNewWind();
-    //windList.setHeightToCurrentWind(100);    
-    
+     
     var path = new Path(map);  // List of vertices, edges. 
     
     var boundaryHeights = {
@@ -56,25 +50,36 @@ function init() {
     );
     path.setCalculator(calculator);     
 
-    
-    // Output window at the top left corner of the screen.    
-    var heightOutput = new HeightOutputElement(Constant.defaultStartHeight);   
-    map.controls.add(heightOutput, {float: 'left'});
-    path.setHeightOutput(heightOutput);
-
-    
-    // Output window at the top left corner of the screen.    
-    //var windOutput = new WindOutputElement(windList.currentWind);
-    //map.controls.add(windOutput, {float: 'left'});  
-
-          
-    // Click on the map will add vertice to path    
+              
+    // Click on the map will add vertice to path
+    /*    
     map.events.add('click', function(e) {
       var point = e.get('coords');
       path.addVertex(point);      
-    });
+    }); */
 
+   
+    var clickNumber = 0;
+
+    map.events.add('click', function(e) {
+      var point = e.get('coords');    
+      clickNumber++;
+      if (clickNumber == 1) {
+        setTimeout(function() {        
+          if (clickNumber == 1) {  // Single Click
+            // We add vertex to path           
+            path.addVertex(point);                               
+          } else {  // Double Click
+            // We add new wind arrow (windsock)           
+            windList.addWind(point);
+            windList.printCurrentWindWindow();             
+          }
+          clickNumber = 0;           
+        }, 200);
+      }    
+    });
     
+        
     // Set of buttons in the left side of screen:
     //   Settings, Chute, Wind, Help, Clean buttons. 
     var menu = new Menu(map, path);    
@@ -85,8 +90,6 @@ function init() {
     DialogWindows.initializeWindows(
       map, 
       path, 
-      heightOutput, 
-      //windOutput, 
       calculator, 
       chute, 
       windList, 
@@ -99,9 +102,7 @@ function init() {
     //   enter key press on <input> tag - to loose focus after pressing enter.  
     Keyboard.startKeyboardProcessing(
       windList, 
-      //calculator, 
-      //windOutput, 
-      heightOutput, 
+      calculator, 
       path
     ); 
 
@@ -109,6 +110,6 @@ function init() {
     // After yandex maps search we should: 
     //   move wind arrows to the current screen, 
     //   add result of search to Settings Dialog Window.
-    map.setSearchProcessor(path, heightOutput, calculator, windList); 
+    map.setSearchProcessor(path, calculator, windList); 
   });      
 }

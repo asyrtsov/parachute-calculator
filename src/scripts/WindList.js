@@ -14,9 +14,7 @@ function(provide, Wind, WindOutputElement) {
   class WindList {
     constructor(map) {
       this.map = map; 
-
-
-      
+     
       // 5 m/sec, west wind, h = 0m (surface wind)
       this.firstWind = new Wind(5, 0, 0);
       this.firstWind.arrow.setSelection(false);      
@@ -31,12 +29,6 @@ function(provide, Wind, WindOutputElement) {
       // Output window at the top left corner of the screen.    
       this.windOutput = new WindOutputElement(this.firstWind);
       this.map.controls.add(this.windOutput, {float: 'left'}); 
-      
-      console.log("ok");
-
-      
-            
-      //this.printCurrentWindWindow();
       this.windOutput.print(this.currentWind);          
       
       this.firstWind.arrow.events.add('click', function(e) {
@@ -55,10 +47,10 @@ function(provide, Wind, WindOutputElement) {
      * Create new wind (value = 5, angle = 0, height is unknown) and 
      * add it to the end of the list.
      */
-    addNewWind() {
+    addWind(point = null) {
       
       var wind = new Wind(5, 0, null);
-      wind.addToMap(this.map);
+      wind.addToMap(this.map, point);
            
       this.currentWind.arrow.setSelection(false);
       wind.arrow.setSelection(true);
@@ -70,28 +62,125 @@ function(provide, Wind, WindOutputElement) {
       
       this.lastWind = wind;
       this.currentWind = wind;
-           
-      wind.arrow.events.add('click', function(e) {               
-        if (this.currentWind != wind) {
-          this.currentWind.arrow.setSelection(false);
-          wind.arrow.setSelection(true);
-          this.currentWind = wind;          
-        } 
-        
-        this.printCurrentWindWindow();
-        this.windOutput.print(this.currentWind);         
-      }.bind(this));       
+                      
+      var clickNumber = 0;
+      
+      wind.arrow.events.add('click', function(e) {
+        e.stopPropagation();  // remove standart zoom for click
 
+        clickNumber++;
+        if (clickNumber == 1) {
+          setTimeout(function() {        
+            if (clickNumber == 1) {  // Single Click
+              // Select current arrow
+              
+              if (this.currentWind != wind) {
+                this.currentWind.arrow.setSelection(false);
+                wind.arrow.setSelection(true);
+                this.currentWind = wind;          
+              } 
+              
+              this.printCurrentWindWindow();
+              this.windOutput.print(this.currentWind);               
+            } else {  // Double Click
+              // Delete current arrow 
+              if (wind == this.currentWind) {
+                this.removeCurrentWind();
+                this.printCurrentWindWindow();
+              } else {
+                var wind2 = this.currentWind;
+                this.moveCurrentPointer(wind);
+                this.removeCurrentWind();
+                this.moveCurrentPointer(wind2);                
+              }
+              
+            }
+
+            clickNumber = 0;
+            
+          }.bind(this), 200);
+        }          
+      }.bind(this));
+      
+      
+      // remove standart map zoom for double click
+      wind.arrow.events.add('dblclick', function(e) {
+        e.stopPropagation();  
+      });      
+
+    
       this.windOutput.print(this.currentWind); 
       
       this.numberOfWinds++;
 
       if (this.numberOfWinds == 2) {
         this.firstWind.arrow.addPlacemark();
-      } 
-      
+      }       
     }
     
+
+/*
+    removeWind(wind) {
+      
+      // First wind, that is, surface wind, cannot be removed
+      if (wind == this.firstWind) {
+        console.warn("This wind was not removed, because it was firstWind.");
+        return;
+      }
+      
+      wind.removeFromMap(this.map);     
+      this.removeWindFromList(wind);
+
+      if (this.numberOfWinds > 1) {
+        wind.prevWind.arrow.setSelection(true);
+      } 
+
+      if (this.numberOfWinds == 1) {
+        this.firstWind.arrow.removePlacemark();        
+      }      
+           
+      //this.printCurrentWindWindow();
+      this.windOutput.print(this.currentWind);       
+    }
+    
+    
+    removeWindFromList() {
+      
+      // First wind, that is, surface wind, cannot be removed
+      if (this.currentWind == this.firstWind) {
+        console.warn("This wind was not removed, because it was firstWind.");
+        return;
+      }  
+      
+      var wind = this.currentWind;
+      
+      if (wind.nextWind != null) {
+        wind.prevWind.nextWind = wind.nextWind;
+        wind.nextWind.prevWind = wind.prevWind;          
+      } else {
+        // lastWind case
+        wind.prevWind.nextWind = null;
+        this.lastWind = wind.prevWind;         
+      }
+      
+      this.currentWind = wind.prevWind;
+                        
+      this.numberOfWinds--;     
+    }
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
     
     removeCurrentWind() {
       
@@ -139,6 +228,22 @@ function(provide, Wind, WindOutputElement) {
       this.currentWind = wind.prevWind;
                         
       this.numberOfWinds--;     
+    }
+    
+    
+    moveCurrentPointer(wind) {
+      
+      if (wind == this.currentWind) return;
+      
+      this.currentWind.arrow.setSelection(false);
+            
+      this.currentWind = wind;
+
+      this.currentWind.arrow.setSelection(true); 
+      
+      this.windOutput.print(this.currentWind);  
+
+      //this.printCurrentWindWindow();      
     }
     
     
