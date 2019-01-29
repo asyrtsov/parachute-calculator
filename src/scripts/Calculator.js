@@ -150,9 +150,25 @@ function(provide) {
       // Yandex Maps Coordinates: (latitude, longitude)
       // Latitude is increasing from bottom to top (-90deg, 90deg)
       // Longitude is increasing from West to East (-180deg, 180deg)
-      var ex = pointB[1] - pointA[1];
-      var ey = pointB[0] - pointA[0]; 
-                               
+      
+      function sign(a) {
+        if (a>0) return 1;
+        if (a==0) return 0;
+        return -1;
+      }      
+      
+      var sx = sign(pointB[1] - pointA[1]);
+      var sy = sign(pointB[0] - pointA[0]);       
+    
+      var pointC = [pointA[0], pointB[1]];
+      
+      // now (ex, ey) are coordinates of vector e in standart orthonormal basis:
+      // x has direction from left to right, 
+      // y has direction from bottom to top, 
+      // scale: 1 meter
+      var ex = sx * ymaps.coordSystem.geo.getDistance(pointC, pointA);
+      var ey = sy * ymaps.coordSystem.geo.getDistance(pointC, pointB);
+                                
       var d = Math.sqrt(ex*ex + ey*ey);
       ex = ex / d;
       ey = ey / d;
