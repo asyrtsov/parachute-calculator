@@ -19,7 +19,7 @@ if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigat
     maxWindValue: 10,
     // If we will fly more than maxFlightTime, then 
     // it is impossible to fly this path
-    maxFlightTime: 3600,     
+    maxFlightTime: 3600, // 1 hour    
     isMobile: isMobile    
   }
       

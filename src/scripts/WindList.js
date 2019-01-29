@@ -9,7 +9,13 @@ function(provide, Wind, WindOutputElement) {
    * always contains wind at height = 0m (surface wind); 
    * that surface wind is always first and cannot be removed;
    * list will be sorted for height (from bottom to top); 
-   * all winds will have different heights.
+   * all winds should have different heights.
+   * WindList also contains WindOutputElement for showing 
+   * parameters of current wind.
+   * WindList contains function printCurrentWindWindow() 
+   * for printing parameters of current window to wind dialog window; 
+   * you should make this printing by hand (that is, call 
+   * that function when you need).
    */
   class WindList {
     constructor(map) {
@@ -71,8 +77,7 @@ function(provide, Wind, WindOutputElement) {
         clickNumber++;
         if (clickNumber == 1) {
           setTimeout(function() {        
-            if (clickNumber == 1) {  // Single Click
-              // Select current arrow
+            if (clickNumber == 1) {  // Single Click (selection arrow)
               
               if (this.currentWind != wind) {
                 this.currentWind.arrow.setSelection(false);
@@ -82,44 +87,36 @@ function(provide, Wind, WindOutputElement) {
               
               this.printCurrentWindWindow();
               this.windOutput.print(this.currentWind);               
-            } else {  // Double Click
-              // Delete current arrow 
-              if (wind == this.currentWind) {
-                this.removeCurrentWind();
-                this.printCurrentWindWindow();
-              } else {
-                var wind2 = this.currentWind;
-                this.moveCurrentPointer(wind);
-                this.removeCurrentWind();
-                this.moveCurrentPointer(wind2);                
-              }
-              
+            } else {  // Double Click (deletion of current arrow)
+              this.removeWind(this.currentWind);         
             }
-
+            
             clickNumber = 0;
             
           }.bind(this), 200);
         }          
       }.bind(this));
-      
-      
+            
       // remove standart map zoom for double click
       wind.arrow.events.add('dblclick', function(e) {
         e.stopPropagation();  
       });      
-
     
-      this.windOutput.print(this.currentWind); 
-      
+      this.windOutput.print(this.currentWind);       
       this.numberOfWinds++;
-
+      
       if (this.numberOfWinds == 2) {
         this.firstWind.arrow.addPlacemark();
       }       
     }
     
-
-/*
+    
+    /**
+     * Remove wind from WindList. If wind equals currentWind then 
+     * after removing currentWind will be equal currentWind.prevWind.
+     * Note: you cannot remove firstWind by construction.
+     * @param {Wind} wind - It is supposed that wind belongs to WindList.  
+     */
     removeWind(wind) {
       
       // First wind, that is, surface wind, cannot be removed
@@ -129,166 +126,79 @@ function(provide, Wind, WindOutputElement) {
       }
       
       wind.removeFromMap(this.map);     
-      this.removeWindFromList(wind);
 
-      if (this.numberOfWinds > 1) {
-        wind.prevWind.arrow.setSelection(true);
-      } 
-
-      if (this.numberOfWinds == 1) {
-        this.firstWind.arrow.removePlacemark();        
-      }      
-           
-      //this.printCurrentWindWindow();
-      this.windOutput.print(this.currentWind);       
-    }
-    
-    
-    removeWindFromList() {
-      
-      // First wind, that is, surface wind, cannot be removed
-      if (this.currentWind == this.firstWind) {
-        console.warn("This wind was not removed, because it was firstWind.");
-        return;
-      }  
-      
-      var wind = this.currentWind;
-      
-      if (wind.nextWind != null) {
-        wind.prevWind.nextWind = wind.nextWind;
-        wind.nextWind.prevWind = wind.prevWind;          
+      wind.prevWind.nextWind = wind.nextWind;      
+      if (wind != this.lastWind) {
+        wind.nextWind.prevWind = wind.prevWind;
       } else {
-        // lastWind case
-        wind.prevWind.nextWind = null;
-        this.lastWind = wind.prevWind;         
+        this.lastWind = wind.prevWind;
       }
       
-      this.currentWind = wind.prevWind;
-                        
-      this.numberOfWinds--;     
-    }
-
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    removeCurrentWind() {
-      
-      // First wind, that is, surface wind, cannot be removed
-      if (this.currentWind == this.firstWind) {
-        console.warn("This wind was not removed, because it was firstWind.");
-        return;
+      if (wind == this.currentWind) {
+        this.currentWind = wind.prevWind;
+        if (this.numberOfWinds > 1) {
+          this.currentWind.arrow.setSelection(true);
+        } 
+        //this.printCurrentWindWindow();
+        this.windOutput.print(this.currentWind);        
       }
+                                    
+      this.numberOfWinds--;       
       
-      this.currentWind.removeFromMap(this.map);     
-      this.removeCurrentWindFromList();
-
-      if (this.numberOfWinds > 1) {
-        this.currentWind.arrow.setSelection(true);
-      } 
-
       if (this.numberOfWinds == 1) {
-        this.firstWind.arrow.removePlacemark();        
-      }      
-           
-      //this.printCurrentWindWindow();
-      this.windOutput.print(this.currentWind);       
+        this.firstWind.arrow.removePlacemark();
+        this.currentWind.arrow.setSelection(false);        
+      }                       
     }
     
     
-    removeCurrentWindFromList() {
-      
-      // First wind, that is, surface wind, cannot be removed
-      if (this.currentWind == this.firstWind) {
-        console.warn("This wind was not removed, because it was firstWind.");
-        return;
-      }  
-      
-      var wind = this.currentWind;
-      
-      if (wind.nextWind != null) {
-        wind.prevWind.nextWind = wind.nextWind;
-        wind.nextWind.prevWind = wind.prevWind;          
-      } else {
-        // lastWind case
-        wind.prevWind.nextWind = null;
-        this.lastWind = wind.prevWind;         
-      }
-      
-      this.currentWind = wind.prevWind;
-                        
-      this.numberOfWinds--;     
-    }
-    
-    
-    moveCurrentPointer(wind) {
-      
-      if (wind == this.currentWind) return;
-      
-      this.currentWind.arrow.setSelection(false);
-            
+    moveCurrentPointer(wind) {      
+      if (wind == this.currentWind) return;      
+      this.currentWind.arrow.setSelection(false);            
       this.currentWind = wind;
-
       this.currentWind.arrow.setSelection(true); 
-      
       this.windOutput.print(this.currentWind);  
-
       //this.printCurrentWindWindow();      
     }
     
     
     moveCurrentPointerToPrev() {
-      if (this.numberOfWinds == 1) return;
-      
-      this.currentWind.arrow.setSelection(false);
-      
+      if (this.numberOfWinds == 1) return;      
+      this.currentWind.arrow.setSelection(false);      
       if (this.currentWind != this.firstWind) {
         this.currentWind = this.currentWind.prevWind;
       } else {
         this.currentWind = this.lastWind;
       }  
-
       this.currentWind.arrow.setSelection(true); 
-
       //this.printCurrentWindWindow();
       this.windOutput.print(this.currentWind);   
     }
     
+    
     moveCurrentPointerToNext() {
-      if (this.numberOfWinds == 1) return;
-      
-      this.currentWind.arrow.setSelection(false);
-      
+      if (this.numberOfWinds == 1) return;      
+      this.currentWind.arrow.setSelection(false);      
       if (this.currentWind != this.lastWind) {
         this.currentWind = this.currentWind.nextWind;
       } else {
         this.currentWind = this.firstWind;
-        //console.log(this.currentWind.height);
       }
-
-      this.currentWind.arrow.setSelection(true);
-      
+      this.currentWind.arrow.setSelection(true);      
       //this.printCurrentWindWindow();
       this.windOutput.print(this.currentWind);             
     }
     
     /**
-     * Set height to this.currentWind and 
-     * then order WindList for heights. 
-     * @param {number || null} height
+     * Set height to this.currentWind and then order WindList for heights 
+     * (increasing order, null is greater then number);
+     * you cannot change height of first wind (0) by construction.
+     * @param {number || null} height - Height of wind; if it is number then must be > 0.
+     * @return {boolean} - False if it is impossible to set this height 
+     * (height is a number and such height has already existed).
      */ 
     setHeightToCurrentWind(height) {
-      // We cannot change height for first (surface) wind 
+      // We cannot change height for first (surface) wind by construction 
       if (this.currentWind == this.firstWind) {
         throw("You cannot change height of this.firstWind!");
       }
@@ -296,92 +206,108 @@ function(provide, Wind, WindOutputElement) {
       if ((typeof(height) == 'number') && (height <= 0)) {
         throw("Height of winds must be > 0!");
       }      
-            
+               
+      // Different cones must have different heights  
+      if (typeof(height) == 'number') {  
+        var wind = this.firstWind;        
+        while(true) {
+          if ((wind != this.currentWind) && (wind.getHeight() == height)) { 
+            return(false);
+          }            
+          if ((wind == this.lastWind) || (wind.getHeight() == null)) break;          
+          wind = wind.nextWind;         
+        }
+      }     
+                        
       var currentWind = this.currentWind;
       
-      // If height is null we will move current wind 
-      // to the end of list
-      if (height == null) {
-      
-        // Case, when everything is already in right order      
-        if ((currentWind == this.lastWind) ||      
-            (currentWind.nextWind.getHeight() == null)) {
-          currentWind.setHeight(height);
-          this.windOutput.print(this.currentWind);
-          
-          return;
-        }   
-        
-        this.removeCurrentWindFromList();
-                
-        this.lastWind.nextWind = currentWind;      
-        
-        currentWind.prevWind = this.lastWind;
-        currentWind.nextWind = null;
-        
-        this.lastWind = currentWind;
-        
-        this.currentWind = currentWind;
-        // we decreased  numberOfWinds previously in removeCurrentWind()     
-        this.numberOfWinds++;
-
-        this.currentWind.setHeight(height);         
-        this.windOutput.print(this.currentWind);
-        
-        return(true);
-      } else {
-        // From previous it follows, that numberOfWinds > 1 
-        // and height > 0
-        
-        this.removeCurrentWindFromList();
-        
-        var wind = this.firstWind;
-        
-        while(true) {
-          
-          wind = wind.nextWind;
-          
-          if (wind == null) {
-            currentWind.prevWind = this.lastWind;
-            this.lastWind.nextWind = currentWind;
-            currentWind.nextWind = null;
-            this.lastWind = currentWind;
-            currentWind.setHeight(height);
+      this.currentWind.setHeight(height);         
+      this.windOutput.print(this.currentWind);
             
-            this.currentWind = currentWind;   
-            this.numberOfWinds++;
-            
-            this.windOutput.print(this.currentWind);
-            
-            return;                        
-          } 
-          
-          var windHeight = wind.getHeight();
-                         
-          // Such height already exists
-          if (windHeight == height) return(false);
-          
-          if (windHeight == null || windHeight > height) {
-            
-            wind.prevWind.nextWind = currentWind;
-            currentWind.prevWind = wind.prevWind;
-                    
-            wind.prevWind = currentWind;
-            currentWind.nextWind = wind;
-            
-            currentWind.setHeight(height);
-            
-            this.currentWind = currentWind;            
-            this.numberOfWinds++;
-
-            this.windOutput.print(this.currentWind);
-            
-            return;        
-          }                      
+      var wind = this.currentWind;
+ 
+      // Order windList by heights (increasing order, 
+      // null values are greater than numbers)               
+      if (height == null) {         
+        while(true) {          
+          if (wind.nextWind == null || wind.nextWind.getHeight() == null) break;
+          var wind = wind.nextWind;        
         }
+         
+        this.moveWind(currentWind, wind);
+              
+      } else {  // height is a number
+        
+        // Moving in previous order
+        if (wind.prevWind.getHeight() == null || 
+            height < wind.prevWind.getHeight()) {  
+        
+          while(true) {
+            if (wind.prevWind.getHeight() != null) break; 
+            wind = wind.prevWind;       
+          }
+              
+          while(true) {
+            if (height > wind.prevWind.getHeight()) break;
+            wind = wind.prevWind;
+          }
+          
+          this.moveWind(currentWind, wind.prevWind);
+          
+        } else {
+                
+          while(true) {
+            if (wind.nextWind == null || wind.nextWind.getHeight() == null ||
+                height < wind.nextWind.getHeight()) break;
+            wind = wind.nextWind;    
+          }
+          
+          this.moveWind(currentWind, wind);        
+        }                        
       }
       
+      return(true);            
     }
+    
+    /**
+     * Move windA to be next wind for windB.
+     * Remember, that in WindList first wind always exists. 
+     */
+    moveWind(windA, windB) {
+      if (windA == windB || windA == windB.nextWind) return;
+              
+      if (windB == this.lastWind) {
+        
+        windA.nextWind.prevWind = windA.prevWind;
+        windA.prevWind.nextWind = windA.nextWind;        
+                
+        windB.nextWind = windA;
+        windA.prevWind = windB;
+
+        this.lastWind = windA;         
+      } else if (windA == this.lastWind) {
+        
+        this.lastWind = windA.prevWind;
+        windA.prevWind.nextWind = null;        
+
+        windA.nextWind = windB.nextWind;        
+        windB.nextWind.prevWind = windA;
+        
+        windA.prevWind = windB;
+        windB.nextWind = windA;              
+      } else {  // both windA and windB are not lastWind
+        
+        windA.nextWind.prevWind = windA.prevWind;
+        windA.prevWind.nextWind = windA.nextWind;         
+        
+        windA.nextWind = windB.nextWind;        
+        windB.nextWind.prevWind = windA;
+
+        windA.prevWind = windB;
+        windB.nextWind = windA;                    
+      }       
+    }
+    
     
     setCurrentAngle(angle) {
       this.currentWind.setAngle(angle);
@@ -393,7 +319,10 @@ function(provide, Wind, WindOutputElement) {
       this.windOutput.print(this.currentWind);              
     }
     
-   
+    /**
+     * It is good idea not to use this function in WindList methods
+     * (because it uses outer objects); use this function beyond WindList class.
+     */
     printCurrentWindWindow() {
       if (this.currentWind == this.firstWind) {
         $("#windHeightInput").prop("disabled", true);

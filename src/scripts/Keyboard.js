@@ -70,6 +70,11 @@ function(
             calculatePrintRresults();
           }          
           break;
+        case 9:  // Tab keydown event
+          e.preventDefault();
+          windList.moveCurrentPointerToNext();
+          windList.printCurrentWindWindow();           
+          break;          
       }
       
     });
@@ -77,11 +82,12 @@ function(
     // To loose focus after pressing Enter on <input>
     // This is for dzHeightMenu and chuteMenu  
     $("input").keypress(function(e) {
-      if (e.keyCode === 13) {  // Enter keycode
+      if (e.keyCode === 13 || e.keyCode === 9) {  // Enter keycode
         $("input").blur();     // Forced loose of focus
       }    
     });
     
+        
     function calculatePrintRresults() {     
       if (path.length > 0) {      
         calculator.calculateHeight();   

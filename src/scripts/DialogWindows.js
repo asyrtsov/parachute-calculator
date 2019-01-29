@@ -198,17 +198,27 @@ function(
       $("#windHeightInput").on("change", function() {        
         // Remember that #windHeightInput is disabled for firstWind
         
+        // If we jump to firstWind by use of Tab button (our app has such 
+        // possibility), it will call windList.setHeightToCurrentWind (it will be error).
+        if (windList.currentWind == windList.firstWind) return;
+        
         var s = $("#windHeightInput").val();        
         var n = Number.parseFloat(s);
         
-        if ((n > 0) && (n <= Constant.maxHeight)) {
-          //windList.currentWind.setHeight(n);
-          windList.setHeightToCurrentWind(n);
-          $("#windHeightInput").val(n);          
+        if ((n > 0) && (n <= Constant.maxHeight)) { 
+          if (windList.setHeightToCurrentWind(n)) { 
+            $("#windHeightInput").val(n);
+          } else {
+            var v = windList.currentWind.getHeight();
+            var w = (v == null) ? '' : v;             
+            $("#windHeightInput").val(w);
+            alert("Такая высота уже была!");            
+          }            
         } else {
-          //windList.currentWind.setHeight(null);
-          windList.setHeightToCurrentWind(null);
-          $("#windHeightInput").val('');
+          var v = windList.currentWind.getHeight();
+          var w = (v == null) ? '' : v;             
+          $("#windHeightInput").val(w);
+          alert("Значение не попадает в допустимый интервал!");
         } 
                         
         if (path.length > 0) {
@@ -252,14 +262,8 @@ function(
       
       // Draw scales for Wind Window    
       drawWindScales();
-
-      /*
-      $("#addWindButton").on("click", function() {
-        console.log("click");     
-      }); */
       
-      /*
-      
+      /*      
       $("#arrowScale").prop("checked", windList.firstWind.arrow.getIsScaled());
       
       $("#arrowScale").change(function() {
@@ -268,8 +272,6 @@ function(
       });   */
       
       
-
-            
       function initWindWindow() {
         if (windList.currentWind == windList.firstWind) {
           $("#windHeightInput").prop("disabled", true);
