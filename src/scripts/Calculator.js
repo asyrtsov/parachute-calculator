@@ -241,8 +241,12 @@ function(provide, VectorMath, Circle, Constant) {
       while(wind != windList.lastWind && 
             wind.getHeight() <= height[path.length-1]) {
         wind = wind.nextWind;
-      }   
-      
+      }
+
+      if (wind != windList.firstWind) {
+        wind = wind.prevWind;
+      }
+            
       var vertexB = path.lastVertex, 
           vertexA = vertexB.prevVertex;
           
@@ -273,8 +277,8 @@ function(provide, VectorMath, Circle, Constant) {
         
         if (edgeChuteVelocity == 0) {
           // Case: chute is hanging above pointA
-          if (wind == windList.firstWind) {
-            // Case of firstWind: it is impossible to fly such path           
+          if (wind == lastList.firstWind) {
+            // Case: it is impossible to fly such path           
             for(var j = heightIndex; j >= 0; j--) {
               height[j] = null;
             } 
