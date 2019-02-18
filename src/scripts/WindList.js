@@ -1,8 +1,9 @@
 ymaps.modules.define('WindList', [
   'Wind', 
-  'WindOutputElement'
+  'WindOutputElement', 
+  'Output'
 ],
-function(provide, Wind, WindOutputElement) {
+function(provide, Wind, WindOutputElement, Output) {
 
   /**
    * List of winds at different heights; 
@@ -35,7 +36,11 @@ function(provide, Wind, WindOutputElement) {
       // Output window at the top left corner of the screen.    
       this.windOutput = new WindOutputElement(this.firstWind);
       this.map.controls.add(this.windOutput, {float: 'left'}); 
-      this.windOutput.print(this.currentWind);          
+      this.windOutput.print(this.currentWind);
+
+      this.calculator = null;
+      this.path = null;       
+      
       
       this.firstWind.arrow.events.add('click', function(e) {
         if (this.numberOfWinds == 1) return;      
@@ -47,6 +52,15 @@ function(provide, Wind, WindOutputElement) {
         this.printCurrentWindWindow();
         this.windOutput.print(this.currentWind);        
       }.bind(this));      
+    }
+    
+       
+    setCalculator(calculator) {
+      this.calculator = calculator;      
+    }
+    
+    setPath(path) {
+      this.path = path;
     }
 
     /**
@@ -83,14 +97,15 @@ function(provide, Wind, WindOutputElement) {
                 this.currentWind.arrow.setSelection(false);
                 wind.arrow.setSelection(true);
                 this.currentWind = wind;          
-              } 
-              
+              }
+
               this.printCurrentWindWindow();
-              this.windOutput.print(this.currentWind);               
-            } else {  // Double Click (deletion of current arrow)
-              this.removeWind(this.currentWind);         
+              this.windOutput.print(this.currentWind);
+              
+            } else {  // Double Click (deletion of arrow which was double clicked)
+              this.removeWind(wind);         
             }
-            
+                                               
             clickNumber = 0;
             
           }.bind(this), 200);
@@ -139,7 +154,7 @@ function(provide, Wind, WindOutputElement) {
         if (this.numberOfWinds > 1) {
           this.currentWind.arrow.setSelection(true);
         } 
-        //this.printCurrentWindWindow();
+        this.printCurrentWindWindow();
         this.windOutput.print(this.currentWind);        
       }
                                     
@@ -148,7 +163,10 @@ function(provide, Wind, WindOutputElement) {
       if (this.numberOfWinds == 1) {
         this.firstWind.arrow.removePlacemark();
         this.currentWind.arrow.setSelection(false);        
-      }                       
+      }
+
+      this.calculator.calculateHeight();
+      Output.print(this.calculator, this.path);            
     }
     
     

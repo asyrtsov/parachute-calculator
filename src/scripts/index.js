@@ -48,7 +48,9 @@ function init() {
       windList,
       boundaryHeights      
     );
-    path.setCalculator(calculator);     
+    path.setCalculator(calculator);
+    windList.setCalculator(calculator);
+    windList.setPath(path);    
 
               
     // Click on the map will add vertice to path
