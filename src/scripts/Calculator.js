@@ -231,22 +231,30 @@ function(provide, VectorMath, Circle, Constant) {
           windList = this.windList;
                                   
       var wind = windList.firstWind;
-      
-      /*
-      // Skip winds without heights 
-      while(wind.getHeight() == null) {
-        wind = wind.prevWind;
-      } */
-      
-      // Skip to wind corresponding to final vertex      
-      while(wind != windList.lastWind && 
-            wind.getHeight() <= height[path.length-1]) {
-        wind = wind.nextWind;
-      }
-      if (wind != windList.firstWind) {
-        wind = wind.prevWind;
-      }
             
+      if (wind.getHeight() < height[path.length-1]) {
+        // that is, 0 < heigth[path.length-1]        
+      
+        while(true) {
+          
+          wind = wind.nextWind;
+                    
+          if (wind == null || wind.getHeight() == null) {
+            wind = wind.prevWind;
+            break;
+          }
+               
+          if (wind.getHeight() > height[path.length-1]) {
+            wind = wind.prevWind;
+            break;
+          }
+          
+          if (wind.getHeight() == height[path.length-1]) {
+            break;
+          }          
+        }   
+      } 
+           
       var vertexB = path.lastVertex, 
           vertexA = vertexB.prevVertex;
       
@@ -286,7 +294,8 @@ function(provide, VectorMath, Circle, Constant) {
             
             height[pointAIndex] = pointBHeight;
                              
-            if (vertexA == path.firstVertex) break;
+            if (pointAIndex == 0) break;
+            //if (vertexA == path.firstVertex) break;
             
             vertexB = vertexA;
             vertexA = vertexB.prevVertex;
@@ -342,8 +351,9 @@ function(provide, VectorMath, Circle, Constant) {
               pointBHeight += t1 * this.chute.verticalVel;
               
               height[pointAIndex] = pointBHeight;
-                                 
-              if (vertexA == path.firstVertex) break;
+              
+              if (pointAIndex == 0) break;                   
+              //if (vertexA == path.firstVertex) break;
               
               vertexB = vertexA;
               vertexA = vertexB.prevVertex;
