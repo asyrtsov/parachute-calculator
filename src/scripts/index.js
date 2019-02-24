@@ -60,6 +60,10 @@ function init() {
       path.addVertex(point);      
     }); */
 
+    // Set of buttons in the left side of screen:
+    //   Settings, Chute, Wind, Help, Clean buttons. 
+    var menu = new Menu(map, path);      
+    
    
     var clickNumber = 0;
 
@@ -74,19 +78,17 @@ function init() {
           } else {  // Double Click
             // We add new wind arrow (windsock)           
             windList.addWind(point);
-            windList.printCurrentWindWindow();             
+            windList.printCurrentWindWindow();
+            menu.windButton.showMenu();
+            $("#menuArrow").removeClass("arrow");
+            $("#menuArrow").addClass("arrow_selected");             
           }
           clickNumber = 0;           
         }, 200);
       }    
     });
     
-        
-    // Set of buttons in the left side of screen:
-    //   Settings, Chute, Wind, Help, Clean buttons. 
-    var menu = new Menu(map, path);    
-
-    
+            
     // Add events processing for Dialog Windows:
     //   for Settings, Chute, Wind windows.
     DialogWindows.initializeWindows(

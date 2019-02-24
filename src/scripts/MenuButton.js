@@ -71,6 +71,27 @@ function(provide, Button) {
       }   
     }
     
+    
+    showMenu() {
+      //this.buttonIsOn = !this.buttonIsOn;
+      if (this.buttonIsOn == false) {
+        this.buttonIsOn = true;          
+        
+        // show() is jQuery function
+        $(this.windowjQuerySelector).show();      
+        //arrow.geometry.setCoordinates(map.getCenter());
+        this.data.set('cssclass', 'pressedInputControlElement');
+
+        if ((this.menu.pressedButton != null) && (this.menu.pressedButton != this)) {
+          this.menu.pressedButton.turnOffButton();
+        }
+        this.menu.pressedButton = this;        
+      } else {
+        //this.turnOffButton();
+        //this.menu.pressedButton = null;        
+      }       
+    }
+    
         
     /**
      * Turn off button.

@@ -34,13 +34,13 @@ function(provide, MenuButton) {
         new MenuButton("Справка", "images/icon_help.svg", "#helpMenu", this);
 
       // Wind Button
-      var windButton = 
+      this.windButton = 
         new MenuButton("Настройка ветра", "images/icon_arrow.svg", "#windMenu", this);  
 
       // Adding Buttons to Map.  
       map.controls.add(dzHeightButton, {position: {top: 45, left: 10}});
       map.controls.add(chuteButton, {position: {top: 75, left: 10}});
-      map.controls.add(windButton, {position: {top: 105, left: 10}});
+      map.controls.add(this.windButton, {position: {top: 105, left: 10}});
       map.controls.add(helpButton, {position: {top: 135, left: 10}});   
       map.controls.add(clearButton, {position: {top: 165, left: 10}});     
     }  

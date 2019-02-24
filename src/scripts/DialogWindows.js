@@ -235,6 +235,7 @@ function(
            
         //windList.currentWind.setAngle(angle);
         windList.setCurrentAngle(angle);
+        $("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");
 
         if (path.length > 0) {
           calculator.calculateHeight();   

@@ -98,12 +98,20 @@ function(provide, Wind, WindOutputElement, Output) {
                 wind.arrow.setSelection(true);
                 this.currentWind = wind;          
               }
+              
+              
+              //console.log(wind.arrow.geometry.getCoordinates()); 
+              
 
               this.printCurrentWindWindow();
               this.windOutput.print(this.currentWind);
               
             } else {  // Double Click (deletion of arrow which was double clicked)
-              this.removeWind(wind);         
+              this.removeWind(wind);
+              if (this.numberOfWinds == 1) {
+                $("#menuArrow").removeClass("arrow_selected");
+                $("#menuArrow").addClass("arrow"); 
+              }               
             }
                                                
             clickNumber = 0;
@@ -352,7 +360,9 @@ function(provide, Wind, WindOutputElement, Output) {
       $("#windHeightInput").val(this.currentWind.getHeight());    
       $("#windDirectionInput").val(this.currentWind.getAngle());
       $("#windValueInput").val(this.currentWind.getValue());
-      $("#arrowScale").prop("checked", this.currentWind.arrow.getIsScaled());      
+      $("#arrowScale").prop("checked", this.currentWind.arrow.getIsScaled());
+      var angle = this.currentWind.getAngle();
+      $("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");      
     } 
        
   }
