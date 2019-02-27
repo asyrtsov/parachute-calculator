@@ -43,6 +43,7 @@ function(
           //wind.setAngle(angle);
           windList.setCurrentAngle(angle);
           $("#windDirectionInput").val(angle);
+          $("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");
           calculatePrintRresults();           
           break;
         case 37:
@@ -50,6 +51,7 @@ function(
           //wind.setAngle(angle);
           windList.setCurrentAngle(angle);
           $("#windDirectionInput").val(angle);
+          $("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");
           calculatePrintRresults();          
           break;
         case 38:

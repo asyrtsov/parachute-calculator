@@ -236,10 +236,12 @@ function(provide, VectorMath, Circle, Constant) {
         // that is, 0 < heigth[path.length-1]        
       
         while(true) {
+                    
+          if (wind.nextWind == null) break;
           
           wind = wind.nextWind;
                     
-          if (wind == null || wind.getHeight() == null) {
+          if (wind.getHeight() == null) {
             wind = wind.prevWind;
             break;
           }
@@ -254,6 +256,8 @@ function(provide, VectorMath, Circle, Constant) {
           }          
         }   
       } 
+      
+      //console.log("windHeight:" + wind.getHeight());
            
       var vertexB = path.lastVertex, 
           vertexA = vertexB.prevVertex;
@@ -276,7 +280,7 @@ function(provide, VectorMath, Circle, Constant) {
                    
         //console.log("edgeChuteVelocity: " + edgeChuteVelocity);
 
-        if (wind == windList.lastWind) {
+        if (wind == windList.lastWind || wind.nextWind.getHeight() == null) {
                     
           if (edgeChuteVelocity > 0) {
           
@@ -313,7 +317,8 @@ function(provide, VectorMath, Circle, Constant) {
             } 
             break;                        
           }             
-        } else {  // wind != windList.lastWind
+        } else {  
+          // wind != windList.lastWind && wind.nextWind.getHeight() != null
           
           if (edgeChuteVelocity < 0) {
             // Case: impossible to fly from this edge (and so, this path)          
