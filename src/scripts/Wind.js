@@ -45,19 +45,21 @@ function(provide, Arrow) {
     setAngle(angle) {
       
       angle = Math.floor(angle); 
-            
-      if (angle >= 0) {
-        angle = angle % 360;
-      } else {
-        // negative angle case
-        angle = angle * (-1);
-        angle = angle % 360;
-        angle = 360 - angle;        
-      }
       
-      if (angle > 180) {
-        angle -= 360;
-      }        
+      if (angle != -180) {  // we want to differ -180 degree and 180 degree at wind menu scale             
+        if (angle >= 0) {
+          angle = angle % 360;
+        } else {
+          // negative angle case
+          angle = angle * (-1);
+          angle = angle % 360;
+          angle = 360 - angle;        
+        }
+        
+        if (angle > 180) {
+          angle -= 360;
+        }
+      }      
             
       this.arrow.rotate(angle);
 

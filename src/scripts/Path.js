@@ -62,8 +62,8 @@ function(
       
       // Output window at the top left corner of the screen.    
       
-      this.heightOutput = 
-        new HeightOutputElement(Constant.defaultStartHeight); 
+      //this.heightOutput = 
+      //  new HeightOutputElement(Constant.defaultStartHeight); 
         
       //this.map.controls.add(this.heightOutput, {float: 'left'}); 
     }
@@ -538,15 +538,27 @@ function(
         this.lastVertex = null; 
       }
       
-      var out = this.pathDirection ? 
-        Constant.defaultStartHeight : Constant.defaultFinalHeight;      
+      if (this.pathDirection) {
+        var out = Math.floor(this.calculator.boundaryHeights.startHeight);
+        this.calculator.boundaryHeights.startHeight = out         
+        this.calculator.boundaryHeights.finalHeight = out;
+        $("#finalHeight").val(out);                 
+      } else {
+        var out = Math.floor(this.calculator.boundaryHeights.finalHeight);        
+        this.calculator.boundaryHeights.startHeight = out;
+        this.calculator.boundaryHeights.finalHeight = out;
+        $("#startHeight").val(out);         
+      }
       
-      this.heightOutput.print(out);
-      $("#startHeight").val(out);
-      $("#finalHeight").val(out);
+      //var out = this.pathDirection ? 
+      //  Constant.defaultStartHeight : Constant.defaultFinalHeight;      
       
-      this.calculator.boundaryHeights.startHeight = Constant.defaultStartHeight;
-      this.calculator.boundaryHeights.finalHeight = Constant.defaultFinalHeight;    
+      //this.heightOutput.print(out);
+      //$("#startHeight").val(out);
+      //$("#finalHeight").val(out);
+      
+      //this.calculator.boundaryHeights.startHeight = Constant.defaultStartHeight;
+      //this.calculator.boundaryHeights.finalHeight = Constant.defaultFinalHeight;    
     }
 
 
@@ -555,41 +567,73 @@ function(
      * @param {Array} height - heights in Path vertices.
      */     
     printBallonsAndHints(height) {
-      if (this.length > 0 && height.length > 0) {      
-        var vertex = this.firstVertex;
-        
-        var beforeNumber = true;
-            
-        for(var i=0; i < this.length; i++) {
+      if (this.length > 0 && height.length > 0) {
+
+        if (this.pathDirection) {
+                    
+          var vertex = this.firstVertex;
           
-          if (typeof(height[i]) == 'number') {
+          var firstUnreachable = true;
+                       
+          for(var i=0; i < this.length; i++) {
             
-            vertex.printHint("h=" + Math.floor(height[i]) + "м");
-            vertex.printPlacemark(Math.floor(height[i]) + "м");
-                
-            /*                
-            vertex.properties.set("hintContent", "h=" + 
-                                         Math.floor(height[i]) + "м");
-            vertex.heightPlacemark.properties.set("iconContent",
-                                         Math.floor(height[i]) + "м"); */
-            beforeNumber = false;
-                                         
-          } else {
-            if (beforeNumber) {
+            if (typeof(height[i]) == 'number') {              
+              vertex.printHint("h=" + Math.floor(height[i]) + "м");
+              vertex.printPlacemark(Math.floor(height[i]) + "м"); 
+              if (!vertex.placemarkIsShown) {
+                this.map.geoObjects.add(vertex.heightPlacemark);
+                vertex.placemarkIsShown = true;
+              }              
+            } else {
+              vertex.printHint("&#x26D4;");
+              vertex.printPlacemark("Сюда не долететь!");
+              if (firstUnreachable) {
+                firstUnreachable = false;
+                if (!vertex.placemarkIsShown) {
+                  this.map.geoObjects.add(vertex.heightPlacemark);
+                  vertex.placemarkIsShown = true;
+                }                                                  
+              } else {
+                if (vertex.placemarkIsShown) {
+                  this.map.geoObjects.remove(vertex.heightPlacemark);
+                  vertex.placemarkIsShown = false;
+                }
+              }                  
+            }                                                                                                            
+            vertex = vertex.nextVertex;
+          }            
+        } else {
+          var vertex = this.lastVertex;
+
+          var firstUnreachable = true;
+                       
+          for(var i=this.length - 1; i >= 0; i--) {
+            
+            if (typeof(height[i]) == 'number') {              
+              vertex.printHint("h=" + Math.floor(height[i]) + "м");
+              vertex.printPlacemark(Math.floor(height[i]) + "м");
+              if (!vertex.placemarkIsShown) {
+                this.map.geoObjects.add(vertex.heightPlacemark);
+                vertex.placemarkIsShown = true;
+              }         
+            } else {
               vertex.printHint("&#x26D4;");
               vertex.printPlacemark("Отсюда не долететь!");
-              //vertex.properties.set("hintContent", "&#x26D4;");
-              //vertex.heightPlacemark.properties.set("iconContent", "Отсюда не долететь!");                         
-            } else {
-              //vertex.heightPlacemark.options.set("preset", "islands#redIcon");
-              vertex.printHint("&#x26D4;");
-              vertex.printPlacemark("Сюда не долететь!");                
-              //vertex.properties.set("hintContent", "&#x26D4;");
-              //vertex.heightPlacemark.properties.set("iconContent", "Сюда не долететь!");        
-            }            
-          }                            
-                                                                              
-          vertex = vertex.nextVertex;
+              if (firstUnreachable) {
+                firstUnreachable = false;
+                if (!vertex.placemarkIsShown) {
+                  this.map.geoObjects.add(vertex.heightPlacemark);
+                  vertex.placemarkIsShown = true;
+                }                                 
+              } else {
+                if (vertex.placemarkIsShown) {
+                  this.map.geoObjects.remove(vertex.heightPlacemark);
+                  vertex.placemarkIsShown = false;
+                }
+              }                  
+            }                                                                                                            
+            vertex = vertex.prevVertex;
+          }                      
         }
       }      
     }

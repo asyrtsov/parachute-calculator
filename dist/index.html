@@ -9,14 +9,10 @@
   <link rel="stylesheet" type="text/css" href="css/style.css"> 
     
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>  
-  
-  
-  
-  
+    
   <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU"></script> 
 </head>
 
@@ -109,13 +105,17 @@
       </div>  <!-- class="form-group" -->      
       <div class="form-group">
         <label for="windValueInput" id="windValueLabel">
-          Скорость ветра (м/с)
+          Скорость ветра: &nbsp; 
+          <div id="menuWindValue" style="float: right;"></div>
         </label>
-        <!-- Value for max atribute will be added be JS -->
+        <!-- Value for max atribute will be added by JS -->
         <input type="range"
                id="windValueInput"
                min="0" max="0"  
                onkeydown="return false;">
+        <!--       
+        <div style="width: 50%;">0</div>
+        <div style="width: 50%; float: right; text-align: right;" id="maxWindValue"></div> -->       
         <div id="windValueInputScale" class="sliderScale"></div>                  
       </div>  <!-- class="form-group" -->  
 

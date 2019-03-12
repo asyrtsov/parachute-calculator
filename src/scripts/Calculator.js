@@ -32,14 +32,19 @@ function(provide, VectorMath, Circle, Constant) {
       this.boundaryHeights = boundaryHeights;
                       
       // Array of heights in all vertices of path.
-      this.height = [];        
+      this.height = [];
+      
+      // Points on the path in where wind changes.
+      // Number of these points = numberOfWinds - 1.
+      this.windPoints = [];       
     }
      
 
     getHeight() {
       return(this.height);
     }
-
+    
+    
     /**
      * Condition for using this function: path.length > 0
      */
@@ -60,7 +65,13 @@ function(provide, VectorMath, Circle, Constant) {
       } 
 
       var height = [this.boundaryHeights.startHeight];
-        
+
+      for(var i=0; i<this.windPoints.length; i++) {
+        this.path.map.geoObjects.remove(this.windPoints[i]);      
+      }
+      
+      this.windPoints = [];
+              
       var path = this.path, 
           chute = this.chute, 
           windList = this.windList;
@@ -105,7 +116,9 @@ function(provide, VectorMath, Circle, Constant) {
           
           if (edgeChuteVelocity > 0) {
             
-            var dist = ymaps.coordSystem.geo.getDistance(pointA, pointB);          
+            var dist = ymaps.coordSystem.geo.getDistance(pointA, pointB);
+            console.log("dist: " + dist); 
+            console.log("edgeChuteVelocity: " + edgeChuteVelocity);            
             var t1 = dist / edgeChuteVelocity;
             
             if (t1 > Constant.maxFlightTime) {
@@ -200,6 +213,14 @@ function(provide, VectorMath, Circle, Constant) {
               //this.path.map.geoObjects.remove(this.p);              
               //this.p = new Circle([pointA, 10]);
               //this.path.map.geoObjects.add(this.p);
+              
+              
+              
+              var windPoint = new Circle([pointA, 10]);
+              
+              this.windPoints.push(windPoint);
+              
+              this.path.map.geoObjects.add(windPoint);
                                                         
               wind = wind.prevWind;
               

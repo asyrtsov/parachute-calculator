@@ -362,7 +362,8 @@ function(provide, Wind, WindOutputElement, Output) {
       $("#windValueInput").val(this.currentWind.getValue());
       $("#arrowScale").prop("checked", this.currentWind.arrow.getIsScaled());
       var angle = this.currentWind.getAngle();
-      $("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");      
+      $("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");
+      $("#menuWindValue").html(this.currentWind.getValue() + " м/с");      
     } 
        
   }

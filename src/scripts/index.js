@@ -81,7 +81,7 @@ function init() {
             windList.printCurrentWindWindow();
             menu.windButton.showMenu();
             $("#menuArrow").removeClass("arrow");
-            $("#menuArrow").addClass("arrow_selected");             
+            $("#menuArrow").addClass("arrow_selected");        
           }
           clickNumber = 0;           
         }, 200);

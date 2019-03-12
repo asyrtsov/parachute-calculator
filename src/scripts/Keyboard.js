@@ -27,9 +27,7 @@ function(
     //heightOutput, 
     path
   ) {
-    
-    
-    
+        
     //  Change Wind by keyboard.
     $("html").keydown(function(e) {
    
@@ -42,16 +40,18 @@ function(
           angle += 5;
           //wind.setAngle(angle);
           windList.setCurrentAngle(angle);
-          $("#windDirectionInput").val(angle);
-          $("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");
+          windList.printCurrentWindWindow();
+          //$("#windDirectionInput").val(angle);
+          //$("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");
           calculatePrintRresults();           
           break;
         case 37:
           angle -= 5;
           //wind.setAngle(angle);
           windList.setCurrentAngle(angle);
-          $("#windDirectionInput").val(angle);
-          $("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");
+          windList.printCurrentWindWindow();
+          //$("#windDirectionInput").val(angle);
+          //$("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");
           calculatePrintRresults();          
           break;
         case 38:
@@ -59,7 +59,8 @@ function(
             value++;            
             //wind.setValue(value);
             windList.setCurrentValue(value);
-            $("#windValueInput").val(value);
+            windList.printCurrentWindWindow();
+            //$("#windValueInput").val(value);
             calculatePrintRresults();
           }           
           break;
@@ -67,8 +68,9 @@ function(
           if (value >= 1) {
             value--;
             //wind.setValue(value);
-            windList.setCurrentValue(value);            
-            $("#windValueInput").val(value);
+            windList.setCurrentValue(value);
+            windList.printCurrentWindWindow();            
+            //$("#windValueInput").val(value);
             calculatePrintRresults();
           }          
           break;
