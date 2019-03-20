@@ -53,48 +53,23 @@ function(provide, Map, ZoomControl, Constant) {
       this.menu = null;       
     }
     
-    
-    setSearchProcessor(path, calculator, windList) {
+    /**
+     * Processing of yandex.maps search
+     */
+    setSearchProcessor(calculator) {
+
+      this.calculator = calculator;    
+      this.path = calculator.path;
+      this.windList = calculator.windList;
       
-      this.path = path;
-      //this.heightOutput = path.heightOutput;
-      this.calculator = calculator;
-      //this.wind = windList.currentWind;
-      this.windList = windList;
       this.defaultZoom = Constant.defaultZoom;
       
       this.searchControl.events.add('resultshow', function(e) {
                 
-        this.path.clear();
-        //this.heightOutput.print([this.calculator.getStartHeight()]);
-         
-        this.setZoom(this.defaultZoom);
-        
-        var wind = this.windList.firstWind; 
-        var [x0, y0] = wind.arrow.geometry.getCoordinates();        
-        
-        var [cx, cy] = this.getCenter();
-        
-        
-        var a = (Math.cos((Math.PI/180)*x0) == 0) ? 
-          1 : ((Math.cos((Math.PI/180)*cx))/Math.cos((Math.PI/180)*x0));
-          
-        console.log("a=" + a);  
-        
-        while(true) {
-          var [x1, y1] = wind.arrow.geometry.getCoordinates();
-          var [x, y] = [x1 - x0 + cx, (y1 - y0) + cy];
-          
-          console.log("x1 = " + x1);
-          console.log("x = " + x);
-          
-          wind.arrow.setCoordinates([x, y]);
-          if (wind == this.windList.lastWind) break;
-          wind = wind.nextWind;                      
-        }
-        
-        //this.wind.arrow.setCoordinates(this.getCenter());
-         
+        this.path.clear(); 
+        this.setZoom(this.defaultZoom);        
+        this.windList.shiftList(this.getCenter());
+                 
         var index = e.get('index');    
         var geoObjectsArray = this.searchControl.getResultsArray();
         var resultName = geoObjectsArray[index].properties.get('name');

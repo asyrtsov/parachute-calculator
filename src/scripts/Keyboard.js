@@ -1,33 +1,19 @@
-ymaps.modules.define('Keyboard', [
-  'Output', 
-  'Constant'
-],
-function(
-  provide,
-  Output, 
-  Constant
-) {
+ymaps.modules.define('Keyboard', ['Constant'],
+function(provide, Constant) {
 
   var Keyboard = {};
   
   /**
    * Keys: left, right, up, down are for changing wind direction
-   * and wind value.
+   * and wind value. TAB is for selecting next wind.
    * Enter key on <input> tag will cause loose of focus.
-   * @param {Wind} wind
-   * @param {Calculator} calculator
-   * @param {WindOutputElement} windOutput
-   * @param {HeightOutputElement} heightOutput
-   * @param {Path} path   
+   * @param {Calculator} calculator   
    */
-  Keyboard.startKeyboardProcessing = function(
-    windList, 
-    calculator, 
-    //windOutput, 
-    //heightOutput, 
-    path
-  ) {
-        
+  Keyboard.startKeyboardProcessing = function(calculator) {
+    
+    var windList = calculator.windList, 
+        path = calculator.path;
+    
     //  Change Wind by keyboard.
     $("html").keydown(function(e) {
    
@@ -38,39 +24,29 @@ function(
       switch(key) {
         case 39:
           angle += 5;
-          //wind.setAngle(angle);
           windList.setCurrentAngle(angle);
           windList.printCurrentWindWindow();
-          //$("#windDirectionInput").val(angle);
-          //$("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");
           calculatePrintRresults();           
           break;
         case 37:
           angle -= 5;
-          //wind.setAngle(angle);
           windList.setCurrentAngle(angle);
           windList.printCurrentWindWindow();
-          //$("#windDirectionInput").val(angle);
-          //$("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");
           calculatePrintRresults();          
           break;
         case 38:
           if (value <= Constant.maxWindValue - 1) {
             value++;            
-            //wind.setValue(value);
             windList.setCurrentValue(value);
             windList.printCurrentWindWindow();
-            //$("#windValueInput").val(value);
             calculatePrintRresults();
           }           
           break;
         case 40:
           if (value >= 1) {
             value--;
-            //wind.setValue(value);
             windList.setCurrentValue(value);
             windList.printCurrentWindWindow();            
-            //$("#windValueInput").val(value);
             calculatePrintRresults();
           }          
           break;
@@ -79,8 +55,7 @@ function(
           windList.moveCurrentPointerToNext();
           windList.printCurrentWindWindow();           
           break;          
-      }
-      
+      }      
     });
 
     // To loose focus after pressing Enter on <input>
@@ -90,14 +65,12 @@ function(
         $("input").blur();     // Forced loose of focus
       }    
     });
-    
-        
+            
     function calculatePrintRresults() {     
       if (path.length > 0) {      
-        calculator.calculateHeight();   
-        Output.print(calculator, path);
-      }      
-      //windOutput.print(windList.currentWind);             
+        calculator.calculateHeight();
+        path.printHeightsAndWindPoints();
+      }                   
     }
   }
     

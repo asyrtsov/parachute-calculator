@@ -1,44 +1,23 @@
-ymaps.modules.define('DialogWindows', [
-  'Output', 
-  'Constant', 
-  'Arrow'
-],
-function(
-  provide, 
-  Output, 
-  Constant, 
-  Arrow  
-) {
+ymaps.modules.define('DialogWindows', ['Constant'],
+function(provide, Constant) {
 
   var DialogWindows = {};
   /**
-   * @param {AppMap} map
-   * @param {Path} path
-   * @param {HeightOutputElement} heightOutput
-   * @param {WindOutputElement} windOutput
    * @param {Calculator} calculator
-   * @param {Chute} chute
-   * @param {Wind} wind 
    */
-  DialogWindows.initializeWindows = function (
-    map, 
-    path, 
-    //heightOutput, 
-    //windOutput, 
-    calculator, 
-    chute, 
-    windList, 
-    boundaryHeights
-  ) {
+  DialogWindows.initializeWindows = function(calculator) {
     
+    var path = calculator.path;
+        chute = calculator.chute;
+        windList = calculator.windList;
+        boundaryHeights = calculator.boundaryHeights;    
+    var map = path.map;    
     var wind = windList.currentWind;
     
-
     initSettingsWindow();
     initChuteWindow();
     initWindListWindow();
-    
-       
+           
     /**
      * Settings (Dz and Start Height Window) initialization:
      *   default options for <input> tags, 
@@ -48,35 +27,29 @@ function(
       // Set default options: dz array
       for(var i=0; i<map.dz.length; i++) {
         $("#dz").append("<option>" + map.dz[i].name + "</option>");    
-      }  
+      }
+      
       $("#dz").on("change", function() {
         var mapCenter = map.dz[this.selectedIndex].mapCenter;      
-        map.setCenter(mapCenter, Constant.defaultZoom); 
-        wind.arrow.setCoordinates(mapCenter);
-        //arrow.geometry.setCoordinates(mapCenter);
-        
+        map.setCenter(mapCenter, Constant.defaultZoom);
+        windList.shiftList(mapCenter);                
         // path.clear() will print results too
         path.clear();
       });
-      
-      //$("#startHeight").val(Constant.defaultStartHeight);
-      
+            
       $("#startHeight").val(boundaryHeights.startHeight);
                         
       $("#startHeight").change(function () {       
         var s = $(this).val();
         var n = Number.parseInt(s);
         if ((n >= 0) && (n <= Constant.maxHeight)) {
-          //calculator.setStartHeight(n);      
-          //Constant.defaultStartHeight = n;
           boundaryHeights.startHeight = n;
           $("#startHeight").val(n);  // if value was parsed hardly
      
           if (path.length > 0) {  
-            calculator.calculateHeight();   
-            Output.print(calculator, path);   
+            calculator.calculateHeight();
+            path.printHeightsAndWindPoints();
           } else {
-            //path.heightOutput.print(n);
             boundaryHeights.finalHeight = n;
             $("#finalHeight").val(n);                     
           }
@@ -85,27 +58,20 @@ function(
         }
       });
 
-      
-      //$("#finalHeight").val(Constant.defaultStartHeight);
-
-      $("#finalHeight").val(boundaryHeights.startHeight);
-      
+      $("#finalHeight").val(boundaryHeights.startHeight);      
       $("#finalHeight").prop("disabled", true);
       
       $("#finalHeight").change(function () {       
         var s = $(this).val();
         var n = Number.parseFloat(s);
         if ((n >= 0) && (n <= Constant.maxHeight)) {
-          //calculator.setFinalHeight(n);      
-          //Constant.defaultFinalHeight = n;
           boundaryHeights.finalHeight = n;
           $("#finalHeight").val(n);  // if value was parsed hardly
           
           if (path.length > 0) {
-            calculator.calculateHeight();   
-            Output.print(calculator, path);           
+            calculator.calculateHeight();
+            path.printHeightsAndWindPoints();                       
           } else {
-            //path.heightOutput.print(n);
             boundaryHeights.startHeight = n;
             $("#startHeight").val(n);                     
           }
@@ -113,52 +79,48 @@ function(
           $("#finalHeight").val(boundaryHeights.finalHeight);
         }    
       });
-
+      
       
       $("#pathDirection").change(function() {
         var isChecked = $(this).prop("checked");
+        path.setPathDirection(!isChecked);                
+      });
+      
+      
+      $("#calculationDirection").change(function() {
+        var isChecked = $(this).prop("checked");
 
-        path.setPathDirection(!isChecked);
+        calculator.setCalculationDirection(!isChecked);
         
         $("#startHeight").prop("disabled", isChecked);
         $("#finalHeight").prop("disabled", !isChecked);
-
         
         if (path.length > 0) {
-          if (path.getPathDirection()) {
+          if (!isChecked) {
             if (boundaryHeights.startHeight == null) {
-              //calculator.setStartHeight(Constant.defaultStartHeight);
               boundaryHeights.startHeight = Constant.defaultStartHeight;
-              calculator.calculateHeight();   
-              Output.print(calculator, path); 
+              calculator.calculateHeight();
+              path.printHeightsAndWindPoints(); 
             }            
           } else {
             if (boundaryHeights.finalHeight == null) {
-              //calculator.setFinalHeight(Constant.defaultFinalHeight);
               boundaryHeights.finalHeight = Constant.defaultFinalHeight;
-              calculator.calculateHeight();   
-              Output.print(calculator, path); 
+              calculator.calculateHeight();
+              path.printHeightsAndWindPoints();              
             }
           }             
           //calculator.calculateHeight();   
           //Output.print(calculator, path);           
         } else { 
           
-          var out = path.getPathDirection() ? 
+          var out = !isChecked ? 
             Constant.defaultStartHeight : Constant.defaultFinalHeight;      
-            //boundaryHeights.startHeight : boundaryHeights.finalHeight; 
           
-          //heightOutput.print(out);
           $("#startHeight").val(out);
           $("#finalHeight").val(out);
 
           boundaryHeights.startHeight = out;
-          boundaryHeights.finalHeight = out;
-                  
-          //calculator.setStartHeight(Constant.defaultStartHeight);
-          //calculator.setFinalHeight(Constant.defaultFinalHeight);
-          //calculator.setStartHeight(boundaryHeights.startHeight);
-          //calculator.setFinalHeight(boundaryHeights.finalHeight);             
+          boundaryHeights.finalHeight = out;           
         }                                 
       });        
     }    
@@ -176,8 +138,7 @@ function(
           chute.horizontalVel = chutehorvel;
         }
         $("#chutehorvel").val(chute.horizontalVel);
-        
-             
+                     
         var chutevervel = Number.parseFloat($("#chutevervel").val());
         if (( chutevervel>=0) && (chutevervel<=Constant.maxChuteVerticalVelocity)) {
           chute.verticalVel = chutevervel;    
@@ -185,8 +146,8 @@ function(
         $("#chutevervel").val(chute.verticalVel);        
 
         if (path.length > 0) {
-          calculator.calculateHeight();   
-          Output.print(calculator, path);    
+          calculator.calculateHeight();
+          path.printHeightsAndWindPoints();              
         }
       });
     }    
@@ -199,9 +160,7 @@ function(
       $("#windValueInput").prop("max", "" + Constant.maxWindValue);
         
       windList.printCurrentWindWindow();   
-       
-      //initWindWindow();
-            
+                   
       $("#windHeightInput").on("change", function() {        
         // Remember that #windHeightInput is disabled for firstWind
         
@@ -229,8 +188,8 @@ function(
         } 
                         
         if (path.length > 0) {
-          calculator.calculateHeight();   
-          Output.print(calculator, path);
+          calculator.calculateHeight();
+          path.printHeightsAndWindPoints();          
         }        
       });
       
@@ -244,8 +203,8 @@ function(
         windList.printCurrentWindWindow();
 
         if (path.length > 0) {
-          calculator.calculateHeight();   
-          Output.print(calculator, path);
+          calculator.calculateHeight();
+          path.printHeightsAndWindPoints();           
         }            
       });
 
@@ -258,8 +217,8 @@ function(
         windList.printCurrentWindWindow();
         
         if (path.length > 0) {
-          calculator.calculateHeight();   
-          Output.print(calculator, path);
+          calculator.calculateHeight();
+          path.printHeightsAndWindPoints();          
         }       
       });
       
@@ -277,16 +236,14 @@ function(
       
       function initWindWindow() {
         if (windList.currentWind == windList.firstWind) {
-          $("#windHeightInput").prop("disabled", true);
-         // $("#removeWind").prop("disabled", true);          
+          $("#windHeightInput").prop("disabled", true);        
         } else {
           $("#windHeightInput").prop("disabled", false);
-         // $("#removeWind").prop("disabled", false);
         }
         $("#windHeightInput").val(windList.currentWind.getHeight());    
         $("#windDirectionInput").val(windList.currentWind.getAngle());
         $("#windValueInput").val(windList.currentWind.getValue());  
-        $("#arrowScale").prop("checked", windList.currentWind.arrow.getIsScaled());        
+        //$("#arrowScale").prop("checked", windList.currentWind.arrow.getIsScaled());        
       }                        
     }
    
@@ -338,42 +295,7 @@ function(
         "width": 100/(directionPlateNumber) + "%",
         "float": "left", 
         "text-align": "center"
-      });
-      
-      
-      
-      
-      
-      
-      
-
-      // Create legend for value range input
-      // For fine view, Constant.maxWindValue should be equals 10
-      var maxWindVelocity = Constant.maxWindValue;
-      
-      $("#maxWindValue").html(maxWindVelocity);
-      
-      /*
-      var scaleStep = Math.floor(Constant.maxWindValue / 4);
-      for(var i=0; i<maxWindVelocity + 1; i++) {    
-        $("#windValueInputScale").append("<div class='valueScale' id='v" + i + "'>" + i + "</div>");
-      }
-
-      $(".valueScale").css({
-        "width": 100/(maxWindVelocity + 0.38) + "%",
-        "float": "left",
-        "text-align": "left"
-      });
-
-      $("#v" + (maxWindVelocity - 1)).css({
-        "width": 100/(maxWindVelocity*2) + "%"
-      }); 
-
-      $("#v" + maxWindVelocity).css({
-        "width": 100/(maxWindVelocity*1.25) + "%",
-        "float": "left",
-        "text-align": "right"
-      });   */
+      });     
     }     
   }
 

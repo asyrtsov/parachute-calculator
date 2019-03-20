@@ -75,7 +75,6 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
       this.boundChange = this.boundChange.bind(this);
             
     }
-
     
     setCoordinates(coordinates) {
       this.geometry.setCoordinates(coordinates);
@@ -155,18 +154,15 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
       map.geoObjects.remove(this);
       map.geoObjects.remove(this.heightPlacemark);         
     }
-    
-    
+        
     addPlacemark() {
       this.map.geoObjects.add(this.heightPlacemark);      
     } 
-    
-    
+        
     removePlacemark() {
       this.map.geoObjects.remove(this.heightPlacemark);      
     } 
-
-       
+      
     /**
      * Set arrow to be scaled with map zooming or 
      * not to be scaled. Map should be defined. 

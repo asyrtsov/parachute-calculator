@@ -22,7 +22,10 @@ function(provide, Arrow) {
       this.setHeight(height); 
 
       this.prevWind = null;
-      this.nextWind = null;      
+      this.nextWind = null; 
+
+      // Point on the path, at which height = this.height.  
+      //this.pathPoint = null;       
     }
     
     /**

@@ -1,4 +1,6 @@
-﻿html, body, #map {
+﻿html, 
+body, 
+#map {
   height: 100%; 
   width: 100%; 
 }
@@ -18,10 +20,6 @@
   opacity: 0.9;
   width: 25px;
 }
-
-
-
-
 
 .outputControlElement, 
 .inputControlElement,
@@ -92,7 +90,6 @@
   cursor: pointer;  
 }
 
-
 #dzHeightMenu, 
 #chuteMenu, 
 #windMenu {
@@ -102,7 +99,6 @@
   top: 45px;  
   width: 200px;
 }
-
 
 #helpMenu {
   overflow: auto;
@@ -126,7 +122,6 @@
   }  
 }
 
-
 @media only screen 
 and (max-device-width: 768px)
 and (orientation: landscape) {
@@ -135,7 +130,6 @@ and (orientation: landscape) {
     overflow: auto;    
   }
 }
-
 
 
 /* Slider */
@@ -185,7 +179,6 @@ input[type=range]::-moz-range-thumb {
   border-radius: 4px;
 }
 
-
 .carousel-control-prev-icon {
     background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23000' viewBox='0 0 8 8'%3E%3Cpath d='M5.25 0l-4 4 4 4 1.5-1.5-2.5-2.5 2.5-2.5-1.5-1.5z'/%3E%3C/svg%3E");
 }
@@ -193,8 +186,3 @@ input[type=range]::-moz-range-thumb {
 .carousel-control-next-icon {
     background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23000' viewBox='0 0 8 8'%3E%3Cpath d='M2.75 0l-1.5 1.5 2.5 2.5-2.5 2.5 1.5 1.5 4-4-4-4z'/%3E%3C/svg%3E");
 }
-
-
-
-
-

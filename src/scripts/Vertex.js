@@ -49,7 +49,16 @@ function(provide, Circle, Placemark) {
       this.nextVertex = null;
       
       this.clickNumber = 0;
-      this.placemarkIsShown = true; 
+      this.placemarkIsShown = true;
+     
+      // Turning on/off vertex when conditon 
+      // "reachable/unreachable" was changed
+      this.wasTurnOffBecauseUnreachable = false;
+      // The same for back direction
+      this.wasTurnOffBecauseBackUnreachable = false;
+
+      // Chute height at this vertex. It will be calculated later.      
+      this.height = null;      
               
       this.events.add('click', function(e) {
         e.stopPropagation();  // remove standart zoom for click
@@ -114,9 +123,7 @@ function(provide, Circle, Placemark) {
     
     printHint(str) {
       this.properties.set("hintContent", str);      
-    }
-    
-        
+    }       
   } 
   provide(Vertex);  
 }); 

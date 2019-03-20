@@ -1,10 +1,9 @@
 /** 
- * Program calculate height of Chute for 
- * given point on the Path. Path is a set of line segments (edges).
+ * Program calculate heights of Chute for 
+ * vertices of the Path. Path is a set of line segments (edges).
  * You can input Path by clicking left mouse button.
  */
  
-      
 ymaps.ready(init);  
 function init() {   
   ymaps.modules.require([
@@ -51,22 +50,14 @@ function init() {
     path.setCalculator(calculator);
     windList.setCalculator(calculator);
     windList.setPath(path);    
-
               
-    // Click on the map will add vertice to path
-    /*    
-    map.events.add('click', function(e) {
-      var point = e.get('coords');
-      path.addVertex(point);      
-    }); */
-
     // Set of buttons in the left side of screen:
     //   Settings, Chute, Wind, Help, Clean buttons. 
-    var menu = new Menu(map, path);      
+    var menu = new Menu(map, path, windList);      
     
-   
+    // Click on the map will add vertice to Path, 
+    // double click on the map will add wind to WindList.     
     var clickNumber = 0;
-
     map.events.add('click', function(e) {
       var point = e.get('coords');    
       clickNumber++;
@@ -76,44 +67,32 @@ function init() {
             // We add vertex to path           
             path.addVertex(point);                               
           } else {  // Double Click
-            // We add new wind arrow (windsock)           
-            windList.addWind(point);
-            windList.printCurrentWindWindow();
-            menu.windButton.showMenu();
-            $("#menuArrow").removeClass("arrow");
-            $("#menuArrow").addClass("arrow_selected");        
+            // We add new wind arrow (windsock)
+            if (windList.lastWind.getHeight() != null) {              
+              windList.addWind(point);
+              windList.printCurrentWindWindow();
+              menu.windButton.showMenu();
+              $("#menuArrow").removeClass("arrow");
+              $("#menuArrow").addClass("arrow_selected"); 
+            }             
           }
           clickNumber = 0;           
         }, 200);
       }    
     });
-    
-            
+                
     // Add events processing for Dialog Windows:
     //   for Settings, Chute, Wind windows.
-    DialogWindows.initializeWindows(
-      map, 
-      path, 
-      calculator, 
-      chute, 
-      windList, 
-      boundaryHeights
-    );
-
+    DialogWindows.initializeWindows(calculator);
     
     // Add keyboard events: 
     //   left, right, up, down pressing (for changing wind value and direction), 
     //   enter key press on <input> tag - to loose focus after pressing enter.  
-    Keyboard.startKeyboardProcessing(
-      windList, 
-      calculator, 
-      path
-    ); 
-
+    Keyboard.startKeyboardProcessing(calculator); 
     
     // After yandex maps search we should: 
     //   move wind arrows to the current screen, 
     //   add result of search to Settings Dialog Window.
-    map.setSearchProcessor(path, calculator, windList); 
+    map.setSearchProcessor(calculator); 
   });      
 }

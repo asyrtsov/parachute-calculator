@@ -10,9 +10,11 @@ function(provide, MenuButton) {
      * @param {Map} map
      * @param {Path} path
      */
-    constructor(map, path) {
+    constructor(map, path, windList) {
       
-      this.path = path;      
+      this.path = path;
+      this.windList = windList;
+      
       this.pressedButton = null;
          
       // Clear Button
@@ -35,14 +37,52 @@ function(provide, MenuButton) {
 
       // Wind Button
       this.windButton = 
-        new MenuButton("Настройка ветра", "images/icon_arrow.svg", "#windMenu", this);  
+        new MenuButton("Настройка ветра", "images/icon_arrow.svg", "#windMenu", this);
 
+      // Add Wind Button
+      var addWindButton = 
+        new MenuButton("Добавить ветер", "images/icon_add_arrow.svg");
+      addWindButton.events.add('click', function() {
+        // We add new wind arrow (windsock)
+        if (this.windList.lastWind.getHeight() != null) {   
+          var point = findPlaceForNewArrow(this); 
+          
+          this.windList.addWind();
+          this.windList.printCurrentWindWindow();
+          this.windButton.showMenu();
+          $("#menuArrow").removeClass("arrow");
+          $("#menuArrow").addClass("arrow_selected");
+        }
+
+        function findPlaceForNewArrow(context) {
+          
+          return(context.windList.firstWind.arrow.geometry.getCoordinates());
+        }  
+        
+      }.bind(this));        
+
+      // Remove Wind Button
+      var removeWindButton = 
+        new MenuButton("Удалить ветер", "images/icon_remove_arrow.svg");
+      removeWindButton.events.add('click', function() {
+        if (this.windList.currentWind != this.windList.firstWind) {
+          this.windList.removeWind(this.windList.currentWind);
+          if (this.windList.numberOfWinds == 1) {
+            $("#menuArrow").removeClass("arrow_selected");
+            $("#menuArrow").addClass("arrow"); 
+          }
+        }
+      }.bind(this));  
+
+        
       // Adding Buttons to Map.  
       map.controls.add(dzHeightButton, {position: {top: 45, left: 10}});
       map.controls.add(chuteButton, {position: {top: 75, left: 10}});
       map.controls.add(this.windButton, {position: {top: 105, left: 10}});
-      map.controls.add(helpButton, {position: {top: 135, left: 10}});   
-      map.controls.add(clearButton, {position: {top: 165, left: 10}});     
+      map.controls.add(addWindButton, {position: {top: 135, left: 10}});
+      map.controls.add(removeWindButton, {position: {top: 165, left: 10}});      
+      map.controls.add(helpButton, {position: {top: 195, left: 10}});   
+      map.controls.add(clearButton, {position: {top: 225, left: 10}});      
     }  
   }
       

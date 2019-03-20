@@ -1,6 +1,4 @@
-ymaps.modules.define('CircleVertex', [
-  'Circle'       
-],
+ymaps.modules.define('CircleVertex', ['Circle'],
 function(provide, Circle) {
   
   class CircleVertex extends Circle {

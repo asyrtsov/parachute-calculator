@@ -75,7 +75,18 @@ function(provide) {
     static length(v) {
       return(Math.sqrt(v[0]*v[0] + v[1]*v[1]));
     }
-        
+    
+    /**
+     * pointA + {pointA, pointB} * t
+     */       
+    static findIntermediatePoint(pointA, pointB, t) {
+      var v = this.subVectors(pointB, pointA);      
+      var dist = ymaps.coordSystem.geo.getDistance(pointA, pointB);      
+      v = this.multVectorConstant(v, t);                   
+      var point = this.addVectors(pointA, v);
+      return(point);  
+    }
+            
   }
       
   provide(VectorMath);  
