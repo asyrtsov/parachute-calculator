@@ -49,7 +49,10 @@ function(provide, Circle, Placemark) {
       this.nextVertex = null;
       
       this.clickNumber = 0;
-      this.placemarkIsShown = true;
+      this.placemarkIsShown = false;
+      this.vertexIsShown = false;
+      // Vertex single clicking switcher
+      this.singleClickingIsOn = true;
      
       // Turning on/off vertex when conditon 
       // "reachable/unreachable" was changed
@@ -76,25 +79,99 @@ function(provide, Circle, Placemark) {
       }.bind(this));
     
     }
-          
+    
+
+    
+    addToMap() {
+      if (!this.vertexIsShown) {
+        this.path.map.geoObjects.add(this);         
+        this.path.map.geoObjects.add(this.image);       
+        this.vertexIsShown = true;
+      }      
+    }
+    
+    
+    removeFromMap() {
+      if (this.vertexIsShown) {
+        this.path.map.geoObjects.remove(this);         
+        this.path.map.geoObjects.remove(this.image);       
+        this.vertexIsShown = false;
+      }               
+    }
+
+    
+    showPlacemark() {
+      if (this.path != null) {
+        if (!this.placemarkIsShown) {
+          this.path.map.geoObjects.add(this.heightPlacemark);
+          this.placemarkIsShown = true;
+        } else {
+          console.warn("Placemark has already shown!");
+        }
+      } else {
+        console.warn("this.path == null!");
+      }      
+    } 
+
+    
+    hidePlacemark() {
+      if (this.path != null) {
+        if (this.placemarkIsShown) {
+          this.path.map.geoObjects.remove(this.heightPlacemark);
+          this.placemarkIsShown = false;
+        } else {
+          console.warn("Placemark has already hiden!");
+        }
+      } else {
+        console.warn("this.path == null!");
+      }      
+    }
+    
+    /** 
+     * Turn off single clicking on vertex.
+     * Remember, that single clicking on vertex 
+     * shows or hides Placemark.     
+     */
+    turnOffSingleClicking() {
+      if (this.singleClickingIsOn) {
+        this.singleClickingIsOn = false;
+      } else {
+        console.warn("Single clicking is already off!");
+      }        
+    }
+
+    /** 
+     * Turn on single clicking on vertex.
+     * Remember, that single clicking on vertex 
+     * shows or hides Placemark.     
+     */    
+    turnOnSingleClicking() {
+      if (!this.singleClickingIsOn) {
+        this.singleClickingIsOn = true;
+      } else {
+        console.warn("Single clicking is already on!");
+      }            
+    }
+         
     /**
      * Process both click and dblclick on this vertex.
+     * Single clicking is for showing/hiding Placemark. 
+     * Double clicking is for vertex removing.
      */       
     processVertexClick() {
       this.clickNumber++;
       if (this.clickNumber == 1) {
         setTimeout(function() {        
-          if (this.clickNumber == 1) {  // Single Click
-            this.placemarkIsShown = !this.placemarkIsShown;
-            
-            if (this.placemarkIsShown) {
-              this.path.map.geoObjects.add(this.heightPlacemark);
-            } else {
-              this.path.map.geoObjects.remove(this.heightPlacemark);                  
-            }
-                            
+          if (this.clickNumber == 1) {  // Single Click (show/hide Placemark)
+            if (this.singleClickingIsOn) {
+              if (this.placemarkIsShown) {
+                this.hidePlacemark();
+              } else {
+                this.showPlacemark();             
+              }
+            }                            
             this.clickNumber = 0;
-          } else {  // Double Click               
+          } else {  // Double Click (remove Vertex)               
             this.path.removeVertex(this);                 
           }  
         }.bind(this), 200);

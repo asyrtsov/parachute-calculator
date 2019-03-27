@@ -37,92 +37,10 @@ function(provide, Constant) {
         path.clear();
       });
             
-      $("#startHeight").val(boundaryHeights.startHeight);
-                        
-      $("#startHeight").change(function () {       
-        var s = $(this).val();
-        var n = Number.parseInt(s);
-        if ((n >= 0) && (n <= Constant.maxHeight)) {
-          boundaryHeights.startHeight = n;
-          $("#startHeight").val(n);  // if value was parsed hardly
-     
-          if (path.length > 0) {  
-            calculator.calculateHeight();
-            path.printHeightsAndWindPoints();
-          } else {
-            boundaryHeights.finalHeight = n;
-            $("#finalHeight").val(n);                     
-          }
-        } else {
-          $("#startHeight").val(boundaryHeights.startHeight);
-        }
-      });
-
-      $("#finalHeight").val(boundaryHeights.startHeight);      
-      $("#finalHeight").prop("disabled", true);
-      
-      $("#finalHeight").change(function () {       
-        var s = $(this).val();
-        var n = Number.parseFloat(s);
-        if ((n >= 0) && (n <= Constant.maxHeight)) {
-          boundaryHeights.finalHeight = n;
-          $("#finalHeight").val(n);  // if value was parsed hardly
-          
-          if (path.length > 0) {
-            calculator.calculateHeight();
-            path.printHeightsAndWindPoints();                       
-          } else {
-            boundaryHeights.startHeight = n;
-            $("#startHeight").val(n);                     
-          }
-        } else {
-          $("#finalHeight").val(boundaryHeights.finalHeight);
-        }    
-      });
-      
-      
       $("#pathDirection").change(function() {
         var isChecked = $(this).prop("checked");
         path.setPathDirection(!isChecked);                
-      });
-      
-      
-      $("#calculationDirection").change(function() {
-        var isChecked = $(this).prop("checked");
-
-        calculator.setCalculationDirection(!isChecked);
-        
-        $("#startHeight").prop("disabled", isChecked);
-        $("#finalHeight").prop("disabled", !isChecked);
-        
-        if (path.length > 0) {
-          if (!isChecked) {
-            if (boundaryHeights.startHeight == null) {
-              boundaryHeights.startHeight = Constant.defaultStartHeight;
-              calculator.calculateHeight();
-              path.printHeightsAndWindPoints(); 
-            }            
-          } else {
-            if (boundaryHeights.finalHeight == null) {
-              boundaryHeights.finalHeight = Constant.defaultFinalHeight;
-              calculator.calculateHeight();
-              path.printHeightsAndWindPoints();              
-            }
-          }             
-          //calculator.calculateHeight();   
-          //Output.print(calculator, path);           
-        } else { 
-          
-          var out = !isChecked ? 
-            Constant.defaultStartHeight : Constant.defaultFinalHeight;      
-          
-          $("#startHeight").val(out);
-          $("#finalHeight").val(out);
-
-          boundaryHeights.startHeight = out;
-          boundaryHeights.finalHeight = out;           
-        }                                 
-      });        
+      }); 
     }    
               
     /** 

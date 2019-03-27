@@ -6,10 +6,7 @@ ymaps.modules.define('AppMap', [
 function(provide, Map, ZoomControl, Constant) {
   
   class AppMap extends Map {
-    /**
-     * @param {number[]} center 
-     * @param {numner} zoom
-     */
+
     constructor() {
 
       // Array of Dropzones and their coordinates.
@@ -28,7 +25,8 @@ function(provide, Map, ZoomControl, Constant) {
       
       this.dz = dz; 
  
-      this.setType("yandex#satellite");  // view from space    
+      // view from space  
+      this.setType("yandex#satellite");    
       this.cursors.push('arrow');  
       this.controls.remove('trafficControl');  
       this.controls.remove('zoomControl');
