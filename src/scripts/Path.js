@@ -193,22 +193,23 @@ function(
 
       var prevVertex = edge.prevVertex,
           nextVertex = edge.prevVertex.nextVertex;
-
+          
+      var edgeChuteDirection = edge.getChuteDirection();
+         
       var prevPoint = prevVertex.geometry.getCoordinates(),
           nextPoint = nextVertex.geometry.getCoordinates();
 
       var vertex = new Vertex(point, this.vertexOuterRadius, this);
       vertex.image = new CircleVertex(point, this.vertexRadius, this.vertexImageZIndex);
 
-
-      var newEdge1 = new PathEdge(prevPoint, point, this);
-
+      var newEdge1 = new PathEdge(prevPoint, point, this, edgeChuteDirection);
+ 
       // In case when nextVertex is lastVertex
       if (nextVertex.nextVertex == null) {
         nextPoint = nextVertex.image.getEdgePoint();
       }
 
-      var newEdge2 = new PathEdge(point, nextPoint, this);
+      var newEdge2 = new PathEdge(point, nextPoint, this, edgeChuteDirection);
 
       vertex.prevVertex = prevVertex;
       vertex.nextVertex = nextVertex;
@@ -269,6 +270,9 @@ function(
 
           var removingEdge1 = prevVertex.nextLine;
           var removingEdge2 = removingVertex.nextLine;
+          
+          var edgeChuteDirection = 
+            removingEdge1.getChuteDirection() || removingEdge2.getChuteDirection();
 
           map.geoObjects.remove(removingEdge1);
           map.geoObjects.remove(removingEdge1.image);
@@ -299,7 +303,7 @@ function(
             nextEdgePoint = nextPoint;
           }
 
-          newEdge = new PathEdge(prevPoint, nextEdgePoint, this);
+          newEdge = new PathEdge(prevPoint, nextEdgePoint, this, edgeChuteDirection);
           this.map.geoObjects.add(newEdge);
           this.map.geoObjects.add(newEdge.image);
 
@@ -340,9 +344,6 @@ function(
               this.calculator.setFinalHeight(this.lastVertex.height);  
             } 
           }
-          
-
-
         } else {  // first vertex case
           map.geoObjects.remove(removingVertex.nextLine);
           map.geoObjects.remove(removingVertex.nextLine.image);

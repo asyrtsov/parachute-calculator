@@ -136,20 +136,26 @@ function(provide, VectorMath, Constant) {
       } 
       
       var vertexB = vertexA.nextVertex;
-      
+                  
       // Later, pointA can be any point of edge, 
       // pointB always will be vertex, 
       // pointA and pointB belong to the one edge 
       var pointB = vertexB.geometry.getCoordinates();      
       var pointAHeight = vertexA.height;
+
+      var edgeChuteDirection = vertexA.nextLine.getChuteDirection();
       
       while(true) {
         
+        //console.log("edgeChuteDirection: " + edgeChuteDirection); 
+                
         // edgeChuteVelocity is velocity along edge [pointA, pointB] at pointA.
         // 'wind' is a wind in pointA. 
         // Our aim is to calculate height in pointB.       
         var edgeChuteVelocity = 
-          this.calculateChuteEdgeVelocity(pointA, pointB, chute, wind); 
+          this.calculateChuteEdgeVelocity(
+            pointA, pointB, chute, wind, edgeChuteDirection
+          ); 
                                                                                
         if (edgeChuteVelocity < 0) break;
 
@@ -189,7 +195,9 @@ function(provide, VectorMath, Constant) {
               vertexB = vertexA.nextVertex;
               
               pointA = vertexA.geometry.getCoordinates();
-              pointB = vertexB.geometry.getCoordinates();  
+              pointB = vertexB.geometry.getCoordinates(); 
+
+              edgeChuteDirection = vertexA.nextLine.getChuteDirection();              
 
               pointAHeight = vertexA.height;  
               
@@ -234,7 +242,9 @@ function(provide, VectorMath, Constant) {
             vertexB = vertexA.nextVertex;
             
             pointA = vertexA.geometry.getCoordinates();
-            pointB = vertexB.geometry.getCoordinates();  
+            pointB = vertexB.geometry.getCoordinates();
+
+            edgeChuteDirection = vertexA.nextLine.getChuteDirection();            
 
             pointAHeight = vertexA.height;              
 
@@ -281,8 +291,8 @@ function(provide, VectorMath, Constant) {
                     
       var vertexB = path.lastVertex;      
       var pointB = vertexB.geometry.getCoordinates();
-      vertexB.height = this.boundaryHeights.finalHeight; 
-
+      vertexB.height = this.boundaryHeights.finalHeight;
+      
       wind = windList.firstWind;      
       if (wind.getHeight() < vertexB.height) {
         // that is, 0 < vertexB.height
@@ -314,6 +324,7 @@ function(provide, VectorMath, Constant) {
      
       var pointBHeight = vertexB.height;
 
+      var edgeChuteDirection = vertexA.nextLine.getChuteDirection();
             
       while(true) {
          
@@ -323,7 +334,9 @@ function(provide, VectorMath, Constant) {
         // last changing (in the direction, determined by 
         // vector pointApointB)        
         var edgeChuteVelocity = 
-          this.calculateChuteEdgeVelocity(pointA, pointB, chute, wind);
+          this.calculateChuteEdgeVelocity(
+            pointA, pointB, chute, wind, edgeChuteDirection
+          );
         
         //console.log("edgeChuteVelocity: " + edgeChuteVelocity);
         
@@ -381,6 +394,8 @@ function(provide, VectorMath, Constant) {
               pointB = vertexB.geometry.getCoordinates();
 
               pointBHeight = vertexB.height;
+              
+              edgeChuteDirection = vertexA.nextLine.getChuteDirection();
                                                                
               continue;  
             } else {
@@ -429,6 +444,8 @@ function(provide, VectorMath, Constant) {
 
             pointBHeight = vertexB.height;            
 
+            edgeChuteDirection = vertexA.nextLine.getChuteDirection();
+            
             continue;                     
           }
         }                                
@@ -445,14 +462,18 @@ function(provide, VectorMath, Constant) {
      * @param {number[]} pointA - Yandex Maps Coordinates: (latitude, longitude).
      * @param {number[]} pointB - Yandex Maps Coordinates: (latitude, longitude). 
      * @param {Chute} chute 
-     * @param {Wind} wind     
+     * @param {Wind} wind
+     * @param [boolean] edgeChuteDirection - Skydiver can fly with his face directed 
+     * with or against edge.      
      * @return {number} chuteEdgeVelocity - Absolute Chute Velocity along 
      * line segment [pointA, pointB]; in m/sec; 
      * Cases: chuteEdgeVelocity < 0 - If it is impossible to fly this segment;
      * chuteEdgeVelocity == 0 - hanging above pointA all time;    
      * chuteEdgeVelocity > 0 - chute will fly from pointA to pointB.
      */    
-    calculateChuteEdgeVelocity(pointA, pointB, chute, wind) {
+    calculateChuteEdgeVelocity(
+      pointA, pointB, chute, wind, edgeChuteDirection = true
+    ) {
           
       // Let's find right orthonormal basis (e, f), first vector of which (e)
       // has the same direction with vector [pointA, pointB].      
@@ -500,7 +521,9 @@ function(provide, VectorMath, Constant) {
       // it is impossible to fly this segment
       if (chute.horizontalVel < Math.abs(cf)) return(-1);
   
-      var ce = Math.sqrt(chute.horizontalVel**2 - cf**2);
+      var directionSign = edgeChuteDirection ? 1 : -1; 
+  
+      var ce = directionSign * Math.sqrt(chute.horizontalVel**2 - cf**2);
       
       // We consider only case, where ce >= 0 
       // (it's always the case, if chute velocity is greater than wind velocity)    

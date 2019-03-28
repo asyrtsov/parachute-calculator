@@ -23,11 +23,13 @@ function(provide, Polygon, VectorMath) {
       pointA, 
       pointB,
       path, 
-      edgeWidth = 1,       
-      edgeImageWidth = 0.1, 
-      zIndex = 0
+      chuteDirection = true    
+      //edgeWidth = 1,       
+      //edgeImageWidth = 0.1, 
+      //zIndex = 0
     ) {
-            
+        
+      var zIndex = 0;               
       // Rectangle vertices will be calculated later
       super([], {}, {
         // edge will be invisible
@@ -36,26 +38,74 @@ function(provide, Polygon, VectorMath) {
         strokeWidth: 0, 
         zIndex: zIndex
       });
-                            
-      this.image = new Polygon([], {}, {
-        fillColor: "#0000FF",
-        strokeColor: "#0000FF", 
-        zIndex: (zIndex - 1)        
-      });
-      
+
       this.pointA = pointA;
       this.pointB = pointB;
       this.path = path;
-      this.edgeWidth = edgeWidth; 
-      this.edgeImageWidth = edgeImageWidth;
+      // true - for the same directions of Chute and Edge
+      this.chuteDirection = chuteDirection;      
+      
+      var color = this.getColor();
+      
+      this.image = new Polygon([], {}, {
+        fillColor: color,
+        strokeColor: color, 
+        zIndex: (zIndex - 1)        
+      });
+            
+      this.edgeWidth = 1; // edgeWidth; 
+      this.edgeImageWidth = 0.1; // edgeImageWidth;
       
       this.setCoordinates(pointA, pointB);
+      
+      this.clickNumber = 0;
 
-      this.divideEdge = this.divideEdge.bind(this);
-      this.events.add('click', this.divideEdge);           
+      this.events.add('click', function(e) {
+        e.stopPropagation();  // remove standart zoom for click
+        this.processVertexClick(e);
+      }.bind(this));      
     }
     
+    getChuteDirection() {
+      return this.chuteDirection;
+    }
     
+    getColor() {
+      var color = this.chuteDirection ? "#0000FF" : "#000050";
+      return color;
+    }
+
+    /**
+     * Process both click and dblclick on this edge.
+     * Single clicking is for adding new Vertex. 
+     * Double clicking is for changing chute direction 
+     * on this edge (skydiver can fly with his face directed 
+     * with or against edge).
+     */       
+    processVertexClick(e) {
+      this.clickNumber++;
+      if (this.clickNumber == 1) {
+        setTimeout(function() {        
+          if (this.clickNumber == 1) {  // Single Click (add Vertex)
+            this.divideEdge(e);                           
+            this.clickNumber = 0;
+          } else {   
+            if (this.clickNumber == 2) {  // Double Click (change chute direction)
+              this.chuteDirection = !this.chuteDirection;        
+              let color = this.getColor();              
+              this.image.options.set("fillColor", color);
+              this.image.options.set("strokeColor", color);                            
+              this.clickNumber = 0;
+              
+              this.path.calculator.calculateHeight();
+              this.path.printHeightsAndWindPoints();              
+            }             
+          }  
+        }.bind(this), 200);
+      }  
+    }    
+
+      
     /**    
      * Here we calculate projection of point = e.get('coords') to 
      * line segment {this.pointA, this.pointB} and then 
@@ -63,8 +113,7 @@ function(provide, Polygon, VectorMath) {
      * @param {Event} e
      */
     divideEdge(e) {
-      
-      e.stopPropagation();          
+                
       var point = e.get('coords');
       
       var pointA = this.pointA, 
@@ -97,8 +146,7 @@ function(provide, Polygon, VectorMath) {
       this.pointA = pointA;
       this.pointB = pointB;      
     }
-    
-    
+        
     /**
      * @param {number} width - Width of Rectangle, in meters. 
      */    
@@ -113,8 +161,7 @@ function(provide, Polygon, VectorMath) {
       var v = VectorMath.normaliseVector(cartVectorAB);
       
       var w = [(-v[1])*width , v[0]*width];
-      
-      
+            
       var wg = VectorMath.toGeodesicVector(w, latitude);
       var wwg = [wg[0]*(-1), wg[1]*(-1)];
       
@@ -124,10 +171,8 @@ function(provide, Polygon, VectorMath) {
       vertices[2] = VectorMath.addVectors(pointB, wwg); 
       vertices[3] = VectorMath.addVectors(pointA, wwg);       
                   
-      return(vertices);  
-    }      
-    
-        
+      return vertices;  
+    }              
   } 
   provide(PathEdge);  
 }); 

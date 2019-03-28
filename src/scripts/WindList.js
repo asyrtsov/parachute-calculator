@@ -80,7 +80,8 @@ function(provide, Wind, WindOutputElement, WindVertex) {
       wind.prevWind = this.lastWind;
       wind.nextWind = null;
       
-      // In this point on path we will have height = wind.height
+      // In this point on path we will have height = wind.height, 
+      // it is object of class WindVertex.
       wind.pathVertex = null;
       
       this.lastWind = wind;
@@ -294,7 +295,7 @@ function(provide, Wind, WindOutputElement, WindVertex) {
         }                        
       }
             
-      return(true);            
+      return true;            
     }
     
     /**

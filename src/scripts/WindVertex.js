@@ -20,9 +20,10 @@ function(provide, Circle, Placemark) {
         point, 
         radius
       ], {}, {}); 
-            
-      this.options.set("fillColor", "#00FF00");
-      this.options.set("strokeColor", "#00FF00");      
+       
+      var color = "#00FF00";                 
+      this.options.set("fillColor", color);
+      this.options.set("strokeColor", color);      
       
       this.map = map;
       this.wind = wind;
@@ -88,7 +89,9 @@ function(provide, Circle, Placemark) {
       var point = this.wind.pathPoint;
       this.geometry.setCoordinates(point);
       this.heightPlacemark.geometry.setCoordinates(
-      [point[0] + this.heightPlacemarkShift, point[1]]);      
+        [point[0] + this.heightPlacemarkShift, point[1]]
+      );
+      this.printPlacemark(this.wind.getHeight() + " м");      
     }            
   } 
   provide(WindVertex);  
