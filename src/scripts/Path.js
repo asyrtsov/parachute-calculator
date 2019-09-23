@@ -1,4 +1,3 @@
-/** @module Path */
 ymaps.modules.define('Path', [
   'CircleVertex',
   'TriangleVertex',

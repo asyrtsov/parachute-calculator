@@ -10,7 +10,7 @@ function(provide, Constant) {
    * CalculationDirection has boolean value. If it equal to true, 
    * calculation will be made from first vertex of Path to last vertex, 
    * otherwise - from last vertex to first vertex.   
-   * StartHeight and finalHeight have connection to html <input> 
+   * StartHeight and finalHeight have connection to html &lt; input &gt; 
    * elements $("#startHeight") and $("#finalHeight").
    * CalculationDirection has connection to $("#calculationDirection") 
    * checkbox element. In constructor, we create two-side connection 
@@ -80,7 +80,7 @@ function(provide, Constant) {
     }
 
     /**
-     * @param {number || null} finalHeight
+     * @param {(number | null)} finalHeight
      */    
     setStartHeight(startHeight) {
       this.startHeight = startHeight;
@@ -100,7 +100,7 @@ function(provide, Constant) {
     }
     
     /**
-     * @param {number || null} finalHeight
+     * @param {(number | null)} finalHeight
      */
     setFinalHeight(finalHeight) {
       this.finalHeight = finalHeight;

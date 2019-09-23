@@ -7,7 +7,7 @@ function(provide, MenuButton) {
    */
   class Menu {
     /**
-     * @param {Map} map
+     * @param {AppMap} map
      * @param {Path} path
      */
     constructor(map, path, windList) {

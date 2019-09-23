@@ -1,4 +1,3 @@
-/** @module Arrow */
 ymaps.modules.define('Arrow', [
   'Placemark',
   'templateLayoutFactory', 
@@ -85,7 +84,7 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
    
    /**
     * Change arrow selection
-    * @param {boolean || null} - isSelected    
+    * @param {(boolean | null)} - isSelected    
     */   
     setSelection(isSelected = null) {
 

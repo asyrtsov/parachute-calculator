@@ -222,7 +222,7 @@ function(provide, Wind, WindOutputElement, WindVertex) {
      * Set height to this.currentWind and then order WindList for heights 
      * (increasing order, null is greater then number);
      * you cannot change height of first wind (0) by construction.
-     * @param {number || null} height - Height of wind; if it is number then must be > 0.
+     * @param {(number | null)} height - Height of wind; if it is number then must be > 0.
      * @return {boolean} - False if it is impossible to set this height 
      * (height is a number and such height has already existed).
      */ 

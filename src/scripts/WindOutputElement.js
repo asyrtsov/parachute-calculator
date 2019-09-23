@@ -3,7 +3,9 @@ ymaps.modules.define('WindOutputElement', [
 ],
 function(provide, OutputElement) {
   /**
-   * Window for outputing Wind value and Wind direction.
+   * Window for outputing Wind value and Wind direction 
+   * at particular height.
+   * @extends OutputElement
    */
   class WindOutputElement extends OutputElement {
     

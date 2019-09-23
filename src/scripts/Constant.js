@@ -1,3 +1,4 @@
+/** @module Constant */
 ymaps.modules.define('Constant', [],
 function(provide) {
 
@@ -6,7 +7,7 @@ var isMobile = false;
 if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
   isMobile = true;
 }
-
+  /** These varialables are constants for app */
   var Constant = {
     defaultStartHeight: 300,
     defaultFinalHeight: 0,

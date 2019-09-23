@@ -4,7 +4,9 @@ ymaps.modules.define('AppMap', [
   'Constant'  
 ],
 function(provide, Map, ZoomControl, Constant) {
-  
+  /**
+   * @extends Map
+   */
   class AppMap extends Map {
 
     constructor() {

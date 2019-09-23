@@ -1,4 +1,3 @@
-/** @module PathEdge */
 ymaps.modules.define('PathEdge', [
   'Polygon', 
   'VectorMath'  
@@ -7,8 +6,9 @@ function(provide, Polygon, VectorMath) {
   /**
    * PathEdge consists of two rectangles: 
    *   visible rectangle and invisible rectangle.
-   * Invisible rectangle (shell rectangle) is for the means of 
-   * more simple clicking (especially in mobile case)
+   * Invisible rectangle (shell rectangle) is aimed for  
+   * more simple clicking (especially in mobile case). 
+   * @extends Polygon
    */
   class PathEdge extends Polygon {
     /**

@@ -11,7 +11,7 @@ function(provide, Arrow) {
      * Wind in polar coordinate system.
      * @param {number} value - In m/sec; value must be >= 0.
      * @param {number} angle - Angle between current wind and West wind; in degrees.    
-     * @param {number || null} height - In meters; height must be >= 0.
+     * @param {(number | null)} height - In meters; height must be >= 0.
      */
     constructor(value, angle, height) {
       
@@ -29,7 +29,7 @@ function(provide, Arrow) {
     }
     
     /**
-     * @param {number || null} height - In meters; height must be >= 0.
+     * @param {(number | null)} height - In meters; height must be >= 0.
      */
     setHeight(height) {
       if (height != null) {
@@ -42,7 +42,7 @@ function(provide, Arrow) {
     }
     
     /**
-     * this.angle will be reduced to interval (-180, 180] degrees.
+     * angle will be reduced to interval (-180, 180] degrees.
      * @param {number} angle
      */
     setAngle(angle) {
@@ -101,7 +101,7 @@ function(provide, Arrow) {
     } 
     
     /**
-     * Get name of wind direction (E, N, W, S, ...)
+     * Get name of wind direction (E, EN, N, NW, W, WS, S, SE)
      */    
     getDirection() {     
       var angleSwitch = Math.floor((this.angle + 180 + 22)/45);

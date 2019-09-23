@@ -1,4 +1,3 @@
-/** @module Calculator */
 ymaps.modules.define('Calculator', [
   'VectorMath', 
   'Constant'
