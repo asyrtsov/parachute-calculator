@@ -16,13 +16,25 @@ function(provide, MenuButton) {
       this.windList = windList;
       
       this.pressedButton = null;
-         
+ 
+      
+
+      var settingsButton = 
+        new MenuButton("Настройки", "images/icon_menu.svg", "#settingsMenu", this);
+
+
+
+
+
+
+
       // Clear Button
       var clearButton = new MenuButton("Очистить", "images/icon_eraser.svg");
       clearButton.events.add('click', function() {
         this.path.clear();          
       }.bind(this));
-          
+
+           
       // DzStartHeight Button
       var dzHeightButton = 
         new MenuButton("Настройки", "images/icon_settings.svg", "#dzHeightMenu", this);
@@ -40,6 +52,7 @@ function(provide, MenuButton) {
         new MenuButton("Настройка ветра", "images/icon_arrow.svg", "#windMenu", this);
 
       // Add Wind Button
+      
       var addWindButton = 
         new MenuButton("Добавить ветер", "images/icon_add_arrow.svg");
       addWindButton.events.add('click', function() {
@@ -59,9 +72,10 @@ function(provide, MenuButton) {
           return(context.windList.firstWind.arrow.geometry.getCoordinates());
         }  
         
-      }.bind(this));        
+      }.bind(this));     
 
       // Remove Wind Button
+      
       var removeWindButton = 
         new MenuButton("Удалить ветер", "images/icon_remove_arrow.svg");
       removeWindButton.events.add('click', function() {
@@ -75,14 +89,16 @@ function(provide, MenuButton) {
       }.bind(this));  
 
         
-      // Adding Buttons to Map.  
-      map.controls.add(dzHeightButton, {position: {top: 45, left: 10}});
-      map.controls.add(chuteButton, {position: {top: 75, left: 10}});
-      map.controls.add(this.windButton, {position: {top: 105, left: 10}});
-      map.controls.add(addWindButton, {position: {top: 135, left: 10}});
-      map.controls.add(removeWindButton, {position: {top: 165, left: 10}});      
-      map.controls.add(helpButton, {position: {top: 195, left: 10}});   
-      map.controls.add(clearButton, {position: {top: 225, left: 10}});      
+      // Adding Buttons to Map.
+      map.controls.add(settingsButton, {position: {top: 45, left: 10}});  
+      /*
+      map.controls.add(dzHeightButton, {position: {top: 75, left: 10}});
+      map.controls.add(chuteButton, {position: {top: 105, left: 10}});
+      map.controls.add(this.windButton, {position: {top: 135, left: 10}});
+      map.controls.add(addWindButton, {position: {top: 165, left: 10}});
+      map.controls.add(removeWindButton, {position: {top: 195, left: 10}});      
+      map.controls.add(helpButton, {position: {top: 225, left: 10}});   
+      map.controls.add(clearButton, {position: {top: 255, left: 10}});  */         
     }  
   }
       

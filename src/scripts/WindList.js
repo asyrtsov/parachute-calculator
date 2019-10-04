@@ -35,7 +35,11 @@ function(provide, Wind, WindOutputElement, WindVertex) {
 
       // Output window at the top left corner of the screen.    
       this.windOutput = new WindOutputElement(this.firstWind);
-      this.map.controls.add(this.windOutput, {float: 'left'}); 
+      //this.map.controls.add(this.windOutput, {float: 'left'});
+      
+      this.map.controls.add(this.windOutput, {position: {bottom: 30, left: 10}});
+
+
       this.windOutput.print(this.currentWind);
 
       // calculator and path are set up in index.js

@@ -13,11 +13,40 @@ function(provide, Constant) {
         boundaryHeights = calculator.boundaryHeights;    
     var map = path.map;    
     var wind = windList.currentWind;
-    
+
+    // First active link in Menu will be Dz link
+    var prevLinkId = 'dzLink';
+
+    initMenuWindow();
+
     initSettingsWindow();
     initChuteWindow();
     initWindListWindow();
            
+
+    function initMenuWindow() {
+
+
+      $('#dzLinkContent').css('display', 'block');
+      $('#dzLink').addClass('active');
+
+      $('nav a').on('click', function(e) {
+        e.preventDefault();
+
+        let currentLinkId = $(this).attr('id');
+
+        $('#' + prevLinkId + "Content").css('display', 'none');
+        $('#' + currentLinkId + "Content").css('display', 'block');
+
+        $('#' + prevLinkId).removeClass('active');
+        $(this).addClass('active');
+        
+        
+        prevLinkId = currentLinkId;
+      })
+
+    }
+
     /**
      * Settings (Dz and Start Height Window) initialization:
      *   default options for <input> tags, 

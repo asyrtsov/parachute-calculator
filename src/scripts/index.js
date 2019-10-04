@@ -12,7 +12,8 @@ function init() {
     'Chute',
     'Path',
     'Calculator',
-    'Menu',
+    //'Menu',
+    'MenuButton',
     'DialogWindows',
     'Keyboard',
     'Constant', 
@@ -23,7 +24,8 @@ function init() {
     Chute,
     Path,
     Calculator,
-    Menu,
+    //Menu,
+    MenuButton, 
     DialogWindows,
     Keyboard,
     Constant, 
@@ -57,7 +59,12 @@ function init() {
 
     // Set of buttons in the left side of screen:
     // Settings, Chute, Wind, Help, Clean buttons.
-    var menu = new Menu(map, path, windList);
+    // var menu = new Menu(map, path, windList);
+
+    var settingsButton = 
+      new MenuButton("Настройки", "images/icon_menu.svg", "#settingsMenu", this);
+    map.controls.add(settingsButton, {position: {top: 45, left: 10}}); 
+
 
     // Click on the map will add vertice to Path,
     // double click on the map will add wind to WindList.
@@ -72,13 +79,14 @@ function init() {
             path.addVertex(point);
           } else {  // Double Click
             // We add new wind arrow (windsock)
+            /*
             if (windList.lastWind.getHeight() != null) {
               windList.addWind(point);
               windList.printCurrentWindWindow();
               menu.windButton.showMenu();
               $("#menuArrow").removeClass("arrow");
               $("#menuArrow").addClass("arrow_selected");
-            }
+            } */
           }
           clickNumber = 0;
         }, 200);

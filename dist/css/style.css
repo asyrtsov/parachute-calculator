@@ -21,12 +21,11 @@ body,
   width: 25px;
 }
 
-.outputControlElement, 
 .inputControlElement,
 .pressedInputControlElement {
   border-radius: 3px;
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  font-family: Arial,Helvetica,sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
   font-size: 13px;  
   height: 28px;
   max-width: 200px;
@@ -36,8 +35,17 @@ body,
 }
 
 .outputControlElement {
+  border-radius: 3px;
   background-color: rgba(255, 255, 255, 0.75);
+  font-family: Arial, Verdana, sans-serif;
+  font-size: 11px;
+  height: 18px;
+  max-width: 300px;
+  padding: 4px;
+  padding-bottom: 10px;
+  text-align: center; 
 }
+
 
 .inputControlElement,
 .pressedInputControlElement {
@@ -60,15 +68,6 @@ body,
   width: 20px;
 }
 
-/* Menu */
-.menu {
-  background-color: white;    
-  display: none;
-  font-family: Arial,Helvetica,sans-serif;
-  font-size: 13px;    
-  position: absolute; 
-  text-align: left; 
-}
 
 .windowCross {
   background-image: url("../images/window_cross.svg");
@@ -100,9 +99,101 @@ body,
   width: 200px;
 }
 
+
+/* Menu */
+.menu {
+  background-color: white;     
+  font-family: Arial,Helvetica,sans-serif;
+  font-size: 13px;    
+  height: 100%;
+  overflow-y: auto; 
+  position: absolute; 
+  text-align: left; 
+  top: 0;  
+}
+
+
+#settingsMenu {
+  left: -100%;
+  width: 100%;
+  transition: left 0.5s; 
+}
+
+@media only screen and (min-width: 768px) {
+  #settingsMenu {
+    left: -50%;
+    width: 50%;
+    transition: left 0.5s; 
+  }
+}
+
+.darkScreen {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); 
+}
+
+
+#settingsMenuDarkScreen {
+  left: -100%;
+  width: 100%; 
+}
+
+
+#settingsMenuDarkScreenClickable {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  right: 0;
+}
+
+
+label,
+.chute-nav {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.header {
+  width: 100%;
+  background-color: grey;
+  color: white;
+  margin-bottom: 0px;
+}
+
+h1 {
+  font-size: 30px;
+  margin-bottom: 0;
+}
+
+.displayNone {
+  display: none;
+}
+
+
+/*
+form {
+  border: 1px solid green;
+  margin-bottom: 30px;
+} */
+
+
 #helpMenu {
   overflow: auto;
 }
+
+
+@media only screen 
+and (max-device-width: 768px) {
+  /*
+  #settingMenu {
+     width: 100%; 
+  } */
+}
+
+
+
 @media only screen and (orientation: portrait) {
   #helpMenu {
     position: absolute;

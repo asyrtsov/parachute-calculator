@@ -21,8 +21,13 @@ function(provide, OutputElement) {
       var windHeight = wind.getHeight();
       windHeight = (windHeight == null) ? '?' : windHeight;
     
-      this.data.set("content", "Ветер: h = " + windHeight + "м, " +
-        wind.getValue() + " м/с, " + wind.getDirection());        
+      //this.data.set("content", "Ветер: h = " + windHeight + "м, " +
+      //  wind.getValue() + " м/с, " + wind.getDirection());    
+
+      this.data.set("content", "Поверхностный ветер: " +
+        wind.getValue() + " м/с, " + wind.getDirection());          
+        
+
     }           
   } 
   provide(WindOutputElement);  
