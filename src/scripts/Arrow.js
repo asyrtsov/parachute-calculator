@@ -20,7 +20,6 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
         [],        
         {
           arrowClass: "arrow_selected",  
-          //rotation: 90,
           rotation: 0,           
           size: arrowStartSize
         }, 

@@ -57,12 +57,11 @@ function init() {
     boundaryHeights.setCalculator(calculator);
     boundaryHeights.setPath(path);
 
-    // Set of buttons in the left side of screen:
-    // Settings, Chute, Wind, Help, Clean buttons.
-    // var menu = new Menu(map, path, windList);
-
+    
+   // Settings menu button 
     var settingsButton = 
-      new MenuButton("Настройки", "images/icon_menu.svg", "#settingsMenu", this);
+      new MenuButton("Настройки", "images/icon_menu.svg", 
+                     "#settingsMenu", "#settingsMenuDarkScreen");
     map.controls.add(settingsButton, {position: {top: 45, left: 10}}); 
 
 
@@ -93,9 +92,10 @@ function init() {
       }
     });
 
-    // Add events processing for Dialog Windows:
-    //   for Settings, Chute, Wind windows.
-    DialogWindows.initializeWindows(calculator);
+    /**
+     * Menu initialization
+     */
+    DialogWindows.initMenu(calculator);
 
     // Add keyboard events:
     //   left, right, up, down pressing (for changing wind value and direction),

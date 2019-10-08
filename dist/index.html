@@ -30,13 +30,25 @@
 
   <div id="settingsMenu" class="menu">
 
+    <!--
     <div class="windowCrossRectangle" id="settingsMenuRectangle">  
       <div class="windowCross" id="settingsMenuCross"></div>
     </div>
 
     <div class="header">
       <h1>Настройки</h1>          
-    </div>  
+    </div>    -->
+
+
+
+    <div id="settingsMenuHeader"> 
+      <div>
+        <h1>Настройки</h1>
+      </div>
+      <div id="settingsMenuHeaderRectangle">  
+        <div id="windowCross"></div>
+      </div> 
+    </div> 
 
 
     <!-- Navbar: grey with black text -->
@@ -128,42 +140,60 @@
 
       <div id="windLinkContent" class="displayNone">
 
-        <!-- Wind Height Input -->
-        <div class="form-group">
-          <label for="windHeightInput">Высота, на которой дует ветер (м)</label>
-          <input type="text" id="windHeightInput"
-                 placeholder="Введите высоту"  
-                 style="width: 100%;">               
-        </div>                  
-                  
-        <div class="form-group">
-          <label for="windDirectionInput" id="windDirectionLabel">
-            Направление ветра: &nbsp; <div id="menuArrow" class="arrow" style="float: right;"></div>
-          </label>
-          <input type="range"
-                 id="windDirectionInput"
-                 min="-180" max="180"
-                 step="5"
-                 onkeydown="return false;">
-          <div id="windDirectionInputScale" class="sliderScale">
-           <!-- <script src="scale-scripts/add-wind-direction-input-scale.js"></script>-->
-          </div>         
-        </div>  <!-- class="form-group" -->      
-        <div class="form-group">
-          <label for="windValueInput" id="windValueLabel">
-            Скорость ветра: &nbsp; 
-            <div id="menuWindValue" style="float: right;"></div>
-          </label>
-          <!-- Value for max atribute will be added by JS -->
-          <input type="range"
-                 id="windValueInput"
-                 min="0" max="0"  
-                 onkeydown="return false;">
-          <!--       
-          <div style="width: 50%;">0</div>
-          <div style="width: 50%; float: right; text-align: right;" id="maxWindValue"></div> -->       
-          <div id="windValueInputScale" class="sliderScale"></div>                  
-        </div>  <!-- class="form-group" -->  
+        <div id="windScreen">
+          <table class="table" id="windTable"></table>
+          <button type="button" class="btn btn-secondary" id="addWind">Добавить ветер</button>
+        </div> <!-- id="windInput" -->
+
+
+        <div id="windInput" class="displayNone">
+
+          
+        
+          <div id="windInputHeader"> 
+            <div id="windInputHeaderArrowRectangle">  
+              <div id="windowArrow"></div>
+            </div> 
+          </div> 
+
+
+          <!-- Wind Height Input -->
+          <div class="form-group">
+            <label for="windHeightInput">Высота, на которой дует ветер (м)</label>
+            <input type="text" id="windHeightInput"
+                  placeholder="Введите высоту"  
+                  style="width: 100%;">               
+          </div>                  
+                    
+          <div class="form-group">
+            <label for="windDirectionInput" id="windDirectionLabel">
+              Направление ветра: &nbsp; <div id="menuArrow" class="arrow" style="float: right;"></div>
+            </label>
+            <input type="range"
+                  id="windDirectionInput"
+                  min="-180" max="180"
+                  step="5"
+                  onkeydown="return false;">
+            <div id="windDirectionInputScale" class="sliderScale">
+            <!-- <script src="scale-scripts/add-wind-direction-input-scale.js"></script>-->
+            </div>         
+          </div>  <!-- class="form-group" -->      
+          <div class="form-group">
+            <label for="windValueInput" id="windValueLabel">
+              Скорость ветра: &nbsp; 
+              <div id="menuWindValue" style="float: right;"></div>
+            </label>
+            <!-- Value for max atribute will be added by JS -->
+            <input type="range"
+                  id="windValueInput"
+                  min="0" max="0"  
+                  onkeydown="return false;">
+            <!--       
+            <div style="width: 50%;">0</div>
+            <div style="width: 50%; float: right; text-align: right;" id="maxWindValue"></div> -->       
+            <div id="windValueInputScale" class="sliderScale"></div>                  
+          </div>  <!-- class="form-group" -->  
+        </div> <!-- id="windInput" -->
 
       </div> <!-- id="windLinkContent" -->  
 

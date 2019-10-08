@@ -5,27 +5,30 @@ function(provide, Constant) {
   /**
    * @param {Calculator} calculator
    */
-  DialogWindows.initializeWindows = function(calculator) {
+  DialogWindows.initMenu = function(calculator) {
     
     var path = calculator.path;
         chute = calculator.chute;
         windList = calculator.windList;
         boundaryHeights = calculator.boundaryHeights;    
     var map = path.map;    
-    var wind = windList.currentWind;
 
+
+    initMenuWindow();
+    initDzWindow();
+    initChuteWindow();
+    initPathWindow();
+    initHeightWindow();
+    initWindWindow();
+
+    
     // First active link in Menu will be Dz link
     var prevLinkId = 'dzLink';
 
-    initMenuWindow();
-
-    initSettingsWindow();
-    initChuteWindow();
-    initWindListWindow();
-           
-
+    /**
+     * Settings Menu initialization
+     */
     function initMenuWindow() {
-
 
       $('#dzLinkContent').css('display', 'block');
       $('#dzLink').addClass('active');
@@ -40,19 +43,30 @@ function(provide, Constant) {
 
         $('#' + prevLinkId).removeClass('active');
         $(this).addClass('active');
-        
-        
+            
         prevLinkId = currentLinkId;
       })
 
+
+      // Close Settings Menu after clicking Cross or Dark screen
+      $("#settingsMenuHeaderRectangle, #settingsMenuDarkScreenClickable").click(function() {
+        
+        $("#settingsMenuDarkScreen").css("left", "-100%");
+
+        if (window.matchMedia("(min-width: 768px)").matches) {
+          $("#settingsMenu").css("left", "-50%");  
+        } else {
+          $("#settingsMenu").css("left", "-100%");              
+        }
+      });   
+
     }
 
+  
     /**
-     * Settings (Dz and Start Height Window) initialization:
-     *   default options for <input> tags, 
-     *   events 'change' for <input> tags.
+     * Dz Window initialization
      */
-    function initSettingsWindow() {
+    function initDzWindow() {
       // Set default options: dz array
       for(var i=0; i<map.dz.length; i++) {
         $("#dz").append("<option>" + map.dz[i].name + "</option>");    
@@ -65,13 +79,9 @@ function(provide, Constant) {
         // path.clear() will print results too
         path.clear();
       });
-            
-      $("#pathDirection").change(function() {
-        var isChecked = $(this).prop("checked");
-        path.setPathDirection(!isChecked);                
-      }); 
-    }    
-              
+    }
+
+
     /** 
      * Chute Window initialization.
      */
@@ -99,10 +109,72 @@ function(provide, Constant) {
       });
     }    
 
+
     /** 
-     * WindList Window initialization.
+     * Path Window initialization.
+     */  
+    function initPathWindow() {            
+      $("#pathDirection").change(function() {
+        var isChecked = $(this).prop("checked");
+        path.setPathDirection(!isChecked);                
+      }); 
+    }    
+              
+    
+    /**
+     * This function is empty.
+     * All work is made in BoudaryHeights class.
+     * In the future that part of BoundaryHeights class 
+     * should be transpose to this function. 
+     */
+    function initHeightWindow() {
+    }
+
+
+
+    /** 
+     * Wind Window initialization.
      */    
-    function initWindListWindow() {
+    function initWindWindow() {
+
+      drawWindTable();
+
+      $("#windInputHeaderArrowRectangle").click(function() {
+        drawWindTable();
+        $("#windInput").addClass("displayNone");
+        $("#windScreen").removeClass("displayNone");
+      });
+
+
+      $("#addWind").click(function() {
+        
+      });
+
+
+      /**
+       * Draw Wind Table in Wind Menu
+       */
+      function drawWindTable() {
+        var windTable = document.getElementById("windTable"); 
+        windTable.innerHTML = '';  
+        var wind = windList.firstWind;
+        for(var i=0;; i++) {
+          var row = windTable.insertRow(i);
+          row.addEventListener("click", function() {
+            $("#windScreen").addClass("displayNone");
+            $("#windInput").removeClass("displayNone");
+          });
+          var cell1 = row.insertCell(0);
+          var cell2 = row.insertCell(1);
+          var cell3 = row.insertCell(2);
+          cell1.innerHTML = wind.height + "м";
+          cell2.innerHTML = wind.angle;
+          cell3.innerHTML = wind.value + "м/c";
+          wind = wind.nextWind;
+          if (wind == null) break;
+        } 
+      }
+
       
       $("#windValueInput").prop("max", "" + Constant.maxWindValue);
         
@@ -180,7 +252,7 @@ function(provide, Constant) {
         windList.currentWind.arrow.setArrowToBeScaled(isChecked);               
       });   */
       
-      
+      /*
       function initWindWindow() {
         if (windList.currentWind == windList.firstWind) {
           $("#windHeightInput").prop("disabled", true);        
@@ -191,7 +263,8 @@ function(provide, Constant) {
         $("#windDirectionInput").val(windList.currentWind.getAngle());
         $("#windValueInput").val(windList.currentWind.getValue());  
         //$("#arrowScale").prop("checked", windList.currentWind.arrow.getIsScaled());        
-      }                        
+      }         */   
+
     }
    
     /**

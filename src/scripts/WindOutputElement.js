@@ -26,8 +26,6 @@ function(provide, OutputElement) {
 
       this.data.set("content", "Поверхностный ветер: " +
         wind.getValue() + " м/с, " + wind.getDirection());          
-        
-
     }           
   } 
   provide(WindOutputElement);  
