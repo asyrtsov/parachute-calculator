@@ -5,6 +5,7 @@ function(provide, Arrow) {
 
   /**
    * Wind at particular height.  
+   * With corresponding Arrow (Yandex Maps API Placemark).
    */
   class Wind {
     /** 
@@ -27,20 +28,16 @@ function(provide, Arrow) {
       // Point on the path, at which height = this.height.  
       //this.pathPoint = null;       
     }
-    
+
+
     /**
-     * @param {(number | null)} height - In meters; height must be >= 0.
+     * @param {number} value - In m/sec; value must be >= 0.
      */
-    setHeight(height) {
-      if (height != null) {
-        this.arrow.print(height + "м");        
-      } else {
-        this.arrow.print("h = ?");
-      }
-      
-      this.height = height;      
+    setValue(value) {
+      this.value = value;             
     }
-    
+
+
     /**
      * angle will be reduced to interval (-180, 180] degrees.
      * @param {number} angle
@@ -68,12 +65,21 @@ function(provide, Arrow) {
 
       this.angle = angle;            
     }
-    
+
+
     /**
-     * @param {number} value - In m/sec; value must be >= 0.
+     * Set this.height and print it to Arrow Output Icon.
+     * @param {(number | null)} height - In meters; height must be >= 0.
      */
-    setValue(value) {
-      this.value = value;             
+    setHeight(height) {
+
+      this.height = height;      
+
+      if (height != null) {
+        this.arrow.print(height + "м");        
+      } else {
+        this.arrow.print("h = ?");
+      }
     }
     
      
@@ -126,8 +132,8 @@ function(provide, Arrow) {
       this.arrow.addToMap(map, coordinates);
     }
     
-    removeFromMap(map) {
-      this.arrow.removeFromMap(map);
+    removeFromMap() {
+      this.arrow.removeFromMap();
     }
     
   }

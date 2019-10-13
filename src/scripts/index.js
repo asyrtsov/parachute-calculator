@@ -100,7 +100,7 @@ function init() {
     // Add keyboard events:
     //   left, right, up, down pressing (for changing wind value and direction),
     //   enter key press on <input> tag - to loose focus after pressing enter.
-    Keyboard.startKeyboardProcessing(calculator);
+    //Keyboard.startKeyboardProcessing(calculator);
 
     // After yandex maps search we should:
     //   move wind arrows to the current screen,

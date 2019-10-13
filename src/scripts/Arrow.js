@@ -6,11 +6,23 @@ ymaps.modules.define('Arrow', [
 function(provide, Placemark, templateLayoutFactory, Constant) {
   
   /**
-   * Yandex Maps Placemark for Wind Arrow. 
+   * Wind Arrow (Yandex Maps API Placemark). 
+   * With Output Placemark (icon above Arrow, where you can print yout text).
+   * Arrow can be rotated, dragged and scaled.
+   * Arrow can be selected or not. 
+   * Selected Arrow has red-yellow colors, not-selected Arrow has red-white colors.
+   * 
+   * @param {boolean} placemarkIsOn - It determines if Output Placemark will be added to Map 
+   * (after this.addToMap() function execution).
+   * @param {boolean} isSelected - It determines if Arrow will be selected or not 
+   * (it can be changed lately).
+   * @param {boolean} isScaled - It determines if Arrow will be scaled when Map will be scaled 
+   * (after adding Arrow to Map).
    */
   class Arrow extends Placemark {
 
-    constructor() {      
+    constructor(placemarkIsOn = false, isSelected = false, isScaled = true) {      
+
       var arrowStartSize = 25;
       // radius of start active area for Arrow
       var arrowStartRadius = Constant.isMobile ? arrowStartSize : arrowStartSize/2; 
@@ -19,7 +31,7 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
         //map.getCenter(),
         [],        
         {
-          arrowClass: "arrow_selected",  
+          arrowClass: isSelected? 'arrow_selected' : 'arrow',  
           rotation: 0,           
           size: arrowStartSize
         }, 
@@ -36,12 +48,22 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
           }          
         }
       );
-                    
+
+      this.placemarkIsOn = placemarkIsOn;    
+      this.isSelected = isSelected;
+      // this.isScaled will be constant.
+      this.isScaled = isScaled;
+      // this.map will be defined, when Arrow will be added to Map 
+      // (in addToMap() function)
+      this.map = null;
+
+
       this.arrowStartSize = arrowStartSize;
       this.arrowStartRadius = arrowStartRadius;   
       
       this.heightPlacemarkShift = 0.0001;
-      
+
+
       //var point = this.geometry.getCoordinates();
       
       // Placemark for Height of Chute at this vertex
@@ -54,11 +76,7 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
           cursor: 'arrow'
         }
       );
-    
-      //this.placemarkIsOn = true;    
-      this.isSelected = false;
-      this.isScaled = true;
-            
+                
       // when we drag arrow, we should drag its heightPlacemark too
       this.events.add('drag', function(e) {
         e.stopPropagation();
@@ -67,11 +85,10 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
           [newPoint[0] + this.heightPlacemarkShift, newPoint[1]]
         );          
       }.bind(this)); 
-            
-      this.map = null;
+      
 
       this.boundChange = this.boundChange.bind(this);
-            
+       
     }
     
     setCoordinates(coordinates) {
@@ -102,7 +119,6 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
     * Rotate arrow
     */
     rotate(angle) {
-      //this.properties.set('rotation', (-1)*angle + 90);
       this.properties.set('rotation', (-1)*angle);      
     }
     
@@ -125,13 +141,19 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
       // so, properties.set should stay after options.set      
     }
     
-    
+    /**
+     * Before calling this funcion, this.map = null
+     */
     addToMap(map, coordinates = null) {
       this.map = map;
       map.geoObjects.add(this);
       
-      map.geoObjects.add(this.heightPlacemark);
+      if (this.placemarkIsOn) {
+        map.geoObjects.add(this.heightPlacemark);
+      }  
             
+      // If coordinates are not given, we add Arrow to random 
+      // coordines around map.getCenter()
       if (coordinates == null) {
         var e = 0.005;
         var mapCenter = map.getCenter();
@@ -144,28 +166,61 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
       }
 
       this.setCoordinates(coordinates);
+
+
+      if (this.isScaled) {
+        this.map.events.add('boundschange', this.boundChange);
+        var zoom = this.map.getZoom();
+        this.changeSize(zoom);           
+      }
+
       
-      this.setArrowToBeScaled(true);      
+      //this.setArrowToBeScaled(true);      
     }
     
-    removeFromMap(map) {
-      map.geoObjects.remove(this);
-      map.geoObjects.remove(this.heightPlacemark);         
+    /**
+     * It is supposed that this.map has already been 
+     * defined during addToMap() function execution. 
+     */
+    removeFromMap() {
+      this.map.geoObjects.remove(this);
+
+      if (this.placemarkIsOn) {
+        this.map.geoObjects.remove(this.heightPlacemark);
+      }
+
+      if (this.isScaled) {
+        this.map.events.remove('boundschange', this.boundChange); 
+        this.changeSize(Constant.defaultZoom);       
+      }      
+
+      this.map = null;         
     }
         
     addPlacemark() {
-      this.map.geoObjects.add(this.heightPlacemark);      
+      if (!this.placemarkIsOn) {
+        this.placemarkIsOn = true;
+        if (this.map != null) {
+          this.map.geoObjects.add(this.heightPlacemark);
+        }  
+      }      
     } 
         
     removePlacemark() {
-      this.map.geoObjects.remove(this.heightPlacemark);      
+      if (this.placemarkIsOn) {
+        this.placemarkIsOn = false;
+        if (this.map != null) {
+          this.map.geoObjects.remove(this.heightPlacemark);
+        }
+      }         
     } 
       
     /**
      * Set arrow to be scaled with map zooming or 
      * not to be scaled. Map should be defined. 
      * @param {boolean} arrowIsScaled
-     */     
+     */   
+    /*  
     setArrowToBeScaled(arrowIsScaled) {
       
       this.isScaled = arrowIsScaled;
@@ -179,11 +234,11 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
         this.map.events.remove('boundschange', this.boundChange); 
         this.changeSize(Constant.defaultZoom);       
       }       
-    }
+    }   
     
     getIsScaled() {
       return(this.isScaled);
-    }
+    }   */
     
     /**
      * Event function for boundChange event from 
@@ -199,6 +254,8 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
     }
     
     /**
+     * Note: this.placemarkIsOn should be equal true to 
+     * see print result on the map. 
      * @param {string} str - This will be printed in this.heightPlacemark
      */    
     print(str) {
