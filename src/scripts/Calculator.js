@@ -105,7 +105,7 @@ function(provide, VectorMath, Constant) {
       }
           
       var vertexA = path.firstVertex;      
-      var pointA = vertexA.geometry.getCoordinates();
+      var pointA = vertexA.getCoordinates();
       vertexA.height = this.boundaryHeights.startHeight; 
             
       // Skip winds without heights
@@ -139,10 +139,10 @@ function(provide, VectorMath, Constant) {
       // Later, pointA can be any point of edge, 
       // pointB always will be vertex, 
       // pointA and pointB belong to the one edge 
-      var pointB = vertexB.geometry.getCoordinates();      
+      var pointB = vertexB.getCoordinates();      
       var pointAHeight = vertexA.height;
 
-      var edgeChuteDirection = vertexA.nextLine.getChuteDirection();
+      var edgeChuteDirection = vertexA.nextEdge.getChuteDirection();
       
       while(true) {
         
@@ -196,7 +196,7 @@ function(provide, VectorMath, Constant) {
               pointA = vertexA.geometry.getCoordinates();
               pointB = vertexB.geometry.getCoordinates(); 
 
-              edgeChuteDirection = vertexA.nextLine.getChuteDirection();              
+              edgeChuteDirection = vertexA.nextEdge.getChuteDirection();              
 
               pointAHeight = vertexA.height;  
               
@@ -240,10 +240,10 @@ function(provide, VectorMath, Constant) {
             vertexA = vertexB;
             vertexB = vertexA.nextVertex;
             
-            pointA = vertexA.geometry.getCoordinates();
-            pointB = vertexB.geometry.getCoordinates();
+            pointA = vertexA.getCoordinates();
+            pointB = vertexB.getCoordinates();
 
-            edgeChuteDirection = vertexA.nextLine.getChuteDirection();            
+            edgeChuteDirection = vertexA.nextEdge.getChuteDirection();            
 
             pointAHeight = vertexA.height;              
 
@@ -289,7 +289,7 @@ function(provide, VectorMath, Constant) {
       }    
                     
       var vertexB = path.lastVertex;      
-      var pointB = vertexB.geometry.getCoordinates();
+      var pointB = vertexB.getCoordinates();
       vertexB.height = this.boundaryHeights.finalHeight;
       
       wind = windList.firstWind;      
@@ -319,11 +319,11 @@ function(provide, VectorMath, Constant) {
       
       // pointA will always be vertex, 
       // pointB can be vertex or point on the edge      
-      var pointA = vertexA.geometry.getCoordinates();
+      var pointA = vertexA.getCoordinates();
      
       var pointBHeight = vertexB.height;
 
-      var edgeChuteDirection = vertexA.nextLine.getChuteDirection();
+      var edgeChuteDirection = vertexA.nextEdge.getChuteDirection();
             
       while(true) {
          
@@ -389,12 +389,12 @@ function(provide, VectorMath, Constant) {
               vertexB = vertexA;
               vertexA = vertexB.prevVertex;
               
-              pointA = vertexA.geometry.getCoordinates();
-              pointB = vertexB.geometry.getCoordinates();
+              pointA = vertexA.getCoordinates();
+              pointB = vertexB.getCoordinates();
 
               pointBHeight = vertexB.height;
               
-              edgeChuteDirection = vertexA.nextLine.getChuteDirection();
+              edgeChuteDirection = vertexA.nextEdge.getChuteDirection();
                                                                
               continue;  
             } else {
@@ -438,12 +438,12 @@ function(provide, VectorMath, Constant) {
             vertexB = vertexA;
             vertexA = vertexB.prevVertex;
             
-            pointA = vertexA.geometry.getCoordinates();
-            pointB = vertexB.geometry.getCoordinates(); 
+            pointA = vertexA.getCoordinates();
+            pointB = vertexB.getCoordinates(); 
 
             pointBHeight = vertexB.height;            
 
-            edgeChuteDirection = vertexA.nextLine.getChuteDirection();
+            edgeChuteDirection = vertexA.nextEdge.getChuteDirection();
             
             continue;                     
           }

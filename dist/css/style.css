@@ -154,9 +154,19 @@ label {
 }
 
 #windTable tr:hover {
-  background-color: aqua;
+  background-color: rgba(0, 247, 255, 0.137);
   cursor: pointer;
 }
+
+.hoverColor {
+  /*background-color: red; */
+  color: green; 
+}
+
+.hoverColor:hover {
+  color: red;
+}
+
 
 
 /* Slider */

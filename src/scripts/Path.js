@@ -1,26 +1,17 @@
 ymaps.modules.define('Path', [
-  'CircleVertex',
-  'TriangleVertex',
   'Vertex',
-  'PathEdge',
+  'Edge',
   'Constant'
 ],
 function(
   provide,
-  CircleVertex,
-  TriangleVertex,
   Vertex,
-  PathEdge,
+  Edge,
   Constant
 ) {
   /**
-   * List of vertices and edges of Chute Path.
-   * Last vertex consist of one outer invisible Circle (Vertex class that
-   * extends ymaps.Circle) and arrow-trianlge (TriangleVertex class that extends ymaps.Polyline).
-   * Other vertices consist of one outer invisible Circle (Vertex class)
-   * and one visible inner Circle (CircleVertex class that extends ymaps.Circle).
-   * Outer vertex circles are invisible and serve for handy clicking
-   * vertices.
+   * List of Vertices and Edges.
+   * Image of Last Vertex is Triangle. Images of other Vertices are Circles.
    */
   class Path {
     /**
@@ -40,7 +31,7 @@ function(
       // radius for inner circle vertices, in meters
       this.vertexRadius = Constant.isMobile ? 4 : 4;
       // radius for outer invisible circles, in meters
-      this.vertexOuterRadius = Constant.isMobile ? 6*this.vertexRadius : 3*this.vertexRadius;
+      this.vertexEventRadius = Constant.isMobile ? 6*this.vertexRadius : 3*this.vertexRadius;
 
       // On the map: line segments should be under vertex images,
       // vertex images should be under vertices
@@ -73,270 +64,149 @@ function(
     }
 
     /**
-     * Add new vertex to Path and to map.
-     * Add corresponding edge to Path and to map.
+     * Add new Vertex to Path and to Map.
+     * Add corresponding Edge to Path and to Map.
      * @param {number[]} point - Yandex.Maps coordinates, point = [x, y].
-     * @return {Array} New last vertex and new last edge of Path.
+     * @return {Array} New Last Vertex and new Vast Edge of Path.
      */
     addVertex(point) {
-      var map = this.map;
 
-      var vertex = new Vertex(point, this.vertexOuterRadius, this);
+      var vertex = new Vertex(point, this.vertexEventRadius, this);
+      var edge = null;
 
       if (this.length > 0) {
 
         if (this.pathDirection) {
           // We should add vertex to the end of path
 
-          var lastPoint = this.lastVertex.geometry.getCoordinates();
+          var lastPoint = this.lastVertex.getCoordinates();
+          vertex.setTriangleVertex(lastPoint);
 
-          vertex.image = new TriangleVertex(lastPoint, point, this.vertexImageZIndex);
+          edge = new Edge(this.lastVertex, vertex, this);
 
-          var newEdge = new PathEdge(lastPoint, vertex.image.getEdgePoint(), this);
-          map.geoObjects.add(newEdge);
-          map.geoObjects.add(newEdge.image);
+          if (this.length > 1) {
+            this.lastVertex.setCircleVertex(this.vertexRadius);
+            this.lastVertex.prevEdge.calculateEdgeRectangles(); 
+          }  
 
-          // We change previos last Triangle vertex to Circle vertex
-          map.geoObjects.remove(this.lastVertex.image);
-          this.lastVertex.image =
-            new CircleVertex(lastPoint, this.vertexRadius, this.vertexImageZIndex);
-          map.geoObjects.add(this.lastVertex.image);
-
-          // lastVertex image changed from triangle to circle.
-          // So edge from lastVertex.prevVertex to lastVertex should be lengthen.
-          if (this.lastVertex.prevVertex != null) {
-            // that is, lastVertex != firstVertex
-            var lastlastPoint = this.lastVertex.prevVertex.geometry.getCoordinates();
-            var lastEdge = this.lastVertex.prevVertex.nextLine;
-            lastEdge.setCoordinates(lastlastPoint, lastPoint);
-          }
-
-          this.lastVertex.nextVertex = vertex;
-          vertex.prevVertex = this.lastVertex;
-
-          vertex.nextVertex = null;
-
-          this.lastVertex.nextLine = newEdge;
-          newEdge.prevVertex = this.lastVertex;
-
-          this.lastVertex = vertex;
+          this.lastVertex = vertex;          
         } else {
           // We should add vertex to the beginning of path
 
-          var firstPoint = this.firstVertex.geometry.getCoordinates();
-
-          var newEdge = null;
+          vertex.setCircleVertex(this.vertexRadius);
 
           if (this.length == 1) {
+            this.firstVertex.setTriangleVertex(point);
+          } 
 
-            map.geoObjects.remove(this.firstVertex.image);
-            this.firstVertex.image = new TriangleVertex(point, firstPoint, this.vertexImageZIndex);
-            map.geoObjects.add(this.firstVertex.image);
-
-            newEdge = new PathEdge(point, this.firstVertex.image.getEdgePoint(), this);
-
-          } else {
-            newEdge = new PathEdge(point, firstPoint, this);
-          }
-
-          map.geoObjects.add(newEdge);
-          map.geoObjects.add(newEdge.image);
-
-          vertex.nextVertex = this.firstVertex;
-          this.firstVertex.prevVertex = vertex;
-
-          vertex.prevVertex = null;
-
-          vertex.nextLine = newEdge;
-          newEdge.prevVertex = vertex;
+          edge = new Edge(vertex, this.firstVertex, this);
+      
           this.firstVertex = vertex;
-
-          vertex.image = new CircleVertex(point, this.vertexRadius, this.vertexImageZIndex);
         }
 
-      } else {  // this.length == 0;
-        vertex.prevVertex = null;
-        vertex.nextVertex = null;
+        edge.addToMap();
 
+      } else {  // this.length == 0;        
         this.firstVertex = vertex;
         this.lastVertex = vertex;
-        vertex.image = new CircleVertex(point, this.vertexRadius, this.vertexImageZIndex);
+        vertex.setCircleVertex(this.vertexRadius);
       }
       
-      
-      map.geoObjects.add(vertex.image);
-      map.geoObjects.add(vertex);
-      
-      
-      vertex.showPlacemark();      
-      //map.geoObjects.add(vertex.heightPlacemark);
+      vertex.addToMap();
 
       this.length++;
 
       this.calculator.calculateHeight();
       this.printHeightsAndWindPoints();
 
-      return([vertex, newEdge]);
+      return([vertex, edge]);
     }
 
 
     /**
-     * Divide edge of Path by point.
-     * Point should be on that line segment.
+     * Divide Edge by point.
+     * Point should be on that Edge.
      * @param {Edge} edge
      * @param {number[]} point - Yandex.maps coordinates.
-     * @return {Array} New vertex and two new edges of Path.
+     * @return {Array} New Vertex and two new Edges.
      */
     divideEdge(edge, point) {
-      var map = this.map;
 
       var prevVertex = edge.prevVertex,
-          nextVertex = edge.prevVertex.nextVertex;
+          nextVertex = edge.nextVertex;
           
       var edgeChuteDirection = edge.getChuteDirection();
          
-      var prevPoint = prevVertex.geometry.getCoordinates(),
-          nextPoint = nextVertex.geometry.getCoordinates();
+      var vertex = new Vertex(point, this.vertexEventRadius, this);    
+      vertex.setCircleVertex(this.vertexRadius);
 
-      var vertex = new Vertex(point, this.vertexOuterRadius, this);
-      vertex.image = new CircleVertex(point, this.vertexRadius, this.vertexImageZIndex);
-
-      var newEdge1 = new PathEdge(prevPoint, point, this, edgeChuteDirection);
- 
-      // In case when nextVertex is lastVertex
-      if (nextVertex.nextVertex == null) {
-        nextPoint = nextVertex.image.getEdgePoint();
-      }
-
-      var newEdge2 = new PathEdge(point, nextPoint, this, edgeChuteDirection);
-
-      vertex.prevVertex = prevVertex;
-      vertex.nextVertex = nextVertex;
-
-      prevVertex.nextVertex = vertex;
-      nextVertex.prevVertex = vertex;
-
-      prevVertex.nextLine = newEdge1;
-      vertex.nextLine = newEdge2;
-
-      newEdge1.prevVertex = prevVertex;
-      newEdge2.prevVertex = vertex;
+      var edge1 = new Edge(prevVertex, vertex, this, edgeChuteDirection);
+      var edge2 = new Edge(vertex, nextVertex, this, edgeChuteDirection);
 
       this.length++;
 
-      map.geoObjects.remove(edge);
-      map.geoObjects.remove(edge.image);
-      map.geoObjects.add(vertex.image);
-      map.geoObjects.add(vertex);
-      
-      vertex.showPlacemark();
-      //map.geoObjects.add(vertex.heightPlacemark);
-
-      map.geoObjects.add(newEdge1);
-      map.geoObjects.add(newEdge2);
-      map.geoObjects.add(newEdge1.image);
-      map.geoObjects.add(newEdge2.image);
+      edge.removeFromMap();
+      vertex.addToMap();
+      edge1.addToMap();
+      edge2.addToMap();
 
       this.calculator.calculateHeight();
       this.printHeightsAndWindPoints();
 
-      return([vertex, newEdge1, newEdge2]);
+      return([vertex, edge1, edge2]);
     }
 
     /**
      * Remove vertex from Path and from map.
-     * @param {Vertex} removingVertex
+     * @param {Vertex} vertex
      * @return {(Edge|null)} Edge between previous and next vertices.
      */
-    removeVertex(removingVertex) {
-      var map = this.map;
+    removeVertex(vertex) {
 
-      map.geoObjects.remove(removingVertex);
-      map.geoObjects.remove(removingVertex.image);
+      vertex.removeFromMap();
 
-      if (removingVertex.placemarkIsShown) {
-        removingVertex.hidePlacemark();
-      } 
-      //map.geoObjects.remove(removingVertex.heightPlacemark);
+      var prevVertex = vertex.prevVertex;
+      var nextVertex = vertex.nextVertex;
 
-      var prevVertex = removingVertex.prevVertex;
-      var nextVertex = removingVertex.nextVertex;
-
-      var newEdge = null;
+      var edge = null;
 
       if (this.length > 1) {
         if ((prevVertex != null) && (nextVertex != null)) {
 
-          var removingEdge1 = prevVertex.nextLine;
-          var removingEdge2 = removingVertex.nextLine;
+          var prevEdge = vertex.prevEdge;
+          var nextEdge = vertex.nextEdge;
           
           var edgeChuteDirection = 
-            removingEdge1.getChuteDirection() || removingEdge2.getChuteDirection();
+            prevEdge.getChuteDirection() || nextEdge.getChuteDirection();
 
-          map.geoObjects.remove(removingEdge1);
-          map.geoObjects.remove(removingEdge1.image);
-          map.geoObjects.remove(removingEdge2);
-          map.geoObjects.remove(removingEdge2.image);
+          prevEdge.removeFromMap();
+          nextEdge.removeFromMap();
+          
+          var prevPoint = prevVertex.getCoordinates();
+          
+          if (nextVertex == this.lastVertex) {
+            nextVertex.setTriangleVertex(prevPoint);
+          } 
 
-          var prevPoint = prevVertex.geometry.getCoordinates();
-          var nextPoint = nextVertex.geometry.getCoordinates();
-
-          prevVertex.nextVertex = nextVertex;
-          nextVertex.prevVertex = prevVertex;
-
-          var nextEdgePoint = null;
-
-          // case when nextVertex is lastVertex
-          // and so we have to change direction of
-          // arrow (triangle) of lastVertex
-
-          if (nextVertex.nextVertex == null) {
-            map.geoObjects.remove(nextVertex.image);
-            nextVertex.image =
-              new TriangleVertex(prevPoint, nextPoint, this.vertexImageZIndex);
-            map.geoObjects.add(nextVertex.image);
-
-            nextEdgePoint = nextVertex.image.getEdgePoint();
-
-          } else {
-            nextEdgePoint = nextPoint;
-          }
-
-          newEdge = new PathEdge(prevPoint, nextEdgePoint, this, edgeChuteDirection);
-          this.map.geoObjects.add(newEdge);
-          this.map.geoObjects.add(newEdge.image);
-
-          newEdge.prevVertex = prevVertex;
-          prevVertex.nextLine = newEdge;
+          edge = new Edge(prevVertex, nextVertex, this, edgeChuteDirection);
+          edge.addToMap();
 
         } else if (nextVertex == null) {  // last vertex case
-          var removingEdge = prevVertex.nextLine;
-          map.geoObjects.remove(removingEdge);
+          var prevEdge = vertex.prevEdge;
 
-          map.geoObjects.remove(removingEdge.image);
+          prevEdge.removeFromMap(); 
 
           this.lastVertex = prevVertex;
-          prevVertex.nextVertex = null;
-          prevVertex.nextLine = null;
+          this.lastVertex.nextVertex = null;
+          this.lastVertex.nextEdge = null;
 
           if (prevVertex.prevVertex != null) {
-            map.geoObjects.remove(prevVertex.image);
 
-            var prevPrevPoint = prevVertex.prevVertex.geometry.getCoordinates();
-            var prevPoint = prevVertex.geometry.getCoordinates();
-            prevVertex.image =
-              new TriangleVertex(prevPrevPoint, prevPoint, this.vertexImageZIndex);
-            map.geoObjects.add(prevVertex.image);
+            var prevPrevPoint = prevVertex.prevVertex.getCoordinates();
 
-            prevVertex.prevVertex.nextLine.setCoordinates(prevPrevPoint, prevVertex.image.getEdgePoint());
+            prevVertex.setTriangleVertex(prevPrevPoint);
+            prevVertex.prevEdge.calculateEdgeRectangles();  
           }
-
-          // If we remove last vertex (pathDirection == false),
-          // initial height will change.
-          //if (!this.calculator.getCalculationDirection()) {
-           // this.calculator.boundaryHeights.finalHeight = this.lastVertex.height;
-          //  $("#finalHeight").val(Math.floor(this.lastVertex.height));
-          //}
 
           if (!this.calculator.getCalculationDirection()) {
             if (!this.pathDirection) {
@@ -344,36 +214,21 @@ function(
             } 
           }
         } else {  // first vertex case
-          map.geoObjects.remove(removingVertex.nextLine);
-          map.geoObjects.remove(removingVertex.nextLine.image);
+
+          vertex.nextEdge.removeFromMap(); 
 
           nextVertex.prevVertex = null;
           this.firstVertex = nextVertex;
 
           if (this.length == 2) {
-            var p = nextVertex.geometry.getCoordinates();
-            map.geoObjects.remove(nextVertex.image);
-            nextVertex.image =
-              new CircleVertex(p, this.vertexRadius, this.vertexImageZIndex);
-            map.geoObjects.add(nextVertex.image);
+            nextVertex.setCircleVertex(this.vertexRadius);
           }
-
-          // If we remove first vertex (pathPosition == true),
-          // initial height will change.
-          //if (this.calculator.getCalculationDirection()) {
-            //this.calculator.boundaryHeights.startHeight = this.firstVertex.height;
-            //$("#startHeight").val(Math.floor(this.firstVertex.height));
-          //}
 
           if (this.calculator.getCalculationDirection()) {
             if (this.pathDirection) {
               this.calculator.setStartHeight(this.firstVertex.height);  
             } 
           } 
-          
-          
-          //this.calculator.setStartHeight(this.firstVertex.height);
-
         }
       } else {  // case: only one circle
         this.lastVertex = null;
@@ -386,7 +241,7 @@ function(
         this.printHeightsAndWindPoints();
       }
 
-      return(newEdge);
+      return(edge);
     }
 
     /**
@@ -394,117 +249,33 @@ function(
      * @param {Vertex} vertex
      */
     dragVertex(vertex) {
-      var map = this.map;
-
+ 
       this.calculator.calculateHeight();
       this.printHeightsAndWindPoints();
 
-      // new vertex coordinates
-      var point = vertex.geometry.getCoordinates();
-
-      var nextVertex = vertex.nextVertex;
-      var prevVertex = vertex.prevVertex;
-
-      // Case: both prevVertex and nextVertex don't exist,
-      // that is, path consists of one vertex
-      if ((nextVertex == null) && (prevVertex == null)) {
-        vertex.image.geometry.setCoordinates(point);
-        return;
+      if (vertex.nextEdge != null) {
+        vertex.nextEdge.calculateEdgeRectangles();
       }
 
-      // Case: both prevVertex and nextVertex exist,
-      // that is, this vertex is not first and not last.
-      if ((nextVertex != null) && (prevVertex != null)) {
-
-        vertex.image.geometry.setCoordinates(point);
-
-        var nextPoint = nextVertex.geometry.getCoordinates();
-        var prevPoint = prevVertex.geometry.getCoordinates();
-
-        var nextLine = vertex.nextLine;
-        var prevLine = prevVertex.nextLine;
-
-        var nextEdgePoint = null;
-        // Case when vertex.nextVertex is lastVertex:
-        // in that case your should change
-        // direction of arrow at lastVertex.
-        if (nextVertex.nextVertex == null) {
-          nextVertex.image.setCoordinates(point, nextPoint);
-
-          nextEdgePoint = nextVertex.image.getEdgePoint();
-        } else {
-          nextEdgePoint = nextPoint;
-        }
-
-        nextLine.setCoordinates(point, nextEdgePoint);
-        prevLine.setCoordinates(prevPoint, point);
-
-        return;
+      if (vertex.prevEdge != null) {
+        vertex.prevEdge.calculateEdgeRectangles();
       }
-
-      // Case: prevVertex exists, nextVertex doesn't exist,
-      // that is, vertex is lastVertex.
-      if (prevVertex != null) {
-        var prevPoint = prevVertex.geometry.getCoordinates();
-        var prevLine = prevVertex.nextLine;
-
-        // We should change direction of arrow at the vertex
-        vertex.image.setCoordinates(prevPoint, point);
-
-        var edgePoint = vertex.image.getEdgePoint();
-        prevLine.setCoordinates(prevPoint, edgePoint);
-
-        return;
-      }
-
-      // Case: nextVertex exists, prevVertex doesn't exist,
-      // that is, vertex is firstVertex.
-      vertex.image.geometry.setCoordinates(point);
-
-      var nextPoint = nextVertex.geometry.getCoordinates();
-
-      var nextEdgePoint = null;
-      // Case when vertex.nextVertex is lastVertex:
-      // in that case your should change
-      // direction of arrow at lastVertex.
-      if (nextVertex.nextVertex == null) {
-        nextVertex.image.setCoordinates(point, nextPoint);
-        nextEdgePoint = nextVertex.image.getEdgePoint();
-      } else {
-        nextEdgePoint = nextPoint;
-      }
-
-      var nextLine = vertex.nextLine;
-      nextLine.setCoordinates(point, nextEdgePoint);
-
-      return;
     }
 
 
     /** Remove all vetrices and edges from Path and from map. */
     clear() {
-      var map = this.map;
 
       if (this.length > 0 ) {
 
         var vertex = this.lastVertex;
-        map.geoObjects.remove(vertex);
-        map.geoObjects.remove(vertex.image);
-        
-        if (vertex.placemarkIsShown) {
-          vertex.hidePlacemark();
-        }
+
+        vertex.removeFromMap();
 
         for(var i=1; i < this.length; i++) {
           vertex = vertex.prevVertex;
-          map.geoObjects.remove(vertex);
-          map.geoObjects.remove(vertex.image);
-          map.geoObjects.remove(vertex.nextLine);
-          map.geoObjects.remove(vertex.nextLine.image);
-          
-          if (vertex.placemarkIsShown) {
-            vertex.hidePlacemark();
-          }  
+          vertex.removeFromMap();
+          vertex.nextEdge.removeFromMap();
         }
 
         this.length = 0;
@@ -528,9 +299,7 @@ function(
           if (this.firstVertex.height == null) {
             let vertex = this.lastVertex;          
             while(vertex != this.firstVertex) {
-              if (vertex.placemarkIsShown) {                              
-                vertex.hidePlacemark();
-              }
+
               vertex.printHint("h=?");
               if (vertex.singleClickingIsOn) {              
                 vertex.turnOffSingleClicking();
@@ -538,10 +307,8 @@ function(
               vertex = vertex.prevVertex;              
             }
             
-            // Now: vertex = this.firstVertex            
-            if (!vertex.placemarkIsShown) {
-              vertex.showPlacemark();
-            }
+            // Now: vertex = this.firstVertex
+
             vertex.printPlacemark("Введите высоту");
             vertex.printHint("h=?");
             if (vertex.singleClickingIsOn) {             
@@ -565,24 +332,15 @@ function(
             } 
             
             if (typeof(vertex.height) == 'number') {
-              vertex.printHint("h=" + Math.floor(vertex.height) + "м");
-              vertex.printPlacemark(Math.floor(vertex.height) + "м");
-
-              if (!vertex.placemarkIsShown) {                  
-                vertex.showPlacemark();
-              }
+              vertex.printHint("h=" + Math.floor(vertex.height) + " м");
+              vertex.printPlacemark(Math.floor(vertex.height) + " м");
+                
             } else {
               vertex.printHint("&#x26D4;");
               vertex.printPlacemark("Сюда не долететь!");
               if (firstUnreachable) {
                 firstUnreachable = false;
-                if (!vertex.placemarkIsShown) {                  
-                  vertex.showPlacemark();
-                }
               } else {
-                if (vertex.placemarkIsShown) {                  
-                  vertex.hidePlacemark();
-                }
               }
             }
             vertex = vertex.nextVertex;
@@ -593,9 +351,6 @@ function(
 
             let vertex = this.firstVertex;          
             while(vertex != this.lastVertex) {
-              if (vertex.placemarkIsShown) {                              
-                vertex.hidePlacemark();
-              }
               vertex.printHint("h=?");
               if (vertex.singleClickingIsOn) {              
                 vertex.turnOffSingleClicking();
@@ -603,10 +358,8 @@ function(
               vertex = vertex.nextVertex;              
             }
             
-            // Now: vertex = this.lastVertex            
-            if (!vertex.placemarkIsShown) {
-              vertex.showPlacemark();
-            }
+            // Now: vertex = this.lastVertex
+
             vertex.printPlacemark("Введите высоту");
             vertex.printHint("h=?");
             if (vertex.singleClickingIsOn) {             
@@ -628,26 +381,14 @@ function(
             }
           
             if (typeof(vertex.height) == 'number') {
-              vertex.printHint("h=" + Math.floor(vertex.height) + "м");
-              vertex.printPlacemark(Math.floor(vertex.height) + "м");
-
-              if (!vertex.placemarkIsShown) {                  
-                vertex.showPlacemark();
-              }
+              vertex.printHint("h=" + Math.floor(vertex.height) + " м");
+              vertex.printPlacemark(Math.floor(vertex.height) + " м");
             } else {
               vertex.printHint("&#x26D4;");
               vertex.printPlacemark("Отсюда не долететь!");
               if (firstBackUnreachable) {
                 firstBackUnreachable = false;
-
-                if (!vertex.placemarkIsShown) {                  
-                  vertex.showPlacemark();
-                }
-              } else {
-                if (vertex.placemarkIsShown) {                  
-                  vertex.hidePlacemark();
-                }
-              }
+              } 
             }
             vertex = vertex.prevVertex;
           }
