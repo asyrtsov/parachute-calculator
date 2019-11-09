@@ -56,9 +56,9 @@ function(provide, VectorMath, Constant) {
 
     /**
      * Main calculation function.
-     * If this.calculationDirection == true, then calculator begins computation 
+     * If this.boundaryHeights.calculationDirection == true, then calculator begins computation 
      * from start vertex and boundaryHeights.startHeight height; 
-     * if this.calculationDirection == false, then calculator begins computation 
+     * if this.boundaryHeights.calculationDirection == false, then calculator begins computation 
      * from final vertex and boundaryHeights.finalHeight height.          
      */
     calculateHeight() {
@@ -193,8 +193,11 @@ function(provide, VectorMath, Constant) {
               vertexA = vertexB;
               vertexB = vertexA.nextVertex;
               
-              pointA = vertexA.geometry.getCoordinates();
-              pointB = vertexB.geometry.getCoordinates(); 
+              //pointA = vertexA.geometry.getCoordinates();
+              //pointB = vertexB.geometry.getCoordinates(); 
+
+              pointA = vertexA.getCoordinates();
+              pointB = vertexB.getCoordinates(); 
 
               edgeChuteDirection = vertexA.nextEdge.getChuteDirection();              
 

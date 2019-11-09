@@ -77,7 +77,8 @@ function(provide, Constant) {
       $("#dz").on("change", function() {
         var mapCenter = map.dz[this.selectedIndex].mapCenter;      
         map.setCenter(mapCenter, Constant.defaultZoom);
-        windList.shiftList(mapCenter);                
+        //windList.shiftList(mapCenter);
+        map.arrow.setCoordinates(mapCenter);                
         // path.clear() will print results too
         path.clear();
       });
@@ -150,7 +151,7 @@ function(provide, Constant) {
 
         var windTable = document.getElementById("windTable"); 
         windTable.innerHTML = '';    
-        var wind = windList.firstWind;
+        var wind = windList.firstWind;windList
         for(var i=0; i < windList.numberOfWinds; i++) {
           var row = windTable.insertRow(i);
           wind.rowClickEvent = row.addEventListener("click", createRowClickListener(wind));

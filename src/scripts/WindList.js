@@ -1,62 +1,39 @@
 ymaps.modules.define('WindList', [
   'Wind', 
-  'WindOutputElement', 
   'WindVertex'
 ],
-function(provide, Wind, WindOutputElement, WindVertex) {
+function(provide, Wind, WindVertex) {
 
   /**
    * List of winds at different heights; 
    * always contains wind at height = 0m (surface wind); 
-   * that surface wind is always first and cannot be removed;
-   * list will be sorted for height (from bottom to top); 
+   * that surface wind is always first and cannot be removed.
+   * List will be sorted for height (from bottom to top); 
    * all winds should have different heights.
-   * WindList also contains WindOutputElement for showing 
-   * parameters of current wind.
-   * WindList contains function printCurrentWindWindow() 
-   * for printing parameters of current window to wind dialog window; 
-   * you should make this printing by hand (that is, call 
-   * that function when you need).
    */
   class WindList {
     constructor(map) {
       this.map = map; 
 
-      // 5 m/sec, west wind, h = 0m (surface wind)
-      this.firstWind = new Wind(5, 0, 0);
-      //this.firstWind.arrow.setSelection(false);      
-      // we add to map corresponding windsock
-      this.firstWind.addToMap(this.map, this.map.getCenter());
-      //this.firstWind.arrow.removePlacemark();      
-    
+      // Surface wind: 5 m/sec, West
+      var angle = 0;
+      this.firstWind = new Wind(5, angle, 0);
+      this.map.windOutput.print(this.firstWind.toString());
+      this.map.arrow.rotate(angle);
+          
       this.currentWind = this.firstWind;
       this.lastWind = this.firstWind;
       this.numberOfWinds = 1;
 
-      // Output window at the top left corner of the screen.    
-      this.windOutput = new WindOutputElement(this.firstWind);
-      //this.map.controls.add(this.windOutput, {float: 'left'});
-      
-      this.map.controls.add(this.windOutput, {position: {bottom: 30, left: 10}});
-
-
-      //this.windOutput.print(this.currentWind);
-
       // calculator and path are set up in index.js
       this.calculator = null;
       this.path = null;       
-            
-      /*
-      this.firstWind.arrow.events.add('click', function() {
-        if (this.numberOfWinds == 1) return;      
-        if (this.currentWind != this.firstWind) {
-          this.currentWind.arrow.setSelection(false);
-          this.firstWind.arrow.setSelection(true);
-          this.currentWind = this.firstWind;          
-        }         
-        this.printCurrentWindWindow();
-        this.windOutput.print(this.currentWind);        
-      }.bind(this));  */     
+
+      this.windVertexRadius = 4;   
+      
+      this.pathBoundChange = this.pathBoundChange.bind(this);   
+
+      this.map.events.add('boundschange', this.pathBoundChange);      
     }
     
        
@@ -72,74 +49,12 @@ function(provide, Wind, WindOutputElement, WindVertex) {
      * Create new wind (value = 5, angle = 0, height is unknown) and 
      * add it to the end of the list.
      */
-    addWind(point = null) {
-      
+    addWind() {      
       var wind = new Wind(5, 0, null);
-      //wind.addToMap(this.map, point);
-           
-      //this.currentWind.arrow.setSelection(false);
-      //wind.arrow.setSelection(true);
-
-      this.lastWind.nextWind = wind;      
-      
-      wind.prevWind = this.lastWind;
-      wind.nextWind = null;
-      
-      // In this point on path, we will have height = wind.height, 
-      // it is object of class WindVertex.
-      wind.pathVertex = null;
-      
+      this.lastWind.setNextWind(wind);      
       this.lastWind = wind;
       this.currentWind = wind;
-
-
-      
-      /*
-      var clickNumber = 0;
-      
-      wind.arrow.events.add('click', function(e) {
-        e.stopPropagation();  // remove standart zoom for click
-
-        clickNumber++;
-        if (clickNumber == 1) {
-          setTimeout(function() {        
-            if (clickNumber == 1) {  // Single Click (selection arrow)
-              
-              if (this.currentWind != wind) {
-                this.currentWind.arrow.setSelection(false);
-                wind.arrow.setSelection(true);
-                this.currentWind = wind;          
-              }
-              
-              this.printCurrentWindWindow();
-              this.windOutput.print(this.currentWind);
-              
-            } else {  // Double Click (deletion of arrow which was double clicked)
-              this.removeWind(wind);
-              if (this.numberOfWinds == 1) {
-                $("#menuArrow").removeClass("arrow_selected");
-                $("#menuArrow").addClass("arrow"); 
-              }               
-            }
-                                               
-            clickNumber = 0;
-            
-          }.bind(this), 200);
-        }          
-      }.bind(this));
-            
-      // remove standart map zoom for double click
-      wind.arrow.events.add('dblclick', function(e) {
-        e.stopPropagation();  
-      });      
-    
-      this.windOutput.print(this.currentWind);     */  
       this.numberOfWinds++;
-      
-      /*
-      if (this.numberOfWinds == 2) {
-        this.firstWind.arrow.addPlacemark();
-      }  */     
     }
     
     
@@ -157,88 +72,37 @@ function(provide, Wind, WindOutputElement, WindVertex) {
         return;
       }
       
-      //wind.removeFromMap(this.map);
-
       if (wind.pathVertex != null) {
         wind.pathVertex.removeFromMap();
         wind.PathVertex = null;
       }      
 
-      wind.prevWind.nextWind = wind.nextWind;      
-      if (wind != this.lastWind) {
-        wind.nextWind.prevWind = wind.prevWind;
-      } else {
-        this.lastWind = wind.prevWind;
+      wind.prevWind.setNextWind(wind.nextWind);
+      if (wind == this.lastWind) {
+        this.lastWind = this.lastWind.prevWind;
       }
       
       if (wind == this.currentWind) {
-        this.currentWind = wind.prevWind;
-        /*
-        if (this.numberOfWinds > 1) {
-          this.currentWind.arrow.setSelection(true);
-        } */
-        //this.printCurrentWindWindow();
-        //this.windOutput.print(this.currentWind);        
+        this.currentWind = wind.prevWind;       
       }
                                     
       this.numberOfWinds--;       
       
-      /*
-      if (this.numberOfWinds == 1) {
-        this.firstWind.arrow.removePlacemark();
-        this.currentWind.arrow.setSelection(false);        
-      } */
-
       if (this.path.length > 0) {
        this.calculator.calculateHeight();
        this.path.printHeightsAndWindPoints();
       }            
     }
     
-    /**
-     * Now wind will become currentWind.
-     */
-    moveCurrentPointer(wind) {      
-      if (wind == this.currentWind) return;      
-      this.currentWind.arrow.setSelection(false);            
-      this.currentWind = wind;
-      this.currentWind.arrow.setSelection(true); 
-      //this.windOutput.print(this.currentWind);        
-    }
-    
-    
-    moveCurrentPointerToPrev() {
-      if (this.numberOfWinds == 1) return;      
-      this.currentWind.arrow.setSelection(false);      
-      if (this.currentWind != this.firstWind) {
-        this.currentWind = this.currentWind.prevWind;
-      } else {
-        this.currentWind = this.lastWind;
-      }  
-      this.currentWind.arrow.setSelection(true); 
-      //this.windOutput.print(this.currentWind);   
-    }
-    
-    
-    moveCurrentPointerToNext() {
-      if (this.numberOfWinds == 1) return;      
-      this.currentWind.arrow.setSelection(false);      
-      if (this.currentWind != this.lastWind) {
-        this.currentWind = this.currentWind.nextWind;
-      } else {
-        this.currentWind = this.firstWind;
-      }
-      this.currentWind.arrow.setSelection(true);      
-      //this.windOutput.print(this.currentWind);             
-    }
     
     /**
      * Set height to this.currentWind (number or null) and then order WindList for heights 
      * (increasing order, null is greater then number).
+     * It is supposed that List was ordered before.
      * @param {(number | null)} height - Height of wind.
-     * @return {boolean} - False iff it is prohibited to set this height 
-     * (2 cases: 1) height is a number and height <= 0m, 
-     * 2) height is a number and such height has already existed).
+     * @return {boolean} - False iff:
+     *   height is a number and height <= 0m OR 
+     *   height is a number and such height has already existed.
      */ 
     setHeightToCurrentWind(height) {
       
@@ -348,81 +212,19 @@ function(provide, Wind, WindOutputElement, WindVertex) {
       }       
     }
     
-    
-    /**
-     * Consider wind and wind.nextWind. 
-     * Remember that windList is ordered, so height of wind.nextWind is 
-     * greater than height of wind. 
-     * We add winds between wind and wind.nextWind in such way that: 
-     * difference between wind value of consistent winds will be 
-     * no more than 1m/s and difference between wind direction will 
-     * be no more than 5 degrees. 
-     * THIS FUNCTION IS NOT CREATED YET.      
-     */
-    smoothList(wind) {
-      
-      // TODO: smoothing function for WindList
-      
-      if (wind == this.lastWind || wind.getHeight() == null ||
-          wind.nextWind.getHeight() == null) return;
-      
-      var h0 = wind.getHeight(),
-          v0 = wind.getValue(), 
-          angle0 = wind.getAngle(), 
-          h1 = wind.nextWind.getHeight(), 
-          v1 = wind.nextWind.getValue(), 
-          angle1 = wind.nextWind.getAngle();
-      var arr = [];
-     
-      if (v1 > v0 + 1 || angle1 > angle0 + 5) {
         
-        var valueNumber = v1 - v0;
-        var angleNumber  = (angle1 - angle0)/5;
-        
-        var valueHeightSpan = (h1 - h0) / valueNumber;
-        var angleHeightSpan = (h1 - h0) / angleNumber;
-
-        var i = 1, 
-            j = 1;        
-          
-        var h, angle;
-        
-        while(true) {
-          
-          break;
-          
-          var valueHeight = h0 + valueHeightSpan * i;
-          var angleHeight = h0 + angleHeightSpan * j;
-
-          var value = v0 + i; 
-          var angle = angle0 + j * 5;
-          
-          if (valueHeight > angleHeight) {            
-            arr.push([h0 + angleHeight]);            
-          }                      
-        }
-                
-        /*
-        for(var i = 1; i < v1 - v0; i++) {
-          var h = h0 + d * i;
-          arr.push([h, v0 + i]);
-          console.log([h, v0 + i]);           
-        } */
-      }                
-    }
-
-    
     setCurrentAngle(angle) {
       this.currentWind.setAngle(angle);
       if (this.currentWind == this.firstWind) {
-        this.windOutput.print(this.firstWind); 
+        this.map.windOutput.print(this.firstWind.toString()); 
+        this.map.arrow.rotate(angle);
       }             
     }
     
     setCurrentValue(value) {
       this.currentWind.setValue(value);
       if (this.currentWind == this.firstWind) {
-        this.windOutput.print(this.firstWind); 
+        this.map.windOutput.print(this.firstWind.toString()); 
       }                
     }
     
@@ -430,7 +232,7 @@ function(provide, Wind, WindOutputElement, WindVertex) {
     /**
      * Shift coordinates of all winds in such way 
      * that firstWind's coordinates will be point.
-     */
+     */ /*
     shiftList(point) {
       var wind = this.firstWind;
       var [x0, y0] = wind.arrow.geometry.getCoordinates();
@@ -442,7 +244,7 @@ function(provide, Wind, WindOutputElement, WindVertex) {
         if (wind == this.lastWind) break;
         wind = wind.nextWind;                      
       }      
-    }
+    }  */
     
     
     createWindVertices() {
@@ -457,7 +259,7 @@ function(provide, Wind, WindOutputElement, WindVertex) {
           }
         } else {
           if (wind.pathVertex == null) {
-            wind.pathVertex = new WindVertex(wind, this.map);
+            wind.pathVertex = new WindVertex(wind, this.map, this.windVertexRadius);
             wind.pathVertex.addToMap();                        
           } else {
             wind.pathVertex.refreshCoordinates();              
@@ -479,29 +281,28 @@ function(provide, Wind, WindOutputElement, WindVertex) {
         wind = wind.nextWind;
       }     
     }
-    
-    
-    /**
-     * It is good idea not to use this function in WindList methods
-     * (because it uses outer objects); use this function beyond WindList class.
-     */
-    /*
-    printCurrentWindWindow() {
-      if (this.currentWind == this.firstWind) {
-        $("#windHeightInput").prop("disabled", true);
-        //$("#removeWind").prop("disabled", true);          
-      } else {
-        $("#windHeightInput").prop("disabled", false);
-        //$("#removeWind").prop("disabled", false);
+
+
+    pathBoundChange(e) {
+      var newZoom = e.get('newZoom'),
+            oldZoom = e.get('oldZoom');
+      if (newZoom != oldZoom) {
+        var scale = (2**(oldZoom - newZoom));
+        this.scale(scale);
       }
-      $("#windHeightInput").val(this.currentWind.getHeight());    
-      $("#windDirectionInput").val(this.currentWind.getAngle());
-      $("#windValueInput").val(this.currentWind.getValue());
-      //$("#arrowScale").prop("checked", this.currentWind.arrow.getIsScaled());
-      var angle = this.currentWind.getAngle();
-      $("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");
-      $("#menuWindValue").html(this.currentWind.getValue() + " м/с");      
-    }     */   
+    }
+  
+  
+    scale(scale) {
+      this.windVertexRadius *= scale;
+        var wind = this.firstWind;
+        while (wind != null) {
+          if (wind.pathVertex != null) {
+            wind.pathVertex.scale(scale);
+          }
+          wind = wind.nextWind;
+        }      
+    }
   }
       
   provide(WindList);  

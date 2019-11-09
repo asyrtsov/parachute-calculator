@@ -21,6 +21,14 @@ function(provide, Button, templateLayoutFactory) {
         }
       });           
     }
+
+    /**
+     * 
+     * @param {string} str 
+     */
+    print(str) {
+      this.data.set('content', str);   
+    }
   } 
   provide(OutputElement);  
 }); 

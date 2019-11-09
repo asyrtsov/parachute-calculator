@@ -1,4 +1,4 @@
-ymaps.modules.define('TriangleVertex', [
+ymaps.modules.define('TriangleVertexImage', [
   'Polygon', 
   'VectorMath'  
 ],
@@ -11,13 +11,14 @@ function(provide, Polygon, VectorMath) {
    * form arrow (end of path).
    * Size of arrow is about several meters.
    */ 
-  class TriangleVertex extends Polygon {
+  class TriangleVertexImage extends Polygon {
     /**
      * @param {number[]} point1 - Yandex.Maps coordinates.
      * @param {number[]} point2 - Yandex.Maps coordinates. 
+     * @param {number} triangleScale - It defines size of Triangle.
      * @param {number} zIndex - z-index of Polygon.     
      */
-    constructor(point1, point2, zIndex=0) {
+    constructor(point1, point2, triangleScale = 1, zIndex=0) {
       // four square brackets is a must for Polygon constructor, 
       // non empty super constructor is a must     
       super([], {}, {
@@ -30,6 +31,10 @@ function(provide, Polygon, VectorMath) {
       this.triangleVertices = null;
       // Point on triangle side to which edge will be connected
       this.edgePoint = null;
+
+      this.triangleScale = triangleScale;
+      this.point1 = point1;
+      this.point2 = point2;
       
       this.setCoordinates(point1, point2);       
     }
@@ -39,6 +44,9 @@ function(provide, Polygon, VectorMath) {
      * @param {number[]} point2 - Yandex.Maps coordinates.    
      */    
     setCoordinates (point1, point2) {
+      this.point1 = point1;
+      this.point2 = point2;  
+
       var p = this.calculateVertices(point1, point2);
 
       this.triangleVertices = [p[0], p[1], p[2]];
@@ -51,7 +59,16 @@ function(provide, Polygon, VectorMath) {
       return(this.edgePoint);
     }
     
-    
+    setScale(scale) {
+      this.triangleScale = scale;
+      this.setCoordinates(this.point1, this.point2);
+    }
+
+    getScale() {
+      return this.triangleScale;
+    }
+
+
     /**
      * @param {number[]} point1 - Yandex.Maps point coordinates.
      * @param {number[]} point2 - Yandex.Maps point coordinates.
@@ -73,6 +90,11 @@ function(provide, Polygon, VectorMath) {
       // Last point is a point at the triangle side 
       // to which edge will be connected.
       var pointsLocal = [[-2, 0.5], [-2, -0.5], [0, 0], [-2,0]];
+      for(var i=0; i<4; i++) {
+        for(var j=0; j<2; j++) {
+          pointsLocal[i][j] *= this.triangleScale;
+        }
+      }
       
       var points = [];                 
       for(var i=0; i<pointsLocal.length; i++) {   
@@ -87,5 +109,5 @@ function(provide, Polygon, VectorMath) {
     }        
   }
   
-  provide(TriangleVertex);      
+  provide(TriangleVertexImage);      
 });

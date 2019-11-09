@@ -1,23 +1,18 @@
-ymaps.modules.define('Wind', [
-  'Arrow'
-],
-function(provide, Arrow) {
+ymaps.modules.define('Wind', [],
+function(provide) {
 
   /**
    * Wind at particular height.  
-   * With corresponding Arrow (Yandex Maps API Placemark).
    */
   class Wind {
     /** 
-     * Wind in polar coordinate system.
+     * Wind at special height.
      * @param {number} value - In m/sec; value must be >= 0.
      * @param {number} angle - Angle between current wind and West wind; in degrees.    
      * @param {(number | null)} height - In meters; height must be >= 0.
      */
     constructor(value, angle, height) {
-      
-      this.arrow = new Arrow();        
-      
+            
       this.setValue(value);
       this.setAngle(angle);
       this.setHeight(height); 
@@ -25,18 +20,29 @@ function(provide, Arrow) {
       this.prevWind = null;
       this.nextWind = null; 
 
-      // Point on the path, at which height = this.height.  
-      //this.pathPoint = null;       
+      this.pathVertex = null;   
     }
 
+    setNextWind(wind) {
+      this.nextWind = wind;
+      if (wind != null) {
+        wind.prevWind = this;
+      }
+    }  
 
+    setPrevWind(wind) {
+      this.prevWind = wind;
+      if (wind != null) {
+        wind.nextWind = this;
+      }
+    }  
+   
     /**
      * @param {number} value - In m/sec; value must be >= 0.
      */
     setValue(value) {
       this.value = value;             
     }
-
 
     /**
      * angle will be reduced to interval (-180, 180] degrees.
@@ -60,29 +66,17 @@ function(provide, Arrow) {
           angle -= 360;
         }
       }      
-            
-      this.arrow.rotate(angle);
-
       this.angle = angle;            
     }
-
 
     /**
      * Set this.height and print it to Arrow Output Icon.
      * @param {(number | null)} height - In meters; height must be >= 0.
      */
     setHeight(height) {
-
       this.height = height;      
-
-      if (height != null) {
-        this.arrow.print(height + "м");        
-      } else {
-        this.arrow.print("h = ?");
-      }
     }
-    
-     
+         
     getAngle() {
       return(this.angle);
     }
@@ -93,6 +87,12 @@ function(provide, Arrow) {
     
     getHeight() {
       return(this.height);
+    }
+
+    toString() {
+      var str = (this.height == 0) ? 'Поверхностный ветер: ' : ('h=' + this.height + 'м');
+      str += (this.value + ' м/с, ' + this.getDirection());
+      return str;
     }
         
     /**
@@ -126,18 +126,8 @@ function(provide, Arrow) {
       }
       
       return(direction);     
-    }  
-
-    addToMap(map, coordinates = null) {
-      this.arrow.addToMap(map, coordinates);
-    }
-    
-    removeFromMap() {
-      this.arrow.removeFromMap();
-    }
-    
+    }      
   }
       
   provide(Wind);  
 });      
-      

@@ -1,9 +1,12 @@
 ymaps.modules.define('AppMap', [
   'Map', 
   'control.ZoomControl', 
-  'Constant'  
+  'Constant', 
+  'MenuButton',
+  'OutputElement',
+  'Arrow'  
 ],
-function(provide, Map, ZoomControl, Constant) {
+function(provide, Map, ZoomControl, Constant, MenuButton, OutputElement, Arrow) {
   /**
    * @extends Map
    */
@@ -45,17 +48,30 @@ function(provide, Map, ZoomControl, Constant) {
       this.searchControl.options.set('noPlacemark', true);
       this.searchControl.options.set('noSelect', true);
 
+      // Settings menu (ymaps.Button)
+      var settingsButton = new MenuButton("Настройки", "images/icon_menu.svg", 
+        "#settingsMenu", "#settingsMenuDarkScreen");
+      this.controls.add(settingsButton, {position: {top: 45, left: 10}});
+
+      // Output for Surface wind parameters (ymaps.Button)
+      this.windOutput = new OutputElement();      
+      this.controls.add(this.windOutput, {position: {bottom: 30, left: 10}});
+
+      // Wind arrow (Windsock)
+      this.arrow = new Arrow(this.getCenter());
+      this.geoObjects.add(this.arrow);
+
       // remove standart map zoom for double click
       this.events.add('dblclick', function(e) {
         e.preventDefault();  
       }); 
 
-      this.menu = null;       
+      //this.menu = null;       
     }
     
     /**
      * Processing of yandex.maps search
-     */
+     */   /*
     setSearchProcessor(calculator) {
 
       this.calculator = calculator;    
@@ -68,8 +84,9 @@ function(provide, Map, ZoomControl, Constant) {
                 
         this.path.clear(); 
         this.setZoom(this.defaultZoom);        
-        this.windList.shiftList(this.getCenter());
-                 
+        //this.windList.shiftList(this.getCenter());
+        this.map.arrow.setCoordinates(this.map.getCenter());  
+        
         var index = e.get('index');    
         var geoObjectsArray = this.searchControl.getResultsArray();
         var resultName = geoObjectsArray[index].properties.get('name');
@@ -82,7 +99,7 @@ function(provide, Map, ZoomControl, Constant) {
         $("#dz").append("<option>" + newDz.name + "</option>");    
         $("#dz").children()[this.dz.length - 1].selected = true;    
       }.bind(this));      
-    }
+    }  */
         
   } 
   provide(AppMap);  

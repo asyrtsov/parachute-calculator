@@ -1,11 +1,11 @@
 ymaps.modules.define('Vertex', [
   'Circle',
-  'CircleVertex',
-  'TriangleVertex', 
+  'Rectangle',
+  'TriangleVertexImage', 
   'Placemark',   
   'templateLayoutFactory'
 ],
-function(provide, Circle, CircleVertex, TriangleVertex,   Placemark, templateLayoutFactory) {
+function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateLayoutFactory) {
   /**
    * Vertex of Path. 
    * Vertex consists of: Invisible Event Circle (it is used for catching 
@@ -41,7 +41,7 @@ function(provide, Circle, CircleVertex, TriangleVertex,   Placemark, templateLay
         [point[0], point[1]], 
         {iconContent: ''}, 
         {
-          iconOffset: [-50, -35],
+          iconOffset: [0, -35],
           cursor: 'arrow'
         }
       );
@@ -96,8 +96,27 @@ function(provide, Circle, CircleVertex, TriangleVertex,   Placemark, templateLay
         e.stopPropagation();
         var point = this.eventCircle.geometry.getCoordinates();
         this.setCoordinates(point);       
+        this.path.dragVertex(this);     
       }.bind(this));
     
+    }
+
+
+    scale(scale) {
+      var radius = this.eventCircle.geometry.getRadius();  
+      radius = radius * scale;
+      this.eventCircle.geometry.setRadius(radius);
+      
+      if (this.isTriangleVertex) {
+        var triangleScale = this.image.getScale();
+        triangleScale *= scale;
+        this.image.setScale(triangleScale);
+
+      } else {
+        radius = this.image.geometry.getRadius();  
+        radius = radius * scale;
+        this.image.geometry.setRadius(radius);
+      }
     }
 
 
@@ -158,43 +177,65 @@ function(provide, Circle, CircleVertex, TriangleVertex,   Placemark, templateLay
       var point2 = this.getCoordinates();
       
       // Set Triangle Image 
-      this.image = new TriangleVertex(point1, point2, this.imageZIndex);
+      this.image = new TriangleVertexImage(point1, point2, this.path.triangleScale, this.imageZIndex);
 
       // Set Placemark with Closing Cross
       var path = this.path;
       var MyIconLayout = ymaps.templateLayoutFactory.createClass(   
-        '<div class="container" style="padding: 0; width: 96px;' + 
-              'font-size: 11px; font-family: Arial, Verdana, sans-serif;">' +
-          '<div class="d-flex text-center">' +
-            '<div class="p-1 flex-grow-1 bg-info">$[properties.iconContent]</div>' +            
-            '<div class="p-1 bg-warning hoverColor">&#10006;</div>' +
-          '</div>' +
+        '<div class="px-2 py-1 bg-info d-inline-flex rounded border align-items-center"' + 
+              'style="font-size: 11px; font-family: Arial, Verdana, sans-serif;">' +
+          '<div class="bg-info pr-2">$[properties.iconContent]</div>' +            
+          '<div class="bg-info placemarkCross placemarkCrossImage"></div>' +
+          //'<div class="p-0 bg-info hoverColor">&#10006;</div>' +
         '</div>', {
           build: function () {
-            console.log('build');
             this.constructor.superclass.build.call(this);
             this.path = path;
             var elem = this.getData().geoObject;
+            //console.log(elem);
+            //console.log("getData()"); console.log(this.getData());
+            //console.log("getShape()"); console.log(this.getShape());
             elem.events.add('click', this.clickFunc, this);
             elem.events.add('mouseenter', this.mouseEnter, this);
-            elem.events.add('mouseleave', this.mouseLeave, this);
+            elem.events.add('mouseleave', this.mouseLeave, this); 
+            //var domelem = $(".d-inline-flex", this.getParentElement())[0];
           }, 
 
           clear: function () {
-            console.log('clear');
-            //console.log(this.getData().geoObject.events);
-            //this.getData().geoObject.events.group().removeAll()
 
+            //console.log("clear");
+            
             var elem = this.getData().geoObject;
             elem.events.remove('click', this.clickFunc, this);
             elem.events.remove('mouseenter', this.mouseEnter, this);
-            elem.events.remove('mouseleave', this.mouseLeave, this);
+            elem.events.remove('mouseleave', this.mouseLeave, this); 
 
-            //console.log(this.getData().geoObject.events);
             this.constructor.superclass.clear.call(this);
           },
-          
+
+        
+          getShape: function () {
+            //console.log("this.getParentElement(): ");
+            //console.log(this.getParentElement());
+            var parentElement = this.getParentElement();
+            if (parentElement != null) {
+              var element = $('.d-inline-flex', parentElement);
+              var width = element[0].offsetWidth;
+              var height = element[0].offsetHeight;
+              var position = element.position();
+              
+              return new ymaps.shape.Rectangle(new ymaps.geometry.pixel.Rectangle([
+                [position.left + width - 15, position.top],
+                [position.left + width, position.top + height]
+              ]));
+            } else {
+              return null;
+            }  
+          },
+
+ 
           clickFunc: function(e) {
+            //console.log("click");
             e.preventDefault();
             if (this.path.length > 2) { 
               if (confirm("Удалить все метки? \n\n (для удаления только одной метки дважды щелкните по ней)")) {
@@ -206,15 +247,18 @@ function(provide, Circle, CircleVertex, TriangleVertex,   Placemark, templateLay
           }.bind(this),
           
           mouseEnter: function() {
-            console.log('mouseenter');
-            var elem = this.getParentElement().getElementsByClassName('hoverColor')[0];
-            elem.style.color = "red";
+            //console.log('mouseenter');
+            var elem = this.getParentElement().getElementsByClassName('placemarkCross')[0];
+            $(elem).removeClass('placemarkCrossImage');
+            $(elem).addClass('placemarkCrossImagePointed');
+          
           },
 
           mouseLeave: function() {
-            console.log('mouseleave');
-            var elem = this.getParentElement().getElementsByClassName('hoverColor')[0];
-            elem.style.color = "green";
+            //console.log('mouseleave');
+            var elem = this.getParentElement().getElementsByClassName('placemarkCross')[0];
+            $(elem).removeClass('placemarkCrossImagePointed');
+            $(elem).addClass('placemarkCrossImage');
           }           
         }
       );
@@ -245,22 +289,25 @@ function(provide, Circle, CircleVertex, TriangleVertex,   Placemark, templateLay
         this.path.map.geoObjects.remove(this.heightPlacemark);  
       }
 
-      var point = this.getCoordinates();
+      var point = this.getCoordinates();      
+      var color = '#0000FF';
+      this.image = new ymaps.Circle([point, radius], {}, {
+        fillColor: color, 
+        strokeColor: color, 
+        zIndex: this.imageZIndex
+      });
 
-      // Set Circle Image
-      this.image = new CircleVertex(point, radius, this.imageZIndex);
-      
       // Set Placemark without Closing Cross
       var MyIconLayout = ymaps.templateLayoutFactory.createClass(   
-        '<div class="container" style="padding: 0; width: 96px;' + 
-              'font-size: 11px; font-family: Arial, Verdana, sans-serif;">' +
-          '<div class="p-1 bg-info text-center">$[properties.iconContent]</div>' +            
+        '<div class="px-2 py-1 bg-info text-center rounded border d-inline-block"' + 
+              'style="font-size: 11px; font-family: Arial, Verdana, sans-serif;">' + 
+          '$[properties.iconContent]' + 
         '</div>'
       );  
             
       this.heightPlacemark.options.set('iconLayout', MyIconLayout);
       this.heightPlacemark.options.set('iconShape', null);
-  
+
       if (this.vertexIsOnMap) {
         this.path.map.geoObjects.add(this.image); 
         this.path.map.geoObjects.add(this.heightPlacemark); 
@@ -357,19 +404,22 @@ function(provide, Circle, CircleVertex, TriangleVertex,   Placemark, templateLay
      
       this.eventCircle.geometry.setCoordinates(point);
       this.heightPlacemark.geometry.setCoordinates(point);
-      this.image.geometry.setCoordinates(point);
-
-      if (this.isTriangleVertex && this.prevVertex != null) {
+      
+      // Note: it supposed in in case of Triangle Vertex, pervVertex != null.
+      if (this.isTriangleVertex) {
          var prevPoint = this.prevVertex.eventCircle.geometry.getCoordinates();
+         // Here we calculate vertices of Image Triangle
          this.image.setCoordinates(prevPoint, point);
-      } 
+      } else {
+        // In this case, this.image is a Circle, so 
+        // we can set coordinates of it center.
+        this.image.geometry.setCoordinates(point);
+      }
        
       if (this.nextVertex != null && this.nextVertex.isTriangleVertex) {
         var nextPoint = this.nextVertex.eventCircle.geometry.getCoordinates();
         this.nextVertex.image.setCoordinates(point, nextPoint);
-      }
-
-      this.path.dragVertex(this);         
+      }    
     }
 
 

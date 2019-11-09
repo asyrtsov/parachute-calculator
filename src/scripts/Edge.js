@@ -20,14 +20,17 @@ function(provide, Polygon, VectorMath) {
       prevVertex, 
       nextVertex,
       path, 
-      chuteDirection = true    
+      chuteDirection = true
     ) {
 
       this.prevVertex = prevVertex;
       this.nextVertex = nextVertex;
       this.path = path; 
-      // true - for the same directions of Chute and Edge
+      // true - if Chute motion and Edge has the same direction
       this.chuteDirection = chuteDirection;
+
+      this.edgeWidth = path.edgeEventRectangleWidth; // edgeWidth; 
+      this.edgeImageWidth = this.edgeWidth / 10; // edgeImageWidth;
 
       // Edge connects prevVertex, nextVertex, itself.
       prevVertex.nextVertex = nextVertex;
@@ -53,19 +56,25 @@ function(provide, Polygon, VectorMath) {
         zIndex: (zIndex - 1)        
       });
             
-      this.edgeWidth = 1; // edgeWidth; 
-      this.edgeImageWidth = 0.1; // edgeImageWidth;
-
       this.calculateEdgeRectangles();
       
       this.clickNumber = 0;
 
       this.edgeIsOnMap = false;
+
+      //this.processVertexClick = this.processVertexClick.bind(this);
       
       this.eventRectangle.events.add('click', function(e) {
         e.stopPropagation();  // remove standart zoom for click
         this.processVertexClick(e);
       }.bind(this));      
+    }
+
+    
+    scale(scale) {
+      this.edgeWidth *= scale;
+      this.edgeImageWidth *= scale;
+      this.calculateEdgeRectangles();
     }
 
     

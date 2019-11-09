@@ -1,7 +1,7 @@
 /**
  * Program calculate heights of Chute for
- * vertices of the Path. Path is a set of line segments (edges).
- * You can input Path by clicking left mouse button.
+ * Vertices of the Path. Path is a set of line segments (Edges).
+ * You can input Path by clicking on the Map.
  */
 
 ymaps.ready(init);
@@ -12,11 +12,7 @@ function init() {
     'Chute',
     'Path',
     'Calculator',
-    //'Menu',
-    'MenuButton',
     'DialogWindows',
-    'Keyboard',
-    'Constant', 
     'BoundaryHeights'
   ]).spread(function (
     AppMap,
@@ -24,11 +20,7 @@ function init() {
     Chute,
     Path,
     Calculator,
-    //Menu,
-    MenuButton, 
     DialogWindows,
-    Keyboard,
-    Constant, 
     BoundaryHeights
   ) {
     // Yandex map
@@ -57,14 +49,7 @@ function init() {
     boundaryHeights.setCalculator(calculator);
     boundaryHeights.setPath(path);
 
-    
-   // Settings menu button 
-    var settingsButton = 
-      new MenuButton("Настройки", "images/icon_menu.svg", 
-                     "#settingsMenu", "#settingsMenuDarkScreen");
-    map.controls.add(settingsButton, {position: {top: 45, left: 10}}); 
-
-
+  
     // Click on the map will add vertice to Path,
     // double click on the map will add wind to WindList.
     var clickNumber = 0;
@@ -92,19 +77,35 @@ function init() {
       }
     });
 
+
+    // This function should be tested after adding Yandex API Key
+    // After yandex maps search we should:
+    //   move wind arrows to the current screen,
+    //   add result of search to Settings Dialog Window.
+    /*map.searchControl.events.add('resultshow', function(e) {
+                
+      path.clear(); 
+      //this.setZoom(this.defaultZoom);        
+      //this.windList.shiftList(this.getCenter());
+               
+      var index = e.get('index');    
+      var geoObjectsArray = map.searchControl.getResultsArray();
+      var resultName = geoObjectsArray[index].properties.get('name');
+
+      var newDz = {
+        name: resultName, 
+        mapCenter: map.getCenter()
+      };    
+      map.dz.push(newDz);    
+      $("#dz").append("<option>" + newDz.name + "</option>");    
+      $("#dz").children()[map.dz.length - 1].selected = true;    
+    }); */  
+
+
+
     /**
      * Menu initialization
      */
     DialogWindows.initMenu(calculator);
-
-    // Add keyboard events:
-    //   left, right, up, down pressing (for changing wind value and direction),
-    //   enter key press on <input> tag - to loose focus after pressing enter.
-    //Keyboard.startKeyboardProcessing(calculator);
-
-    // After yandex maps search we should:
-    //   move wind arrows to the current screen,
-    //   add result of search to Settings Dialog Window.
-    map.setSearchProcessor(calculator);
   });
 }

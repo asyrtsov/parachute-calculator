@@ -28,10 +28,14 @@ function(
       // if false, we add it to end of Path.
       this.pathDirection = true;
 
-      // radius for inner circle vertices, in meters
+      // Radius of Circle Image of Vertices, in meters
       this.vertexRadius = Constant.isMobile ? 4 : 4;
-      // radius for outer invisible circles, in meters
+      // Define size of Triangle Image of Vertices
+      this.triangleScale = 1;
+      // Radius for Event Circle of Vertices, in meters
       this.vertexEventRadius = Constant.isMobile ? 6*this.vertexRadius : 3*this.vertexRadius;
+      // Width of Event Rectangle of Edges
+      this.edgeEventRectangleWidth = 1;
 
       // On the map: line segments should be under vertex images,
       // vertex images should be under vertices
@@ -41,10 +45,46 @@ function(
       this.edgeImageZIndex = -1;
 
       // Distance from vertex to it's heightPlacemark
-      this.heightPlacemarkShift = 0.0002;
+      //this.heightPlacemarkShift = 0.0002;
 
       this.calculator = null;
+
+      this.pathBoundChange = this.pathBoundChange.bind(this);   
+
+      this.map.events.add('boundschange', this.pathBoundChange);
+
     }
+
+
+    pathBoundChange(e) {
+      //console.log("Scale is changed");
+      var newZoom = e.get('newZoom'),
+            oldZoom = e.get('oldZoom');
+      if (newZoom != oldZoom) {
+        //var scale = (2**(newZoom - Constant.defaultZoom));
+        var scale = (2**(oldZoom - newZoom));
+        //console.log('scale: ' + scale);
+        this.scale(scale);
+      }
+    }
+
+
+    scale(scale) {
+      this.vertexRadius *= scale;
+      this.vertexEventRadius *= scale;
+      this.edgeEventRectangleWidth *= scale;
+      this.triangleScale *= scale;
+      if (this.length > 0 ) {
+        var vertex = this.lastVertex;
+        vertex.scale(scale);
+        for(var i=1; i < this.length; i++) {
+          vertex = vertex.prevVertex;
+          vertex.scale(scale);
+          vertex.nextEdge.scale(scale);
+        }
+      }
+    }
+
 
 
     setPathDirection(pathDirection) {
@@ -72,6 +112,7 @@ function(
     addVertex(point) {
 
       var vertex = new Vertex(point, this.vertexEventRadius, this);
+
       var edge = null;
 
       if (this.length > 0) {
@@ -332,12 +373,12 @@ function(
             } 
             
             if (typeof(vertex.height) == 'number') {
-              vertex.printHint("h=" + Math.floor(vertex.height) + " м");
-              vertex.printPlacemark(Math.floor(vertex.height) + " м");
+              vertex.printHint(Math.floor(vertex.height) + "&nbsp;м");
+              vertex.printPlacemark(Math.floor(vertex.height) + "&nbsp;м");
                 
             } else {
               vertex.printHint("&#x26D4;");
-              vertex.printPlacemark("Сюда не долететь!");
+              vertex.printPlacemark("&#x26D4;");
               if (firstUnreachable) {
                 firstUnreachable = false;
               } else {
