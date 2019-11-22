@@ -364,7 +364,7 @@ function(
           
           // First unreachable vertex placemark will be shown, 
           // next placemarks will be hide. 
-          var firstUnreachable = true;
+          // var firstUnreachable = true;
 
           while(vertex != null) {
             
@@ -375,14 +375,24 @@ function(
             if (typeof(vertex.height) == 'number') {
               vertex.printHint(Math.floor(vertex.height) + "&nbsp;м");
               vertex.printPlacemark(Math.floor(vertex.height) + "&nbsp;м");
-                
+
+              vertex.setColor('#0000FF');
+              if (vertex.prevEdge != null) {
+                vertex.prevEdge.setColor('#0000FF');
+              }       
+
             } else {
               vertex.printHint("&#x26D4;");
               vertex.printPlacemark("&#x26D4;");
+
+              vertex.setColor('#FF0000');
+              vertex.prevEdge.setColor('#FF0000');    
+
+              /*
               if (firstUnreachable) {
                 firstUnreachable = false;
               } else {
-              }
+              }  */
             }
             vertex = vertex.nextVertex;
           }
@@ -422,20 +432,29 @@ function(
             }
           
             if (typeof(vertex.height) == 'number') {
-              vertex.printHint("h=" + Math.floor(vertex.height) + " м");
-              vertex.printPlacemark(Math.floor(vertex.height) + " м");
+              vertex.printHint("h=" + Math.floor(vertex.height) + "&nbsp;м");
+              vertex.printPlacemark(Math.floor(vertex.height) + "&nbsp;м");
+              vertex.setColor('#0000FF');
+              if (vertex.nextEdge != null) {
+                vertex.nextEdge.setColor('#0000FF');
+              }
             } else {
-              vertex.printHint("&#x26D4;");
-              vertex.printPlacemark("Отсюда не долететь!");
+              vertex.printHint('&#x26D4;');
+              vertex.printPlacemark('&#x26D4;');
+
+              vertex.setColor('#FF0000');
+              vertex.nextEdge.setColor('#FF0000');    
+
+              /*
               if (firstBackUnreachable) {
                 firstBackUnreachable = false;
-              } 
+              } */
             }
             vertex = vertex.prevVertex;
           }
         }
 
-        this.calculator.windList.createWindVertices();
+        //this.calculator.windList.createWindVertices();
       }
     }
   }

@@ -104,6 +104,11 @@ function(provide, Polygon, VectorMath) {
       return color;
     }
 
+    setColor(color) {
+      this.image.options.set('strokeColor', color);
+      this.image.options.set('fillColor', color);
+    }
+
     /**
      * Process both click and dblclick on this edge.
      * Single clicking is for adding new Vertex. 

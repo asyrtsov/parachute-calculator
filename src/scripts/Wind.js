@@ -1,5 +1,7 @@
-ymaps.modules.define('Wind', [],
-function(provide) {
+ymaps.modules.define('Wind', [
+  'WindVertex'
+],
+function(provide, WindVertex) {
 
   /**
    * Wind at particular height.  
@@ -11,17 +13,32 @@ function(provide) {
      * @param {number} angle - Angle between current wind and West wind; in degrees.    
      * @param {(number | null)} height - In meters; height must be >= 0.
      */
-    constructor(value, angle, height) {
+    constructor(value, angle, height, map) {
             
-      this.setValue(value);
-      this.setAngle(angle);
-      this.setHeight(height); 
+      this.value = value;
+      this.height = height;
+      this.setAngle(angle); 
 
       this.prevWind = null;
       this.nextWind = null; 
 
-      this.pathVertex = null;   
+      //this.vertex = null;   
+
+      this.point = null;
+
+      this.vertex = new WindVertex(height, map);
     }
+
+
+    setPoint(point) {
+      this.point = point;
+      this.vertex.setCoordinates(point);
+    } 
+
+    getPoint() {
+      return this.point;
+    }
+
 
     setNextWind(wind) {
       this.nextWind = wind;
@@ -41,7 +58,7 @@ function(provide) {
      * @param {number} value - In m/sec; value must be >= 0.
      */
     setValue(value) {
-      this.value = value;             
+      this.value = value;                   
     }
 
     /**
@@ -74,7 +91,8 @@ function(provide) {
      * @param {(number | null)} height - In meters; height must be >= 0.
      */
     setHeight(height) {
-      this.height = height;      
+      this.height = height;
+      this.vertex.printPlacemark(height);      
     }
          
     getAngle() {

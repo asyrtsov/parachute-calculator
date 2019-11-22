@@ -427,6 +427,12 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
       return this.eventCircle.geometry.getCoordinates();
     }
 
+
+    setColor(color) {
+      this.image.options.set('fillColor', color);
+      this.image.options.set('strokeColor', color);
+    }
+
     
     /**
      * @param {string} str - This will be printed in this.heightPlacemark

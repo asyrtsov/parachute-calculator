@@ -48,7 +48,6 @@ function init() {
 
     boundaryHeights.setCalculator(calculator);
     boundaryHeights.setPath(path);
-
   
     // Click on the map will add vertice to Path,
     // double click on the map will add wind to WindList.
@@ -58,19 +57,12 @@ function init() {
       clickNumber++;
       if (clickNumber == 1) {
         setTimeout(function() {
-          if (clickNumber == 1) {  // Single Click
+          if (clickNumber == 1) {  // Single Click           
             // We add vertex to path
             path.addVertex(point);
           } else {  // Double Click
             // We add new wind arrow (windsock)
-            /*
-            if (windList.lastWind.getHeight() != null) {
-              windList.addWind(point);
-              windList.printCurrentWindWindow();
-              menu.windButton.showMenu();
-              $("#menuArrow").removeClass("arrow");
-              $("#menuArrow").addClass("arrow_selected");
-            } */
+            console.log('dbl map click');   
           }
           clickNumber = 0;
         }, 200);

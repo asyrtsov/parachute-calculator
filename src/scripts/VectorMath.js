@@ -86,8 +86,42 @@ function(provide) {
       var point = this.addVectors(pointA, v);
       return(point);  
     }
-            
-  }
-      
+
+    /**
+     * 
+     * @param {number[]} point - Cartesian coordinates.
+     * @returns {Object | null} polarCoordinates - Polar coordinates or null if radius = 0. 
+     * @returns {number} polarCoordinates.radius
+     * @returns {number} polarCoordinates.angle - Here 0 <= angle < 2*PI.
+     */
+    static getPolarFromCartesian(point) {
+      var x = point[0]; 
+      var y = point[1];
+
+      var r = Math.sqrt(x*x + y*y);      
+      if (r == 0) return {radius: null, angle: null};
+        
+      var angle = null;
+
+      if (x > 0) {
+        angle = (y >= 0) ? Math.atan(y/x) : (2*Math.PI - Math.atan((-y)/x));
+      } else {
+        if (x < 0) {
+          if (y >= 0) {
+            angle = Math.PI - Math.atan(y/(-x));
+          } else {
+            angle = Math.PI + Math.atan(y/x);
+          }
+        } else {  // x = 0
+          angle = (y > 0) ? Math.PI/2  : Math.PI*(3/2);  
+        }
+      }  
+
+      //angle = 360 * (angle / (Math.PI*2));  
+      var polarCoordinates = {radius: r, angle: angle};
+      return polarCoordinates;
+    }
+                  
+  }      
   provide(VectorMath);  
 });  

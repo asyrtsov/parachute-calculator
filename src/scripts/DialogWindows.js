@@ -231,7 +231,7 @@ function(provide, Constant) {
         
         // If we jump to firstWind by use of Tab button (our app has such 
         // possibility), it will call windList.setHeightToCurrentWind (it will be error).
-        if (windList.currentWind == windList.firstWind) return;
+        //if (windList.currentWind == windList.firstWind) return;
         
         var s = $("#windHeightInput").val();        
         var n = Number.parseFloat(s);

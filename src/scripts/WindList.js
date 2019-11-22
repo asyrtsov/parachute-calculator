@@ -17,7 +17,7 @@ function(provide, Wind, WindVertex) {
 
       // Surface wind: 5 m/sec, West
       var angle = 0;
-      this.firstWind = new Wind(5, angle, 0);
+      this.firstWind = new Wind(5, angle, 0, this.map);
       this.map.windOutput.print(this.firstWind.toString());
       this.map.arrow.rotate(angle);
           
@@ -50,7 +50,7 @@ function(provide, Wind, WindVertex) {
      * add it to the end of the list.
      */
     addWind() {      
-      var wind = new Wind(5, 0, null);
+      var wind = new Wind(5, 0, null, this.map);
       this.lastWind.setNextWind(wind);      
       this.lastWind = wind;
       this.currentWind = wind;
@@ -72,10 +72,14 @@ function(provide, Wind, WindVertex) {
         return;
       }
       
-      if (wind.pathVertex != null) {
-        wind.pathVertex.removeFromMap();
+      /*
+      if (wind.vertex != null) {
+        wind.vertex.removeFromMap();
         wind.PathVertex = null;
-      }      
+      } */     
+
+
+      wind.vertex.removeFromMap();
 
       wind.prevWind.setNextWind(wind.nextWind);
       if (wind == this.lastWind) {
@@ -246,38 +250,44 @@ function(provide, Wind, WindVertex) {
       }      
     }  */
     
-    
+    /**
+     * 
+     */
+
+    /* 
     createWindVertices() {
       
       var wind = this.firstWind;
       while(wind != null) {
         
         if (wind.pathPoint == null) {
-          if (wind.pathVertex != null) {
-            wind.pathVertex.removeFromMap();
-            wind.pathVertex = null;             
+          if (wind.vertex != null) {
+            wind.vertex.removeFromMap();
+            wind.vertex = null;             
           }
         } else {
-          if (wind.pathVertex == null) {
-            wind.pathVertex = new WindVertex(wind, this.map, this.windVertexRadius);
-            wind.pathVertex.addToMap();                        
+          if (wind.vertex == null) {
+            wind.vertex = new WindVertex(wind, this.map, this.windVertexRadius);
+            wind.vertex.addToMap();                        
           } else {
-            wind.pathVertex.refreshCoordinates();              
+            wind.vertex.refreshCoordinates();              
           }          
         }        
         wind = wind.nextWind;
       }  
-    }
+    }  */
     
     
     removeWindVertices() {
       var wind = this.firstWind;
       while(wind != null) {
-        if (wind.pathVertex != null) {        
-          wind.pathVertex.removeFromMap();
-          wind.pathVertex = null;
+        /*
+        if (wind.vertex != null) {        
+          wind.vertex.removeFromMap();
+          wind.vertex = null;
           wind.pathPoint = null;
-        }        
+        } */
+        wind.setPoint(null);       
         wind = wind.nextWind;
       }     
     }
@@ -297,9 +307,11 @@ function(provide, Wind, WindVertex) {
       this.windVertexRadius *= scale;
         var wind = this.firstWind;
         while (wind != null) {
-          if (wind.pathVertex != null) {
-            wind.pathVertex.scale(scale);
-          }
+          /*
+          if (wind.vertex != null) {
+            wind.vertex.scale(scale);
+          } */
+          wind.vertex.scale(scale);
           wind = wind.nextWind;
         }      
     }
