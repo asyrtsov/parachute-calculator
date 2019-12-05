@@ -18,12 +18,13 @@ function(provide, Polygon, VectorMath) {
      * @param {number} triangleScale - It defines size of Triangle.
      * @param {number} zIndex - z-index of Polygon.     
      */
-    constructor(point1, point2, triangleScale = 1, zIndex=0) {
+    constructor(point1, point2, color, strokeColor, triangleScale = 1, zIndex=0) {
       // four square brackets is a must for Polygon constructor, 
       // non empty super constructor is a must     
       super([], {}, {
-        fillColor: "#0000FF", 
-        strokeColor: "#0000FF", 
+        fillColor: color, 
+        strokeColor: strokeColor, 
+        strokeWidth: 2, 
         zIndex: zIndex          
       });   
       

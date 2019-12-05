@@ -21,7 +21,7 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
      */
     constructor(point, eventRadius, path) {
 
-      // Event Circle
+      // Event Circle (invisible)
       this.eventCircle = new ymaps.Circle(
         [point, eventRadius], 
         {}, 
@@ -53,8 +53,11 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
       // To set it, use this.setTriangleImage() or this.setCircleImage()
       // You should not add Vertex to Map until Image is not set up.
       this.image = null;
-      this.imageZIndex = 1;      
-      
+      this.imageZIndex = 1;
+      // Blue color    
+      this.color = '#0000FF'; 
+      this.strokeColor = '#0000FF';
+
       // null - for undefined, true - for Triangle Vertex Image, false - for Circle Vertex Image.
       this.isTriangleVertex = null;
 
@@ -66,7 +69,12 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
 
       this.prevEdge = null;
       this.nextEdge = null;
-      
+
+      // true if this Vertex is situated between 
+      // Base Vertex and Last Vertex of Path.
+      // null - for Base Vertex itself.
+      this.isBetweenBaseAndLast = null;
+            
       this.clickNumber = 0;
 
       this.vertexIsOnMap = false;
@@ -91,6 +99,14 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
       this.eventCircle.events.add('dblclick', function(e) {
         e.stopPropagation();  
       });
+
+      this.eventCircle.events.add('contextmenu', function(e) {
+        e.stopPropagation();  
+        if (this.path.baseVertex != this && this.height != null) {
+          this.path.setBaseVertex(this);
+        }
+      }.bind(this));
+      
       
       this.eventCircle.events.add('drag', function(e) {
         e.stopPropagation();
@@ -117,6 +133,10 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
         radius = radius * scale;
         this.image.geometry.setRadius(radius);
       }
+    }
+
+    setIsBetweenBaseAndLast(isBetweenBaseAndLast) {
+      this.isBetweenBaseAndLast = isBetweenBaseAndLast;
     }
 
 
@@ -177,7 +197,8 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
       var point2 = this.getCoordinates();
       
       // Set Triangle Image 
-      this.image = new TriangleVertexImage(point1, point2, this.path.triangleScale, this.imageZIndex);
+      this.image = 
+        new TriangleVertexImage(point1, point2, this.color, this.strokeColor, this.path.triangleScale, this.imageZIndex);
 
       // Set Placemark with Closing Cross
       var path = this.path;
@@ -290,10 +311,11 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
       }
 
       var point = this.getCoordinates();      
-      var color = '#0000FF';
+      //var color = '#0000FF';
       this.image = new ymaps.Circle([point, radius], {}, {
-        fillColor: color, 
-        strokeColor: color, 
+        fillColor: this.color, 
+        strokeColor: this.strokeColor, 
+        strokeWidth: 2,
         zIndex: this.imageZIndex
       });
 
@@ -386,8 +408,9 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
               }
             }                            
             this.clickNumber = 0;
-          } else {  // Double Click (remove Vertex)               
-            this.path.removeVertex(this);                 
+          } else {  // Double Click (remove Vertex)           
+            this.path.removeVertex(this);   
+            this.clickNumber = 0;              
           }  
         }.bind(this), 200);
       }  
@@ -429,8 +452,52 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
 
 
     setColor(color) {
-      this.image.options.set('fillColor', color);
-      this.image.options.set('strokeColor', color);
+      this.color = color;
+      if (this.image != null) {
+        this.image.options.set('fillColor', color);
+      }
+    }
+
+    setStrokeColor(color) {
+      this.strokeColor = color;
+      if (this.image != null) {
+        this.image.options.set('strokeColor', color);
+      }      
+    }
+
+    setHeight(height) {
+      this.height = height;
+
+      if (typeof(height) == 'number') {
+        this.printHint(Math.floor(height) + '&nbsp;м');
+        this.printPlacemark(Math.floor(height) + '&nbsp;м');
+        // Blue color.
+        this.setColor('#0000FF');
+        if (this.path.baseVertex == this) {
+          // Yellow color. 
+          this.setStrokeColor('#FFFF00');  
+        } else {
+          this.setStrokeColor('#0000FF');
+        }
+        //if (this.prevEdge != null) {
+        //  this.prevEdge.setColor('#0000FF');
+        //}       
+
+      } else {
+        this.printHint('&#x26D4;');
+        this.printPlacemark('&#x26D4;');
+        // Red color.
+        this.setColor('#FF0000');
+        this.setStrokeColor('#FF0000');
+        //if (this.prevEdge != null) {
+        //  this.prevEdge.setColor('#FF0000');    
+        //} 
+        /*
+        if (firstUnreachable) {
+          firstUnreachable = false;
+        } else {
+        }  */
+      }
     }
 
     

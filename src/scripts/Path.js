@@ -21,12 +21,16 @@ function(
       this.map = map;
       this.firstVertex = null;
       this.lastVertex = null;
+
+      this.baseVertex = null;
+      this.baseVertexHeight = Constant.defaultBaseHeight;
+
       // number of vertices
       this.length = 0;
 
       // If pathDirection is true, we add new vertex to the start of Path;
       // if false, we add it to end of Path.
-      this.pathDirection = true;
+      //this.pathDirection = true;
 
       // Radius of Circle Image of Vertices, in meters
       this.vertexRadius = Constant.isMobile ? 4 : 4;
@@ -109,7 +113,7 @@ function(
      * @param {number[]} point - Yandex.Maps coordinates, point = [x, y].
      * @return {Array} New Last Vertex and new Vast Edge of Path.
      */
-    addVertex(point) {
+    addVertex(point, isAddedtoEnd) {
 
       var vertex = new Vertex(point, this.vertexEventRadius, this);
 
@@ -117,7 +121,8 @@ function(
 
       if (this.length > 0) {
 
-        if (this.pathDirection) {
+        //if (this.pathDirection) {
+        if (isAddedtoEnd) {  
           // We should add vertex to the end of path
 
           var lastPoint = this.lastVertex.getCoordinates();
@@ -130,7 +135,9 @@ function(
             this.lastVertex.prevEdge.calculateEdgeRectangles(); 
           }  
 
-          this.lastVertex = vertex;          
+          this.lastVertex = vertex;   
+          
+          this.lastVertex.setIsBetweenBaseAndLast(true);
         } else {
           // We should add vertex to the beginning of path
 
@@ -143,24 +150,76 @@ function(
           edge = new Edge(vertex, this.firstVertex, this);
       
           this.firstVertex = vertex;
+
+          this.firstVertex.setIsBetweenBaseAndLast(false);
         }
 
+        vertex.addToMap();
         edge.addToMap();
+        this.length++;
 
-      } else {  // this.length == 0;        
+        this.calculator.calculateHeight(isAddedtoEnd);
+        //this.printHeightsAndWindPoints(isAddedtoEnd);
+
+      } else {  // this.length == 0;    
         this.firstVertex = vertex;
         this.lastVertex = vertex;
+        this.baseVertex = vertex;
+        this.firstVertex.setHeight(this.baseVertexHeight);
+        vertex.setStrokeColor('#FFFF00');
         vertex.setCircleVertex(this.vertexRadius);
+        vertex.isBetweenBaseAndLast = null;
+        vertex.printHint("h=" + Math.floor(vertex.height) + "&nbsp;м");
+        vertex.printPlacemark(Math.floor(vertex.height) + "&nbsp;м");
+
+        vertex.addToMap();
+        this.length++;        
       }
       
-      vertex.addToMap();
+      
 
-      this.length++;
-
-      this.calculator.calculateHeight();
-      this.printHeightsAndWindPoints();
+      //this.calculator.calculateHeight(isAddedtoEnd);
+      //this.printHeightsAndWindPoints(isAddedtoEnd);
 
       return([vertex, edge]);
+    }
+
+    /**
+     * You shouldn't setBaseVertex to vertex with height == null.
+     * @param {Vertex} vertex 
+     */
+    setBaseVertex(vertex) {
+      this.baseVertex.setStrokeColor(this.baseVertex.color);
+      this.baseVertex = vertex;
+      // Yellow color.
+      this.baseVertex.setStrokeColor('#FFFF00');
+      this.setVerticesIsBetweenBaseAndLast();
+      $("#baseVertexHeight").val(Math.floor(this.baseVertex.height));
+      this.baseVertexHeight = this.baseVertex.height;
+      //this.calculator.calculateHeight();
+    }
+
+
+    setBaseVertexHeight(height) {
+      this.baseVertexHeight = height;
+      if (this.length > 0) {
+        this.baseVertex.setHeight(height);
+        this.calculator.calculateHeight();
+      }
+    }
+
+
+
+    setVerticesIsBetweenBaseAndLast() {
+      this.baseVertex.isBetweenBaseAndLast = null;
+      var v = this.baseVertex;
+      while((v = v.prevVertex)!= null) {
+        v.isBetweenBaseAndLast = false;
+      }
+      var v = this.baseVertex;
+      while((v = v.nextVertex) != null) { 
+        v.isBetweenBaseAndLast = true;
+      }   
     }
 
 
@@ -184,6 +243,15 @@ function(
       var edge1 = new Edge(prevVertex, vertex, this, edgeChuteDirection);
       var edge2 = new Edge(vertex, nextVertex, this, edgeChuteDirection);
 
+      
+      if (vertex.prevVertex.isBetweenBaseAndLast == true || vertex.prevVertex.isBetweenBaseAndLast == null) {
+        vertex.setIsBetweenBaseAndLast(true);
+      } else {
+        vertex.setIsBetweenBaseAndLast(false);  
+      }  
+
+      //console.log(vertex.isBetweenBaseAndLast);
+
       this.length++;
 
       edge.removeFromMap();
@@ -191,8 +259,8 @@ function(
       edge1.addToMap();
       edge2.addToMap();
 
-      this.calculator.calculateHeight();
-      this.printHeightsAndWindPoints();
+      this.calculator.calculateHeight(vertex.isBetweenBaseAndLast);
+      //this.printHeightsAndWindPoints(vertex.isBetweenBaseAndLast);
 
       return([vertex, edge1, edge2]);
     }
@@ -203,6 +271,11 @@ function(
      * @return {(Edge|null)} Edge between previous and next vertices.
      */
     removeVertex(vertex) {
+
+      if ((vertex == this.baseVertex) && (this.length > 1)) {
+        alert('Вы не можете удалить базовую вершину!');
+        return;
+      }
 
       vertex.removeFromMap();
 
@@ -249,11 +322,12 @@ function(
             prevVertex.prevEdge.calculateEdgeRectangles();  
           }
 
+          /*
           if (!this.calculator.getCalculationDirection()) {
             if (!this.pathDirection) {
               this.calculator.setFinalHeight(this.lastVertex.height);  
             } 
-          }
+          }  */
         } else {  // first vertex case
 
           vertex.nextEdge.removeFromMap(); 
@@ -265,11 +339,12 @@ function(
             nextVertex.setCircleVertex(this.vertexRadius);
           }
 
+          /*
           if (this.calculator.getCalculationDirection()) {
             if (this.pathDirection) {
               this.calculator.setStartHeight(this.firstVertex.height);  
             } 
-          } 
+          } */
         }
       } else {  // case: only one circle
         this.lastVertex = null;
@@ -278,8 +353,8 @@ function(
       this.length--;
 
       if (this.length > 0) {
-        this.calculator.calculateHeight();
-        this.printHeightsAndWindPoints();
+        this.calculator.calculateHeight(vertex.isBetweenBaseAndLast);
+        //this.printHeightsAndWindPoints();
       }
 
       return(edge);
@@ -291,8 +366,8 @@ function(
      */
     dragVertex(vertex) {
  
-      this.calculator.calculateHeight();
-      this.printHeightsAndWindPoints();
+      this.calculator.calculateHeight(vertex.isBetweenBaseAndLast);
+      //this.printHeightsAndWindPoints(vertex.isBetweenBaseAndLast);
 
       if (vertex.nextEdge != null) {
         vertex.nextEdge.calculateEdgeRectangles();
@@ -323,7 +398,6 @@ function(
         this.lastVertex = null;
       }
 
-      this.calculator.boundaryHeights.makeHeightsEqual(); 
       this.calculator.windList.removeWindVertices();
     }
 
@@ -331,132 +405,149 @@ function(
     /**
      * Print heights in vertices ballons and hints.
      * Print wind points on the Path.
-     */
-    printHeightsAndWindPoints() {
-      if (this.length > 0) {
-
-        if (this.calculator.getCalculationDirection()) {
-          
-          if (this.firstVertex.height == null) {
-            let vertex = this.lastVertex;          
-            while(vertex != this.firstVertex) {
-
-              vertex.printHint("h=?");
-              if (vertex.singleClickingIsOn) {              
-                vertex.turnOffSingleClicking();
-              }               
-              vertex = vertex.prevVertex;              
-            }
-            
-            // Now: vertex = this.firstVertex
-
-            vertex.printPlacemark("Введите высоту");
-            vertex.printHint("h=?");
-            if (vertex.singleClickingIsOn) {             
-              vertex.turnOffSingleClicking();
-            }             
-                        
-            this.calculator.windList.removeWindVertices();                                      
-            return;  
-          }            
-       
-          var vertex = this.firstVertex;
-          
-          // First unreachable vertex placemark will be shown, 
-          // next placemarks will be hide. 
-          // var firstUnreachable = true;
-
-          while(vertex != null) {
-            
-            if (!vertex.singleClickingIsOn) {             
-              vertex.turnOnSingleClicking();
-            } 
-            
-            if (typeof(vertex.height) == 'number') {
-              vertex.printHint(Math.floor(vertex.height) + "&nbsp;м");
-              vertex.printPlacemark(Math.floor(vertex.height) + "&nbsp;м");
-
-              vertex.setColor('#0000FF');
-              if (vertex.prevEdge != null) {
-                vertex.prevEdge.setColor('#0000FF');
-              }       
-
-            } else {
-              vertex.printHint("&#x26D4;");
-              vertex.printPlacemark("&#x26D4;");
-
-              vertex.setColor('#FF0000');
-              vertex.prevEdge.setColor('#FF0000');    
-
-              /*
-              if (firstUnreachable) {
-                firstUnreachable = false;
-              } else {
-              }  */
-            }
-            vertex = vertex.nextVertex;
-          }
-        } else {
-                    
-          if (this.lastVertex.height == null) {
-
-            let vertex = this.firstVertex;          
-            while(vertex != this.lastVertex) {
-              vertex.printHint("h=?");
-              if (vertex.singleClickingIsOn) {              
-                vertex.turnOffSingleClicking();
-              }               
-              vertex = vertex.nextVertex;              
-            }
-            
-            // Now: vertex = this.lastVertex
-
-            vertex.printPlacemark("Введите высоту");
-            vertex.printHint("h=?");
-            if (vertex.singleClickingIsOn) {             
-              vertex.turnOffSingleClicking();
-            }             
-                        
-            this.calculator.windList.removeWindVertices();                                      
-            return;  
-          }  
-                      
-          var vertex = this.lastVertex;
-
-          var firstBackUnreachable = true;
-
-          while(vertex != null) {
-
-            if (!vertex.singleClickingIsOn) {             
-              vertex.turnOnSingleClicking();
-            }
-          
-            if (typeof(vertex.height) == 'number') {
-              vertex.printHint("h=" + Math.floor(vertex.height) + "&nbsp;м");
-              vertex.printPlacemark(Math.floor(vertex.height) + "&nbsp;м");
-              vertex.setColor('#0000FF');
-              if (vertex.nextEdge != null) {
-                vertex.nextEdge.setColor('#0000FF');
-              }
-            } else {
-              vertex.printHint('&#x26D4;');
-              vertex.printPlacemark('&#x26D4;');
-
-              vertex.setColor('#FF0000');
-              vertex.nextEdge.setColor('#FF0000');    
-
-              /*
-              if (firstBackUnreachable) {
-                firstBackUnreachable = false;
-              } */
-            }
-            vertex = vertex.prevVertex;
-          }
-        }
-
-        //this.calculator.windList.createWindVertices();
+     */ 
+    
+    printHeightsAndWindPoints22(isBetweenBaseAndLast) {
+      if (this.length == 0) {
+        console.warn('You try to print empty pass!');
+        return;
       }
+
+      if (this.length == 1) {
+        let firstVertex = this.firstVertex;
+        firstVertex.printHint(Math.floor(firstVertex.height) + "&nbsp;м");
+        firstVertex.printPlacemark(Math.floor(firstVertex.height) + "&nbsp;м");
+        return;
+      }
+
+
+      //if (this.calculator.getCalculationDirection()) {
+      if (isBetweenBaseAndLast) {  
+
+        /*
+        if (this.firstVertex.height == null) {
+          let vertex = this.lastVertex;          
+          while(vertex != this.firstVertex) {
+
+            vertex.printHint("h=?");
+            if (vertex.singleClickingIsOn) {              
+              vertex.turnOffSingleClicking();
+            }               
+            vertex = vertex.prevVertex;              
+          }
+          
+          // Now: vertex = this.firstVertex
+
+          vertex.printPlacemark("Введите высоту");
+          vertex.printHint("h=?");
+          if (vertex.singleClickingIsOn) {             
+            vertex.turnOffSingleClicking();
+          }             
+                      
+          this.calculator.windList.removeWindVertices();                                      
+          return;  
+        }            */
+      
+        var vertex = this.baseVertex.nextVertex;
+       
+        // First unreachable vertex placemark will be shown, 
+        // next placemarks will be hide. 
+        // var firstUnreachable = true;
+
+        while(vertex != null) {
+          
+          if (!vertex.singleClickingIsOn) {             
+            vertex.turnOnSingleClicking();
+          } 
+          
+          if (typeof(vertex.height) == 'number') {
+            vertex.printHint(Math.floor(vertex.height) + "&nbsp;м");
+            vertex.printPlacemark(Math.floor(vertex.height) + "&nbsp;м");
+
+            vertex.setColor('#0000FF');
+            if (vertex.prevEdge != null) {
+              vertex.prevEdge.setColor('#0000FF');
+            }       
+
+          } else {
+            vertex.printHint("&#x26D4;");
+            vertex.printPlacemark("&#x26D4;");
+
+            vertex.setColor('#FF0000');
+            vertex.prevEdge.setColor('#FF0000');    
+
+            /*
+            if (firstUnreachable) {
+              firstUnreachable = false;
+            } else {
+            }  */
+          }
+          vertex = vertex.nextVertex;
+        }
+      } else {
+        /*          
+        if (this.lastVertex.height == null) {
+
+          let vertex = this.firstVertex;          
+          while(vertex != this.lastVertex) {
+            vertex.printHint("h=?");
+            if (vertex.singleClickingIsOn) {              
+              vertex.turnOffSingleClicking();
+            }               
+            vertex = vertex.nextVertex;              
+          }
+          
+          // Now: vertex = this.lastVertex
+
+          vertex.printPlacemark("Введите высоту");
+          vertex.printHint("h=?");
+          if (vertex.singleClickingIsOn) {             
+            vertex.turnOffSingleClicking();
+          }             
+                      
+          this.calculator.windList.removeWindVertices();                                      
+          return;  
+        }  */
+                    
+        var vertex = this.baseVertex.prevVertex;
+
+        var firstBackUnreachable = true;
+
+        while(vertex != null) {
+
+          if (!vertex.singleClickingIsOn) {             
+            vertex.turnOnSingleClicking();
+          }
+        
+          if (typeof(vertex.height) == 'number') {
+            vertex.printHint("h=" + Math.floor(vertex.height) + "&nbsp;м");
+            vertex.printPlacemark(Math.floor(vertex.height) + "&nbsp;м");
+            vertex.setColor('#0000FF');
+            if (vertex.nextEdge != null) {
+              vertex.nextEdge.setColor('#0000FF');
+            }
+          } else {
+            vertex.printHint('&#x26D4;');
+            vertex.printPlacemark('&#x26D4;');
+
+            vertex.setColor('#FF0000');
+            vertex.nextEdge.setColor('#FF0000');    
+
+            /*
+            if (firstBackUnreachable) {
+              firstBackUnreachable = false;
+            } */
+          }
+          vertex = vertex.prevVertex;
+        }
+      }
+
+      //this.calculator.windList.createWindVertices();
+      
     }
+
+    
+
   }
   provide(Path);
 });

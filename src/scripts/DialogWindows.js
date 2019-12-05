@@ -1,31 +1,24 @@
-ymaps.modules.define('DialogWindows', ['Constant'],
-function(provide, Constant) {
+ymaps.modules.define('DialogWindows', ['Constant', 'Wind'],
+function(provide, Constant, Wind) {
 
   var DialogWindows = {};
   /**
-   * @param {Calculator} calculator
+   * @param {AppMap} map
+   * @param {Chute} chute
+   * @param {WindList} windList
+   * @param {Path} path
+   * @param {Calculator} calculator 
    */
-
-  DialogWindows.initMenu = function(calculator) {
+  DialogWindows.initMenu = function(map, chute, windList, path, calculator) {
     
-    var path = calculator.path;
-        chute = calculator.chute;
-        windList = calculator.windList;
-        boundaryHeights = calculator.boundaryHeights;    
-    var map = path.map;    
-
     // First active link in Menu will be Dz link  
     this.prevLinkId = 'dzLink';
-
-
 
     initMenuWindow();
     initDzWindow();
     initChuteWindow();
-    initPathWindow();
     initHeightWindow();
     initWindWindow();
-
     
     /**
      * Settings Menu initialization
@@ -49,7 +42,6 @@ function(provide, Constant) {
         DialogWindows.prevLinkId = currentLinkId;
       })
 
-
       // Close Settings Menu after clicking Cross or Dark screen
       $("#settingsMenuHeaderRectangle, #settingsMenuDarkScreenClickable").click(function() {
         
@@ -62,6 +54,12 @@ function(provide, Constant) {
         }
       });   
 
+      // Loose focus after pressing Enter on input field.
+      $("input").keypress(function(e) {
+        if (e.keyCode === 13 || e.keyCode === 9) {  // Enter keycode
+          $("input").blur();     // Forced loose of focus
+        }    
+      });
     }
 
   
@@ -77,7 +75,6 @@ function(provide, Constant) {
       $("#dz").on("change", function() {
         var mapCenter = map.dz[this.selectedIndex].mapCenter;      
         map.setCenter(mapCenter, Constant.defaultZoom);
-        //windList.shiftList(mapCenter);
         map.arrow.setCoordinates(mapCenter);                
         // path.clear() will print results too
         path.clear();
@@ -92,45 +89,87 @@ function(provide, Constant) {
       $("#chutehorvel").val(chute.horizontalVel);
       $("#chutevervel").val(chute.verticalVel);
     
-      $("#chutehorvel, #chutevervel").on("change", function () {      
+      $("#chutehorvel").on("change", function () {
         var chutehorvel = Number.parseFloat($("#chutehorvel").val());
         if ((chutehorvel>=0) && (chutehorvel<=Constant.maxChuteHorizontalVelocity)) {
           chute.horizontalVel = chutehorvel;
+          $("#chutehorvel").val(chutehorvel);
+        } else {
+          if (Number.isNaN(chutehorvel)) {
+            alert('Недопустимое значение!');
+          } else {
+            if (chutehorvel < 0) {
+              alert('Скорость должна быть неотрицательной!');
+            } else {
+              alert('Скорость должна быть не больше ' + Constant.maxChuteHorizontalVelocity + 'м/с !');
+            }
+          }
+          $("#chutehorvel").val(chute.horizontalVel);
+          return;           
         }
-        $("#chutehorvel").val(chute.horizontalVel);
-                     
-        var chutevervel = Number.parseFloat($("#chutevervel").val());
-        if (( chutevervel>=0) && (chutevervel<=Constant.maxChuteVerticalVelocity)) {
-          chute.verticalVel = chutevervel;    
-        } 
-        $("#chutevervel").val(chute.verticalVel);        
 
         if (path.length > 0) {
-          calculator.calculateHeight();
-          path.printHeightsAndWindPoints();              
+          calculator.calculateHeight();           
+        }        
+      });  
+
+      $("#chutevervel").on("change", function () {                           
+        var chutevervel = Number.parseFloat($("#chutevervel").val());
+        if (( chutevervel>=0) && (chutevervel<=Constant.maxChuteVerticalVelocity)) {
+          chute.verticalVel = chutevervel;
+          $("#chutevervel").val(chutevervel);    
+        } else {
+          if (Number.isNaN(chutevervel)) {
+            alert('Недопустимое значение!');
+          } else {
+            if (chutevervel < 0) {
+              alert('Скорость должна быть неотрицательной!');
+            } else {
+              alert('Скорость должна быть не больше ' + Constant.maxChuteVerticalVelocity + 'м/с !');
+            }
+          }
+          $("#chutevervel").val(chute.verticalVel);
+          return;           
+        }
+                
+        if (path.length > 0) {
+          calculator.calculateHeight();           
         }
       });
     }    
 
-
-    /** 
-     * Path Window initialization.
-     */  
-    function initPathWindow() {            
-      $("#pathDirection").change(function() {
-        var isChecked = $(this).prop("checked");
-        path.setPathDirection(!isChecked);                
-      }); 
-    }    
-              
     
     /**
-     * This function is empty.
-     * All work is made in BoudaryHeights class.
-     * In the future that part of BoundaryHeights class 
-     * should be transpose to this function. 
+     * Height Window initialization.
      */
     function initHeightWindow() {
+      $("#baseVertexHeight").val(Constant.defaultBaseHeight);
+
+      $("#baseVertexHeight").on("change", function() {            
+        var n = Number.parseFloat($("#baseVertexHeight").val());
+        
+        if ((n >= 0) && (n <= Constant.maxHeight)) { 
+            path.setBaseVertexHeight(n);
+            $("#baseVertexHeight").val(n);                  
+        } else {
+
+          if (Number.isNaN(n)) {
+            alert('Недопустимое значение!');
+          } else {
+            if (n < 0) {
+              alert('Высота в базовой точке должна быть неотрицательной!');
+            } else {
+              alert('Высота в базовой точке должна быть не больше ' + Constant.maxHeight + 'м !');  
+            }
+          }  
+          
+          if (path.length > 0) {
+            $("#baseVertexHeight").val(path.baseVertex.height);
+          } else {
+            $("#baseVertexHeight").val(path.baseVertexHeight);  
+          } 
+        } 
+      });
     }
 
 
@@ -139,6 +178,11 @@ function(provide, Constant) {
      * Wind Window initialization.
      */    
     function initWindWindow() {
+
+      $("#windValueInput").prop("max", "" + Constant.maxWindValue);
+      // Draw scales for Range Input Sliders in WindInput window    
+      drawWindScales();
+
 
       drawWindScreen();
 
@@ -150,177 +194,181 @@ function(provide, Constant) {
         $("#windScreen").removeClass("displayNone");
 
         var windTable = document.getElementById("windTable"); 
-        windTable.innerHTML = '';    
-        var wind = windList.firstWind;windList
+        windTable.innerHTML = '';   
+        var funcArray = [];
+        var row = []; 
+        var wind = windList.firstWind;
         for(var i=0; i < windList.numberOfWinds; i++) {
-          var row = windTable.insertRow(i);
-          wind.rowClickEvent = row.addEventListener("click", createRowClickListener(wind));
-          var cell1 = row.insertCell(0);
-          var cell2 = row.insertCell(1);
-          var cell3 = row.insertCell(2);
+          row[i] = windTable.insertRow(i);
+          funcArray[i] = createRowClickListener(wind);
+          row[i].addEventListener("click", funcArray[i]);
+          var cell1 = row[i].insertCell(0);
+          var cell2 = row[i].insertCell(1);
+          var cell3 = row[i].insertCell(2);
           cell1.innerHTML = (wind.height == null)? "?" : wind.height + " м";      
           cell2.innerHTML = '<div class=\"arrow\"></div>';
           cell2.firstChild.style.transform = "rotate(" + (-1)*wind.getAngle() + "deg)";
           cell3.innerHTML = wind.value + " м/c";
           wind = wind.nextWind;
-          //if (wind == null) break;
         } 
+
+        // Button Add Wind in WindScreen window
+        $("#addWind").click(function() {        
+          var w = new Wind(5, 0, null, map);
+
+          $("#addWind").off('click');
+          for(var i=0; i < row.length; i++) {
+            row[i].removeEventListener('click', funcArray[i]);
+          }
+          drawWindInput(w);
+        });      
+
+        function createRowClickListener(w) {
+          return (function(e) {
+            $("#windScreen").addClass("displayNone");
+            windList.currentWind = w;
+            $("#windInput").removeClass("displayNone");
+
+            $("#addWind").off('click');
+            for(var i=0; i < row.length; i++) {
+              row[i].removeEventListener('click', funcArray[i]);
+            }
+
+            drawWindInput(w);    
+          }); 
+        }
       }
-
-      function createRowClickListener(w) {
-        return (function(e) {
-          $("#windScreen").addClass("displayNone");
-          windList.currentWind = w;
-          $("#windInput").removeClass("displayNone");
-          //windList.printCurrentWindWindow();
-          drawWindInput();    
-        }); 
-      }
-
-      // Button Add Wind in WindScreen window
-      $("#addWind").click(function() {
-        windList.addWind();
-        drawWindInput();
-      });
-
       
       /**
        * Draw WindInput window in Wind Menu
        */
-      function drawWindInput() {
+      function drawWindInput(wind) {
         $("#windScreen").addClass("displayNone");
         $("#windInput").removeClass("displayNone");
 
-        if (windList.currentWind == windList.firstWind) {
+        if (wind == windList.firstWind) {
           $("#windHeightInput").prop("disabled", true);
-          //$("#removeWind").prop("disabled", true);   
           $("#removeWind").addClass("displayNone");       
         } else {
           $("#windHeightInput").prop("disabled", false);
-          //$("#removeWind").prop("disabled", false);
           $("#removeWind").removeClass("displayNone");
         }
-        $("#windHeightInput").val(windList.currentWind.getHeight());    
-        $("#windDirectionInput").val(windList.currentWind.getAngle());
-        $("#windValueInput").val(windList.currentWind.getValue());
-        //$("#arrowScale").prop("checked", this.currentWind.arrow.getIsScaled());
-        var angle = windList.currentWind.getAngle();
+        $("#windHeightInput").val(wind.getHeight());    
+        $("#windDirectionInput").val(wind.getAngle());
+        $("#windValueInput").val(wind.getValue());
+        var angle = wind.getAngle();
         $("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");
-        $("#menuWindValue").html(windList.currentWind.getValue() + " м/с");      
-      }              
+        $("#menuWindValue").html(wind.getValue() + " м/с");      
 
 
-      // Button 'Back to WindScreen' in WindInput window
-      $("#windInputHeaderArrowRectangle").click(function() {
-        if (windList.currentWind.height == null) {
-          windList.removeWind();
-        }
-        drawWindScreen();
-      });
+        // Button 'Back to WindScreen' in WindInput window
+        $("#windInputHeaderArrowRectangle").click(function() { 
+          $("#windHeightInput").off("change"); 
+          $("#windDirectionInput").off('input change');
+          $("#windValueInput").off('input change');
+          $("#removeWind").off('click');
+          $("#windInputHeaderArrowRectangle").off('click');
+          drawWindScreen();
+        });
 
-      // Button 'Remove current wind' in WindInput window
-      $("#removeWind").click(function() {
-        windList.removeWind();
-        drawWindScreen();
-      });
+        // Button 'Remove current wind' in WindInput window
+        $("#removeWind").click(function() {
+          if (wind.getHeight() != null) {
+            windList.removeWind(wind);
 
+            if (path.length > 0) {
+              calculator.calculateHeight();
+            }
+          } 
+          $("#windHeightInput").off("change"); 
+          $("#windDirectionInput").off('input change');
+          $("#windValueInput").off('input change');
+          $("#removeWind").off('click');
+          $("#windInputHeaderArrowRectangle").off('click');
+          drawWindScreen();
+        });
+
+            
+        // Input for WindHeight in WindInput window  
+        $("#windHeightInput").on("change", function() {        
           
-      // Input for WindHeight in WindInput window  
-      $("#windHeightInput").on("change", function() {        
-        // Remember that #windHeightInput is disabled for firstWind
-        
-        // If we jump to firstWind by use of Tab button (our app has such 
-        // possibility), it will call windList.setHeightToCurrentWind (it will be error).
-        //if (windList.currentWind == windList.firstWind) return;
-        
-        var s = $("#windHeightInput").val();        
-        var n = Number.parseFloat(s);
-        
-        if ((n > 0) && (n <= Constant.maxHeight)) { 
-          if (windList.setHeightToCurrentWind(n)) { 
-            $("#windHeightInput").val(n);
+          var heightString = $("#windHeightInput").val();      
+          var height = Number.parseFloat(heightString);
+
+          if (!Number.isNaN(height)) {
+            if (height > 0) {
+              if (height <= Constant.maxHeight) {
+                if (!windList.heightIsInList(height)) {
+                  if (wind.height == null) {
+                    wind.setHeight(height);
+                    windList.addWind(wind);
+                  } else {
+                    wind.setHeight(height);
+                    windList.sortList();
+                  }
+
+                  if (path.length > 0) {
+                    calculator.calculateHeight();       
+                  }                       
+                } else {
+                  alertError('Такая высота уже была!');
+                }
+              } else {  // height > Constant.maxHeight
+                alertError('Высота должны быть не больше ' + Constant.maxHeight + ' м!');
+              }
+            } else {  // height <= 0
+              if (height == 0) {
+                alertError('Поверхностный ветер уже задан!');
+              } else {  // height < 0              
+                alertError('Высота должна быть больше нуля!');
+              }             
+            }
           } else {
-            var v = windList.currentWind.getHeight();
-            var w = (v == null) ? '' : v;             
-            $("#windHeightInput").val(w);
-            alert("Такая высота уже была!");            
-          }            
-        } else {
-          var v = windList.currentWind.getHeight();
-          var w = (v == null) ? '' : v;             
-          $("#windHeightInput").val(w);
-          if (n == 0) {
-            alert("Поверхностный ветер уже задан!");
-          } else {
-            alert("Значение не попадает в допустимый интервал!");
+            alertError('Недопустимое значение!');
           }
-        } 
+
+          function alertError(str) {
+            alert(str);
+            $("#windHeightInput").val(wind.height);
+          }   
+        });
+        
                         
-        if (path.length > 0) {
-          calculator.calculateHeight();
-          path.printHeightsAndWindPoints();          
-        }        
-      });
-      
-                       
-      // Range Input Slider for Wind Direction in WindInput window.  
-      $("#windDirectionInput").on('input change', function() {
-        var angleStr = $("#windDirectionInput").val();          
-        var angle = Number.parseInt(angleStr);
-        
-        windList.setCurrentAngle(angle);
-        //windList.printCurrentWindWindow();
-        //var angle = windList.currentWind.getAngle();
-        $("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");
+        // Range Input Slider for Wind Direction in WindInput window.  
+        $("#windDirectionInput").on('input change', function() {
+          var angleStr = $("#windDirectionInput").val();          
+          var angle = Number.parseInt(angleStr);
+          
+          wind.setAngle(angle);
+          if (wind == windList.firstWind) {
+            map.windOutput.print(wind.toString()); 
+            map.arrow.rotate(angle);
+          }
 
-        if (path.length > 0) {
-          calculator.calculateHeight();
-          path.printHeightsAndWindPoints();           
-        }            
-      });
+          $("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");
 
+          if ((wind.height != null) && (path.length > 0)) {
+            calculator.calculateHeight();         
+          }            
+        });
 
-      $("#windValueInput").prop("max", "" + Constant.maxWindValue);
+        // Range Input Slider for  Wind Value in WindInput window.   
+        $("#windValueInput").on('input change', function() {
+          var valueStr = $("#windValueInput").val();
+          var value = Number.parseInt(valueStr);
 
-      // Range Input Slider for  Wind Value in WindInput window.   
-      $("#windValueInput").on('input change', function() {
-        var valueStr = $("#windValueInput").val();
-        var value = Number.parseInt(valueStr);
+          wind.setValue(value);
+          if (wind == windList.firstWind) {
+            map.windOutput.print(wind.toString()); 
+          } 
 
-        windList.setCurrentValue(value);
-        //windList.printCurrentWindWindow();
-        $("#menuWindValue").html(value + " м/с");
-        
-        if (path.length > 0) {
-          calculator.calculateHeight();
-          path.printHeightsAndWindPoints();          
-        }       
-      });
-      
-      // Draw scales for Range Input Sliders in WindInput window    
-      drawWindScales();
-      
-      /*      
-      $("#arrowScale").prop("checked", windList.firstWind.arrow.getIsScaled());
-      
-      $("#arrowScale").change(function() {
-        var isChecked = $(this).prop("checked");
-        windList.currentWind.arrow.setArrowToBeScaled(isChecked);               
-      });   */
-      
-      /*
-      function initWindWindow() {
-        if (windList.currentWind == windList.firstWind) {
-          $("#windHeightInput").prop("disabled", true);        
-        } else {
-          $("#windHeightInput").prop("disabled", false);
-        }
-        $("#windHeightInput").val(windList.currentWind.getHeight());    
-        $("#windDirectionInput").val(windList.currentWind.getAngle());
-        $("#windValueInput").val(windList.currentWind.getValue());  
-        //$("#arrowScale").prop("checked", windList.currentWind.arrow.getIsScaled());        
-      }         */   
-
+          $("#menuWindValue").html(value + " м/с");
+          
+          if ((wind.height != null) && (path.length > 0)) {
+            calculator.calculateHeight();         
+          }       
+        });
+      }              
     }
    
     /**
@@ -374,6 +422,7 @@ function(provide, Constant) {
         "text-align": "center"
       });     
     }     
+
   }
 
   provide(DialogWindows);  

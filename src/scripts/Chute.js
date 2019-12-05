@@ -9,8 +9,6 @@ function(provide) {
     constructor(horizontalVel, verticalVel) {
       this.horizontalVel = horizontalVel; 
       this.verticalVel = verticalVel;
-      
-      this.angleArray = [];
     }   
   }
       

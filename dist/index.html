@@ -59,7 +59,7 @@
      
           <a class="nav-item nav-link" id="chuteLink" href="#">Парашют</a>
  
-          <a class="nav-item nav-link" id="pathLink" href="#">Путь</a>
+        <!--  <a class="nav-item nav-link" id="pathLink" href="#">Путь</a>  -->
 
           <a class="nav-item nav-link" id="heightLink" href="#">Высота</a>
 
@@ -87,29 +87,41 @@
       </div> <!-- id="dzLinkContent" -->
 
       <div id="heightLinkContent" class="displayNone">
-        <form>             
+        <!-- <form> -->             
         <!-- Start Height Input -->
+        <!--
         <div class="form-group">
           <label for="startHeight">Начальная высота (м)</label>
           <input type="text" id="startHeight" class="form-control" placeholder="Введите высоту">               
-        </div>
+        </div>  -->
         <!-- Final Height Input -->
+        <!--
         <div class="form-group">
           <label for="finalHeight">Конечная высота (м)</label>
           <input type="text" id="finalHeight" name="finalHeight" class="form-control" placeholder="Введите высоту">               
+        </div>  -->
+
+        <!-- Base Height Input -->
+        <div class="form-group">
+          <label for="baseVertexHeight">Высота в базовой точке (м)</label>
+          <input type="text" id="baseVertexHeight" class="form-control" placeholder="Введите высоту">               
         </div>
 
-        <!-- Calculation Direction Input -->     
+
+
+        <!-- Calculation Direction Input -->  
+        <!--   
         <div class="form-group form-check" style="padding-bottom: 10px;">
             <label class="form-check-label" for="calcDirection">
               <input class="form-check-input" type="checkbox" value="" id="calculationDirection">
               Произвести вычисления в обратном порядке
             </label>
-          </div>    
-        </form>
+          </div>    -->
+       <!-- </form> -->
       </div> <!-- id="heightLinkContent" -->
 
       <!-- Path Direction Input -->
+      <!--
       <div id="pathLinkContent" class="displayNone">     
         <div class="form-group form-check" style="padding-bottom: 10px;">
           <label class="form-check-label" for="pathDirection">
@@ -117,7 +129,7 @@
             Строить траекторию в обратном порядке
           </label>
         </div>
-      </div>  <!-- id="pathLinkContent --> 
+      </div> --> <!-- id="pathLinkContent --> 
     
       <!-- Chute Horizontal Velocity Input -->
       <div id="chuteLinkContent" class="displayNone">
@@ -153,8 +165,8 @@
           <div class="form-group">
             <label for="windHeightInput">Высота, на которой дует ветер (м)</label>
             <input type="text" id="windHeightInput"
-                  placeholder="Введите высоту"  
-                  style="width: 100%;">               
+                  placeholder="Введите высоту"
+                  class="form-control">               
           </div>                  
                     
           <div class="form-group">
@@ -208,13 +220,9 @@
             <div id="hpath" class="collapse" style="margin-top: 10px;">        
               <p>Траектория полета парашюта задается в форме ломаной линии 
               на Яндекс.Карте.
-              Щелчок по карте добавляет следующую вершину траектории.
-              Вершина добавляется в начало или в конец траектории, в зависимости 
-              от значения флажка "Строить траекторию в обратном порядке" в меню "Настройки\Путь" 
-              <!--(кнопка <img class="iconimage" src="images/icon_settings.svg">) -->
-              <p>Двойной щелчок по вершине траектории удаляет указанную вершину. 
-              <!--Кнопка <img class="iconimage" src="images/icon_eraser.svg"> 
-              (очистить) удаляет траекторию. -->
+              Щелчок по карте добавляет новую вершину в конец траектории.
+              Двойной щелчок добавляет новую вершину в начало траектории. 
+              <p>Двойной щелчок по вершине траектории удаляет вершину. 
               <p>Одинарный щелчок по вершине показывает/прячет высоту в данной вершине.
               <p>Одинарный щелчок на отрезке траектории добавляет вершину на этом отрезке.
               <p>Двойной щелчок на отрезке траектории меняет направление парашюта: 
@@ -236,32 +244,20 @@
               <p>Добавить или удалить ветер на определенной высоте, а также 
               изменить параметры ветра можно в меню "Настройки\Ветер". 
               Щелчок на строку, соответствующую ветру, открывает окно 
-              редактирования ветра.     
-              <!--               
-              <p>Двойной щелчок по карте добавляет новый конус (ветер на 
-              заданной высоте). Высоту конуса можно ввести в меню 
-              <img class="iconimage" src="images/icon_arrow.svg">
-              Двойной щелчок по конусу удаляет указанный конус.
-              <p>Если конусов больше одного, то в подсказке над конусом отображается 
-              высота, на которой дует соответствующий ветер.           
-              <p>Направление ветра для выделенного конуса можно менять в меню 
-              <img class="iconimage" src="images/icon_arrow.svg">
-              или кнопками клавиатуры влево/вправо.
-              Силу ветра для выделенного конуса можно менять в меню <img class="iconimage" src="images/icon_arrow.svg">
-              или кнопками клавиатуры вверх/вниз. Перейти к следующему конусу можно с помощью кнопки Tab.  -->
-              <!-- Конус можно перетаскивать по карте. -->          
+              редактирования ветра.    
+              Точка на траектории, в которой парашют достигает высоты ветра, 
+              имеет зеленый цвет.                     
             </div>
           </li>  
           <li>
-            <a href="#hheight" data-toggle="collapse">Начальная и конечная высоты</a>
+            <a href="#hheight" data-toggle="collapse">Базовая вершина</a>
             <div id="hheight" class="collapse" style="margin-top: 10px;">
-              <p>Начальная высота - высота в первой точке траектории. 
-              Конечная высота - высота в крайней точке траектории.
-              В меню "Настройки\Высота" 
-              <!-- (кнопка <img class="iconimage" src="images/icon_settings.svg">) --> 
-              можно установить начальную высоту или конечную высоту, в 
-              зависимости от того, снят или установлен флажок "Произвести вычисления 
-              в обратном порядке". 
+              <p>Расчет происходит так: вы задаете высоту в одной из 
+              вершин траектории (Базовой вершине) и программа расчитывает 
+              высоты в остальных вершинах. Базовая вершина выделена желтой границей. 
+              Выбор Базовой вершины осуществляется 
+              правым щелчком мыши на требуемую вершину (долгое нажатие в случае мобильного устройства). Высота в Базовой вершине 
+              задается в меню "Насройки\Высота." 
             </div>
           </li> 
           <li>
@@ -284,7 +280,7 @@
         </ul>
         
         <p><b>Данная программа может быть использована только 
-        для предварительного анализа. Перед прыжками в незнакомом месте 
+        для предварительного анализа. Перед полётами в незнакомом месте 
         консультируйтесь с инструкторами.</b> 
       </div> <!-- id="helpLinkContainer" -->
 

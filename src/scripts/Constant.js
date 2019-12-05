@@ -9,6 +9,7 @@ if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigat
 }
   /** These varialables are constants for app */
   var Constant = {
+    defaultBaseHeight: 300, 
     defaultStartHeight: 300,
     defaultFinalHeight: 0,
     defaultZoom: 16,
@@ -17,7 +18,7 @@ if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigat
     // is more than maxChuteHorizontalVelocity
     maxChuteHorizontalVelocity: 100,  // wingsuit
     maxChuteVerticalVelocity: 50,  // free fall
-    maxHeight: 10000,
+    maxHeight: 15000,
     maxWindValue: 40,
     // If we will fly more than maxFlightTime, then
     // it is impossible to fly this path

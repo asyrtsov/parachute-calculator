@@ -16,17 +16,11 @@ function(provide, Circle, Placemark, templateLayoutFactory) {
     //constructor(wind, map, radius = 4) {
     constructor(height, map) {      
 
-      //this.height = height;
       this.map = map;
 
-      //var point = wind.pathPoint;
       var color = "#0000FF";
       var strokeColor = "#00FF00";
       var radius = 4;
-
-      //this.wind = wind;
-      //this.radius = radius;
-      //this.radius = 4;
 
       var point = [0, 0]; 
 
@@ -135,14 +129,6 @@ function(provide, Circle, Placemark, templateLayoutFactory) {
       this.map.geoObjects.remove(this.heightPlacemark);       
       this.vertexIsOnMap = false;     
     }
-    
-    /*
-    refreshCoordinates() {
-      var point = this.wind.pathPoint;
-      this.image.geometry.setCoordinates(point);
-      this.heightPlacemark.geometry.setCoordinates([point[0], point[1]]);
-      this.printPlacemark(this.wind.getHeight() + "&nbsp;м");      
-    }       */     
   } 
   provide(WindVertex);  
 }); 
