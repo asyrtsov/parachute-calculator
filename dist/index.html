@@ -30,17 +30,6 @@
 
   <div id="settingsMenu" class="menu">
 
-    <!--
-    <div class="windowCrossRectangle" id="settingsMenuRectangle">  
-      <div class="windowCross" id="settingsMenuCross"></div>
-    </div>
-
-    <div class="header">
-      <h1>Настройки</h1>          
-    </div>    -->
-
-
-
     <div id="settingsMenuHeader"> 
       <div>
         <h1>Настройки</h1>
@@ -54,19 +43,11 @@
     <!-- Navbar: grey with black text -->
     <nav class="navbar navbar-expand-sm bg-dark navbar-dark chute-nav">
       <div class="navbar-nav">
-
-          <a class="nav-item nav-link"  id="dzLink" href="#">Аэродром</a>
-     
+          <a class="nav-item nav-link"  id="dzLink" href="#">Аэродром</a>    
           <a class="nav-item nav-link" id="chuteLink" href="#">Парашют</a>
- 
-        <!--  <a class="nav-item nav-link" id="pathLink" href="#">Путь</a>  -->
-
           <a class="nav-item nav-link" id="heightLink" href="#">Высота</a>
-
           <a class="nav-item nav-link" id="windLink" href="#">Ветер</a>
-
           <a class="nav-item nav-link" id="helpLink" href="#">Справка</a>
- 
       </div>
     </nav>
 
@@ -87,49 +68,12 @@
       </div> <!-- id="dzLinkContent" -->
 
       <div id="heightLinkContent" class="displayNone">
-        <!-- <form> -->             
-        <!-- Start Height Input -->
-        <!--
-        <div class="form-group">
-          <label for="startHeight">Начальная высота (м)</label>
-          <input type="text" id="startHeight" class="form-control" placeholder="Введите высоту">               
-        </div>  -->
-        <!-- Final Height Input -->
-        <!--
-        <div class="form-group">
-          <label for="finalHeight">Конечная высота (м)</label>
-          <input type="text" id="finalHeight" name="finalHeight" class="form-control" placeholder="Введите высоту">               
-        </div>  -->
-
         <!-- Base Height Input -->
         <div class="form-group">
           <label for="baseVertexHeight">Высота в базовой точке (м)</label>
           <input type="text" id="baseVertexHeight" class="form-control" placeholder="Введите высоту">               
         </div>
-
-
-
-        <!-- Calculation Direction Input -->  
-        <!--   
-        <div class="form-group form-check" style="padding-bottom: 10px;">
-            <label class="form-check-label" for="calcDirection">
-              <input class="form-check-input" type="checkbox" value="" id="calculationDirection">
-              Произвести вычисления в обратном порядке
-            </label>
-          </div>    -->
-       <!-- </form> -->
       </div> <!-- id="heightLinkContent" -->
-
-      <!-- Path Direction Input -->
-      <!--
-      <div id="pathLinkContent" class="displayNone">     
-        <div class="form-group form-check" style="padding-bottom: 10px;">
-          <label class="form-check-label" for="pathDirection">
-            <input class="form-check-input" type="checkbox" value="" id="pathDirection">
-            Строить траекторию в обратном порядке
-          </label>
-        </div>
-      </div> --> <!-- id="pathLinkContent --> 
     
       <!-- Chute Horizontal Velocity Input -->
       <div id="chuteLinkContent" class="displayNone">
@@ -178,9 +122,7 @@
                   min="-180" max="180"
                   step="5"
                   onkeydown="return false;">
-            <div id="windDirectionInputScale" class="sliderScale">
-            <!-- <script src="scale-scripts/add-wind-direction-input-scale.js"></script>-->
-            </div>         
+            <div id="windDirectionInputScale" class="sliderScale"></div>         
           </div>  <!-- class="form-group" -->      
           <div class="form-group">
             <label for="windValueInput" id="windValueLabel">
@@ -191,18 +133,12 @@
             <input type="range"
                   id="windValueInput"
                   min="0" max="0"  
-                  onkeydown="return false;">
-            <!--       
-            <div style="width: 50%;">0</div>
-            <div style="width: 50%; float: right; text-align: right;" id="maxWindValue"></div> -->       
+                  onkeydown="return false;">    
             <div id="windValueInputScale" class="sliderScale"></div>                  
           </div>  <!-- class="form-group" -->  
 
           <button type="button" class="btn btn-secondary" id="removeWind">Удалить ветер</button>
-
-
         </div> <!-- id="windInput" -->
-
       </div> <!-- id="windLinkContent" -->  
 
 
@@ -237,7 +173,6 @@
             <div id="hwind" class="collapse" style="margin-top: 10px;">
               <p>Ветер можно задавать на нескольких высотах. По умолчанию ветер 
               на всех высотах одинаков и совпадает с поверхностным ветром.
-              <p><!-- Направление ветра задается с помощью конуса.-->
               Высота ветра - минимальная высота, на которой дует 
               соответствующий ветер.
               <p>Для отрицательных высот ветер совпадает с поверхностным ветром.
@@ -255,25 +190,23 @@
               <p>Расчет происходит так: вы задаете высоту в одной из 
               вершин траектории (Базовой вершине) и программа расчитывает 
               высоты в остальных вершинах. Базовая вершина выделена желтой границей. 
-              Выбор Базовой вершины осуществляется 
-              правым щелчком мыши на требуемую вершину (долгое нажатие в случае мобильного устройства). Высота в Базовой вершине 
-              задается в меню "Насройки\Высота." 
+              Выбор Базовой вершины осуществляется правым щелчком мыши на требуемую вершину 
+              (долгое нажатие в случае мобильного устройства). 
+              Высота в Базовой вершине задается в меню "Настройки\Высота." 
             </div>
           </li> 
           <li>
             <a href="#hdz" data-toggle="collapse">Аэродром</a>
             <div id="hdz" class="collapse" style="margin-top: 10px;">
               <p>Аэродром можно выбрать двумя способами: 
-              в меню "Настройки\Аэродром" 
-              <!-- (кнопка <img class="iconimage" src="images/icon_settings.svg">) -->, 
-              или в строке поиска Яндекс.Карт.             
+              в меню "Настройки\Аэродром", 
+              или в строке поиска Яндекс.Карт (функция временно недоступна).             
             </div>
           </li>         
           <li>
             <a href="#hchute" data-toggle="collapse">Парашют</a>
             <div id="hchute" class="collapse" style="margin-top: 10px;">        
               <p>В меню "Настройки\Парашют" 
-              <!-- (кнопка <img class="iconimage" src="images/icon_chute.svg">) --> 
               можно установить вертикальную и горизонтальную скорость парашюта.    
             </div>
           </li>           
@@ -282,6 +215,8 @@
         <p><b>Данная программа может быть использована только 
         для предварительного анализа. Перед полётами в незнакомом месте 
         консультируйтесь с инструкторами.</b> 
+        <br>
+        <p><b>Программа находится в стадии тестирования.</b>
       </div> <!-- id="helpLinkContainer" -->
 
     </div>  <!-- class="container" -->  

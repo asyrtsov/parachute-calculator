@@ -59,31 +59,6 @@ function init() {
     });
 
 
-    // This function should be tested after adding Yandex API Key
-    // After yandex maps search we should:
-    //   move wind arrows to the current screen,
-    //   add result of search to Settings Dialog Window.
-    /*map.searchControl.events.add('resultshow', function(e) {
-                
-      path.clear(); 
-      //this.setZoom(this.defaultZoom);        
-      //this.windList.shiftList(this.getCenter());
-               
-      var index = e.get('index');    
-      var geoObjectsArray = map.searchControl.getResultsArray();
-      var resultName = geoObjectsArray[index].properties.get('name');
-
-      var newDz = {
-        name: resultName, 
-        mapCenter: map.getCenter()
-      };    
-      map.dz.push(newDz);    
-      $("#dz").append("<option>" + newDz.name + "</option>");    
-      $("#dz").children()[map.dz.length - 1].selected = true;    
-    }); */  
-
-
-
     /**
      * Menu initialization
      */

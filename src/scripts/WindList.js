@@ -1,6 +1,6 @@
 ymaps.modules.define('WindList', ['Wind'],
 function(provide, Wind) {
-
+  
   /**
    * List of winds at different heights; 
    * always contains wind at height = 0m (surface wind); 
@@ -24,13 +24,13 @@ function(provide, Wind) {
       this.windVertexRadius = 4;   
       
       this.pathBoundChange = this.pathBoundChange.bind(this);   
-
       this.map.events.add('boundschange', this.pathBoundChange);      
     }
     
        
     /**
      * Add wind to the List and sort List.
+     * @param {Wind} wind
      */ 
     addWind(wind) {      
       this.lastWind.setNextWind(wind);      

@@ -12,7 +12,7 @@ function(provide, Constant, Wind) {
   DialogWindows.initMenu = function(map, chute, windList, path, calculator) {
     
     // First active link in Menu will be Dz link  
-    this.prevLinkId = 'dzLink';
+    this.prevLinkId = 'helpLink';
 
     initMenuWindow();
     initDzWindow();
@@ -25,8 +25,8 @@ function(provide, Constant, Wind) {
      */
     function initMenuWindow() {
 
-      $('#dzLinkContent').css('display', 'block');
-      $('#dzLink').addClass('active');
+      $('#helpLinkContent').css('display', 'block');
+      $('#helpLink').addClass('active');
 
       $('nav a').on('click', function(e) {
         e.preventDefault();
@@ -143,14 +143,14 @@ function(provide, Constant, Wind) {
      * Height Window initialization.
      */
     function initHeightWindow() {
-      $("#baseVertexHeight").val(Constant.defaultBaseHeight);
+      $("#baseVertexHeight").val(Math.floor(Constant.defaultBaseHeight));
 
       $("#baseVertexHeight").on("change", function() {            
         var n = Number.parseFloat($("#baseVertexHeight").val());
         
         if ((n >= 0) && (n <= Constant.maxHeight)) { 
             path.setBaseVertexHeight(n);
-            $("#baseVertexHeight").val(n);                  
+            $("#baseVertexHeight").val(Math.floor(n));                  
         } else {
 
           if (Number.isNaN(n)) {
@@ -164,9 +164,9 @@ function(provide, Constant, Wind) {
           }  
           
           if (path.length > 0) {
-            $("#baseVertexHeight").val(path.baseVertex.height);
+            $("#baseVertexHeight").val(Math.floor(path.baseVertex.height));
           } else {
-            $("#baseVertexHeight").val(path.baseVertexHeight);  
+            $("#baseVertexHeight").val(Math.floor(path.baseVertexHeight));  
           } 
         } 
       });

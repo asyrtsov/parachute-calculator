@@ -102,7 +102,7 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
 
       this.eventCircle.events.add('contextmenu', function(e) {
         e.stopPropagation();  
-        if (this.path.baseVertex != this && this.height != null) {
+        if (this.path.baseVertex != this && this.height != null && this.height >= 0) {
           this.path.setBaseVertex(this);
         }
       }.bind(this));
@@ -213,19 +213,12 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
             this.constructor.superclass.build.call(this);
             this.path = path;
             var elem = this.getData().geoObject;
-            //console.log(elem);
-            //console.log("getData()"); console.log(this.getData());
-            //console.log("getShape()"); console.log(this.getShape());
             elem.events.add('click', this.clickFunc, this);
             elem.events.add('mouseenter', this.mouseEnter, this);
             elem.events.add('mouseleave', this.mouseLeave, this); 
-            //var domelem = $(".d-inline-flex", this.getParentElement())[0];
           }, 
 
-          clear: function () {
-
-            //console.log("clear");
-            
+          clear: function () { 
             var elem = this.getData().geoObject;
             elem.events.remove('click', this.clickFunc, this);
             elem.events.remove('mouseenter', this.mouseEnter, this);
@@ -236,8 +229,6 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
 
         
           getShape: function () {
-            //console.log("this.getParentElement(): ");
-            //console.log(this.getParentElement());
             var parentElement = this.getParentElement();
             if (parentElement != null) {
               var element = $('.d-inline-flex', parentElement);
@@ -256,7 +247,6 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
 
  
           clickFunc: function(e) {
-            //console.log("click");
             e.preventDefault();
             if (this.path.length > 2) { 
               if (confirm("Удалить все метки? \n\n (для удаления только одной метки дважды щелкните по ней)")) {
@@ -268,7 +258,6 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
           }.bind(this),
           
           mouseEnter: function() {
-            //console.log('mouseenter');
             var elem = this.getParentElement().getElementsByClassName('placemarkCross')[0];
             $(elem).removeClass('placemarkCrossImage');
             $(elem).addClass('placemarkCrossImagePointed');
@@ -276,7 +265,6 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
           },
 
           mouseLeave: function() {
-            //console.log('mouseleave');
             var elem = this.getParentElement().getElementsByClassName('placemarkCross')[0];
             $(elem).removeClass('placemarkCrossImagePointed');
             $(elem).addClass('placemarkCrossImage');
