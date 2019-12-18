@@ -39,9 +39,11 @@ function(provide, VectorMath, Constant) {
         case true: 
           this.calculateHeightForward();
           break;
+
         case false:
           this.calculateHeightBack();
           break;
+
         case null:
           this.calculateHeightForward();
           this.calculateHeightBack();      
@@ -52,83 +54,41 @@ function(provide, VectorMath, Constant) {
     /**
      * Case: calculation from Base Vertex to Last Vertex.
      */     
-    calculateHeightForward() {
-                                     
+    calculateHeightForward() {                                     
       var path = this.path, 
           chute = this.chute, 
           windList = this.windList;
-
-      /*    
-      var wind = windList.lastWind;       
-      while(wind != null) {
-        wind.pathPoint = null;
-        wind = wind.prevWind;
-      }    */      
-      
-      if (path.baseVertex.nextVertex == null) return;
-      
-      /*
-      var vertex = path.baseVertex.nextVertex;
-      while(vertex != null) {
-        vertex.height = null;
-        //vertex.windPointsArray = [];
-        vertex = vertex.nextVertex;
-      }      
-            
-      // Case: startHeight is undefined (equals null)      
-      if (this.boundaryHeights.startHeight == null) {
-        this.boundaryHeights.setFinalHeight(null);        
-        return;        
-      }    */
           
       var vertexA = path.baseVertex; 
-
       var pointA = vertexA.getCoordinates();
-      //vertexA.height = this.boundaryHeights.startHeight; 
 
       // true iff firstWindPoint will be on the Path after calculation.  
       var firstWindHeightIsReached = false;
-
       var wind = windList.lastWind;
-
-      // Skip winds without heights
-      // (remember that suface wind always exists)
-      /*      
-      while(wind.getHeight() == null) {
-        wind = wind.prevWind;
-        wind.setPoint(null);      
-      } */
       
       // Skip to wind corresponding to base vertex      
-      while(wind.getHeight() >= vertexA.height) {
-        
+      while(wind.getHeight() >= vertexA.height) {        
         if (wind.getHeight() == vertexA.height) {
-          //wind.pathPoint = pointA;
-          wind.setPoint(pointA);  
+          wind.setVertexCoordinates(pointA);  
         } else {
-          //wind.setPoint(null);
+          //wind.setVertexCoordinates(null);
         }
 
-        if (wind == windList.firstWind) break;
-        
+        if (wind == windList.firstWind) break;        
         wind = wind.prevWind;
       }
 
-      /*
-      if (path.length == 1) {
-        wind.setPoint(null);
+      // If there is nothing to calculate in forward direction, 
+      // we should remove nearby wind vertex and return.
+      if (path.baseVertex.nextVertex == null) {
+        while(wind != null) {
+         wind.setVertexCoordinates(null);
+         wind = wind.prevWind;
+        } 
         return;
-      }    */
-          
-      /*
-      var vertex = vertexA.nextVertex;
-      while(vertex != null) {
-        vertex.height = null;
-        vertex = vertex.nextVertex;
-      } */
-      
-      var vertexB = vertexA.nextVertex;
-                  
+      }    
+                
+      var vertexB = vertexA.nextVertex;               
       // Later, pointA can be any point of edge, 
       // pointB always will be vertex, 
       // pointA and pointB belong to the one edge 
@@ -139,30 +99,21 @@ function(provide, VectorMath, Constant) {
       
       chute.angleArray = [];    
 
-      while(true) {
-        
-        //console.log("edgeChuteDirection: " + edgeChuteDirection); 
-                
+      while(true) {                
         // edgeChuteVelocity is velocity along edge [pointA, pointB] at pointA.
         // 'wind' is a wind in pointA. 
         // Our aim is to calculate height in pointB.       
         var calcResults = 
-          this.calculateChuteVelocity(
-            pointA, pointB, chute, wind, edgeChuteDirection
-          ); 
+            this.calculateChuteVelocity(
+                pointA, pointB, chute, wind, edgeChuteDirection); 
                              
         var edgeChuteVelocity = calcResults.chuteEdgeVelocity;  
-
-        //console.log('calculateForward. calculateChuteVelocity: ');
-        //console.log(calcResults);
-
-
-        var velocityAngle = calcResults.polarCoordinates.angle;
+        var chutePolarAngle = calcResults.chutePolarAngle;
+        var chuteCanFlyAlongLine = calcResults.chuteCanFlyAlongLine;
 
         //chute.angleArray.push(velocityAngle);
 
-        //console.log('edgeChuteVelocity: ' + edgeChuteVelocity);   
-        
+        if (!chuteCanFlyAlongLine) break;
         if (edgeChuteVelocity < 0) break;
 
         // Case: chute is hanging above pointA
@@ -170,8 +121,9 @@ function(provide, VectorMath, Constant) {
         if (edgeChuteVelocity == 0) {
           if (wind != windList.firstWind) {
             pointAHeight = wind.getHeight();
-            //wind.pathPoint = pointA;
-            wind.setPoint(pointA);             
+            wind.setVertexCoordinates(pointA); 
+            vertexA = wind.vertex;
+            vertexA.setChuteImageCoordinates(null);            
             wind = wind.prevWind;            
             continue;
           } else break;          
@@ -189,80 +141,77 @@ function(provide, VectorMath, Constant) {
           var dist = ymaps.coordSystem.geo.getDistance(pointA, pointB);          
           var t1 = dist / edgeChuteVelocity;
           
-          if (wind != windList.firstWind) {
-          
-            var t2 = (pointAHeight - wind.getHeight()) / chute.verticalVel;
-                        
+          if (wind != windList.firstWind) {          
+            var t2 = (pointAHeight - wind.getHeight()) / chute.verticalVel;                        
             if (t2 >= t1) {
-              // Case: with current wind, chute will reach (vertex) pointB
-                                                                      
-              //vertexB.height = pointAHeight - t1 * this.chute.verticalVel;              
+              // Case: with current wind, chute will reach (vertex) pointB            
               vertexB.setHeight(pointAHeight - t1 * this.chute.verticalVel);
               // Blue color.
               vertexB.prevEdge.setColor('#0000FF');
-              
+                     
               if (t2 == t1) {
-                //wind.pathPoint = pointB;
-                wind.setPoint(pointB);
+                wind.setVertexCoordinates(pointB);
                 wind = wind.prevWind;                
               } 
+
+              vertexA.setChuteImageCoordinates(
+                  [(pointA[0] + pointB[0])/2, (pointA[1] + pointB[1])/2], 
+                  chutePolarAngle); 
+
 
               vertexA = vertexB;
               vertexB = vertexB.nextVertex;
               if (vertexB == null) break;
               //if (vertexB == path.lastVertex) break;
               
-              //pointA = vertexA.geometry.getCoordinates();
-              //pointB = vertexB.geometry.getCoordinates(); 
-
               pointA = vertexA.getCoordinates();
               pointB = vertexB.getCoordinates(); 
-
               edgeChuteDirection = vertexA.nextEdge.getChuteDirection();              
-
-              pointAHeight = vertexA.height;  
-              
-              continue;
-              
+              pointAHeight = vertexA.height;                
+              continue;              
             } else {              
               var dist = ymaps.coordSystem.geo.getDistance(pointA, pointB);
               
-              pointA = VectorMath.findIntermediatePoint(
-                pointA, pointB, (t2 * edgeChuteVelocity)/dist
-              );
+              var pointC = pointA;
+
+              pointA = 
+                  VectorMath.findIntermediatePoint(
+                      pointA, pointB, (t2 * edgeChuteVelocity)/dist);
               
               // pointAHeight = wind.getHeight();
               pointAHeight -= t2 * this.chute.verticalVel;
-                            
-              //wind.pathPoint = pointA; 
-              wind.setPoint(pointA);                                                                     
-              wind = wind.prevWind;
+
+              vertexA.setChuteImageCoordinates(
+                  [(pointA[0] + pointC[0])/2, (pointA[1] + pointC[1])/2], 
+                  chutePolarAngle); 
+
+              wind.setVertexCoordinates(pointA);     
+
+              vertexA = wind.vertex;        
               
+              // wind.vertex.prevVertex.setChuteCoordinates();
+
+              wind = wind.prevWind;              
               continue;
             }
-
           } else {
-            // case: wind = windList.firstWind
-                        
+            // case: wind = windList.firstWind                        
             if (t1 > Constant.maxFlightTime) break;
                    
-            //vertexB.height = pointAHeight - t1 * this.chute.verticalVel;
             vertexB.setHeight(pointAHeight - t1 * this.chute.verticalVel);
             // Blue color. 
             vertexB.prevEdge.setColor('#0000FF');
                                     
             if (vertexB.height == 0) {
-              //wind.pathPoint = pointB;
-              wind.setPoint(pointB);
+              wind.setVertexCoordinates(pointB);
               firstWindHeightIsReached = true;              
             }
                              
-            if (pointAHeight > 0 && vertexB.height < 0) {                   
-              //wind.pathPoint = 
-              var pointC = VectorMath.findIntermediatePoint(
-                pointA, pointB,  pointAHeight/(pointAHeight - vertexB.height)
-              );
-              wind.setPoint(pointC);
+            if ((pointAHeight > 0) && (vertexB.height < 0)) {                   
+              var pointC = 
+                  VectorMath.findIntermediatePoint(
+                      pointA, pointB,  pointAHeight/(pointAHeight - vertexB.height));
+              wind.setVertexCoordinates(pointC);
               firstWindHeightIsReached = true;                      
             }                 
             
@@ -273,16 +222,12 @@ function(provide, VectorMath, Constant) {
                         
             pointA = vertexA.getCoordinates();
             pointB = vertexB.getCoordinates();
-
             edgeChuteDirection = vertexA.nextEdge.getChuteDirection();            
-
             pointAHeight = vertexA.height;              
-
             continue;                  
           }          
         }               
       }
-
 
       while(vertexB != null) {
         vertexB.setHeight(null);
@@ -294,7 +239,7 @@ function(provide, VectorMath, Constant) {
       // Remove last wind points that shouldn't be on the map. 
       if (!firstWindHeightIsReached) {  
         while(wind != null) {
-          wind.setPoint(null);
+          wind.setVertexCoordinates(null);
           wind = wind.prevWind;
         }
       } 
@@ -304,50 +249,22 @@ function(provide, VectorMath, Constant) {
     /**
      * Case: calculation from Base Vertex to First Vertex.
      */    
-    calculateHeightBack() {
-      
+    calculateHeightBack() {    
       var path = this.path, 
           chute = this.chute, 
           windList = this.windList;
-
-      /*    
-      var wind = windList.firstWind;       
-      while(wind != null) {
-        wind.pathPoint = null;
-        wind = wind.nextWind;
-      } */         
-      
-      if (path.baseVertex.prevVertex == null) return;
-
-      /*
-      var vertex = path.baseVertex.prevVertex;
-      while(vertex != null) {
-        vertex.height = null;
-        vertex = vertex.prevVertex;
-      }      
-      
-      // Case: finalHeight is undefined (equals null)
-      if (this.boundaryHeights.finalHeight == null) {
-        this.boundaryHeights.setStartHeight(null);        
-        return;    
-      }    */
                     
-      //var vertexB = path.lastVertex;
       var vertexB = path.baseVertex;       
       var pointB = vertexB.getCoordinates();
-      //vertexB.height = this.boundaryHeights.finalHeight;
-
 
       // true iff lastWindPoint will be on the Path after calculation.  
       var lastWindPointIsShown = false;
       
       var wind = windList.firstWind;      
       if (wind.getHeight() < vertexB.height) {
-        // that is, 0 < vertexB.height
-            
+        // that is, 0 < vertexB.height            
         while(true) {
-
-          //wind.setPoint(null);
+          //wind.setVertexCoordinates(null);
                     
           if (wind.nextWind == null) break;          
           //if (wind.nextWind.getHeight() == null) break;
@@ -356,67 +273,57 @@ function(provide, VectorMath, Constant) {
           
           if (wind.nextWind.getHeight() == vertexB.height) {
             wind = wind.nextWind;
-            //wind.pathPoint = pointB;
-            wind.setPoint(pointB);
+            wind.setVertexCoordinates(pointB);
             break;
-          }
-          
+          }    
           wind = wind.nextWind;          
         }   
       }  
 
-      //if (path.length == 1) return;
+      if (path.baseVertex.prevVertex == null) {
+        while(wind.nextWind != null) {
+          wind.nextWind.setVertexCoordinates(null);
+          wind = wind.nextWind;
+        }
+        return;
+      } 
 
-      var vertexA = vertexB.prevVertex;
-      
+      var vertexA = vertexB.prevVertex;      
       // pointA will always be vertex, 
       // pointB can be vertex or point on the edge      
-      var pointA = vertexA.getCoordinates();
-     
+      var pointA = vertexA.getCoordinates();     
       var pointBHeight = vertexB.height;
 
       var edgeChuteDirection = vertexA.nextEdge.getChuteDirection();
             
-      while(true) {
-         
+      while(true) {         
         // Note: here pointA is only for setting direction; 
         // if there will be changing wind on the edge, 
         // the chute will fly with following velocity only after 
         // last changing (in the direction, determined by 
         // vector pointApointB)        
         var edgeChuteVelocity = 
-          this.calculateChuteVelocity(
-            pointA, pointB, chute, wind, edgeChuteDirection
-          ).chuteEdgeVelocity;
-        
-        //console.log("edgeChuteVelocity: " + edgeChuteVelocity);
+            this.calculateChuteVelocity(
+                pointA, pointB, chute, 
+                wind, edgeChuteDirection).chuteEdgeVelocity;
         
         // In this case it is impossible to flight this edge        
         if (edgeChuteVelocity < 0) break;
 
         // Case: chute is hanging above pointB.          
         // This is bottom boundary of current wind        
-        if (edgeChuteVelocity == 0) {
-          
-          //if (wind == windList.lastWind || wind.nextWind.getHeight() == null) {
-          if (wind == windList.lastWind) break;
-                            
-          
+        if (edgeChuteVelocity == 0) {          
+          if (wind == windList.lastWind) break;                                      
           wind = wind.nextWind;          
           pointBHeight = wind.getHeight();                                      
-          //wind.pathPoint = pointB;    
-          wind.setPoint(pointB);      
+          wind.setVertexCoordinates(pointB);      
           continue;                       
         }
                              
-        if (edgeChuteVelocity > 0) {
-          
-          //if (wind != windList.lastWind && wind.nextWind.getHeight() != null) {
-          if (wind != windList.lastWind) {  
-          
+        if (edgeChuteVelocity > 0) {          
+          if (wind != windList.lastWind) {            
             var dist = ymaps.coordSystem.geo.getDistance(pointA, pointB);          
-            var t1 = dist / edgeChuteVelocity;
-                         
+            var t1 = dist / edgeChuteVelocity;                         
             var t2 = 
               (wind.nextWind.getHeight() - pointBHeight) / chute.verticalVel;
           
@@ -428,18 +335,16 @@ function(provide, VectorMath, Constant) {
               vertexA.setHeight(pointBHeight + t1 * this.chute.verticalVel);
               // Blue color. 
               vertexA.nextEdge.setColor('#0000FF');
-              //vertexA.height = pointBHeight + t1 * this.chute.verticalVel;
               
-              if (
-                wind == windList.firstWind 
-                && (pointBHeight < 0) 
-                && (vertexA.height > 0) 
-              ) {
-                //wind.pathPoint =
-                var pointC = VectorMath.findIntermediatePoint(
-                  pointA, pointB,  vertexA.height/(vertexA.height - pointBHeight)
-                );                    
-                wind.setPoint(pointC);  
+              if (wind == windList.firstWind && 
+                  pointBHeight < 0 && 
+                  vertexA.height > 0) {
+                var pointC = 
+                    VectorMath.findIntermediatePoint(
+                        pointA, pointB,  
+                        vertexA.height/(vertexA.height - pointBHeight)); 
+
+                wind.setVertexCoordinates(pointC);  
               }               
               
               vertexB = vertexA;
@@ -449,35 +354,28 @@ function(provide, VectorMath, Constant) {
                             
               pointA = vertexA.getCoordinates();
               pointB = vertexB.getCoordinates();
-
               pointBHeight = vertexB.height;
               
-              edgeChuteDirection = vertexA.nextEdge.getChuteDirection();
-                                                               
+              edgeChuteDirection = vertexA.nextEdge.getChuteDirection();                                                               
               continue;  
             } else { 
               // Case: with current wind, pointB is NOT reachable from pointA
-
               var dist = ymaps.coordSystem.geo.getDistance(pointA, pointB);
                            
-              pointB = VectorMath.findIntermediatePoint(
-                pointB, pointA, (t2 * edgeChuteVelocity)/dist 
-              ); 
+              pointB = 
+                  VectorMath.findIntermediatePoint(
+                      pointB, pointA, (t2 * edgeChuteVelocity)/dist); 
              
               pointBHeight += t2 * this.chute.verticalVel;
                                                                       
               wind = wind.nextWind;
-              //wind.pathPoint = pointB;
-              wind.setPoint(pointB);
-              
+              wind.setVertexCoordinates(pointB);              
               continue;
             }
           } else {  
-            // case: wind == windList.lastWind
-            
+            // case: wind == windList.lastWind            
             var dist = ymaps.coordSystem.geo.getDistance(pointA, pointB);          
-            var t1 = dist / edgeChuteVelocity;
-            
+            var t1 = dist / edgeChuteVelocity;            
             if (t1 > Constant.maxFlightTime) break;
                                     
             vertexA.setHeight(pointBHeight + (t1 * this.chute.verticalVel));
@@ -486,15 +384,15 @@ function(provide, VectorMath, Constant) {
             //vertexA.height = pointBHeight + (t1 * this.chute.verticalVel);
 
             if (
-              wind == windList.firstWind 
-              && (pointBHeight < 0) 
-              && (vertexA.height > 0) 
-            ) {
-              //wind.pathPoint = 
-              var pointC = VectorMath.findIntermediatePoint(
-                pointA, pointB,  vertexA.height/(vertexA.height - pointBHeight)
-              );
-              wind.setPoint(pointC);            
+                wind == windList.firstWind && 
+                (pointBHeight < 0) && 
+                (vertexA.height > 0)) {
+              var pointC = 
+                  VectorMath.findIntermediatePoint(
+                      pointA, pointB,  
+                      vertexA.height/(vertexA.height - pointBHeight));
+
+              wind.setVertexCoordinates(pointC);            
             } 
                
             vertexB = vertexA;
@@ -504,11 +402,8 @@ function(provide, VectorMath, Constant) {
                     
             pointA = vertexA.getCoordinates();
             pointB = vertexB.getCoordinates(); 
-
             pointBHeight = vertexB.height;            
-
-            edgeChuteDirection = vertexA.nextEdge.getChuteDirection();
-            
+            edgeChuteDirection = vertexA.nextEdge.getChuteDirection();            
             continue;                     
           }
         }                                
@@ -521,20 +416,16 @@ function(provide, VectorMath, Constant) {
         vertexA = vertexA.prevVertex;
       }    
 
-
       wind = wind.nextWind; 
       while(wind != null) {
-        wind.setPoint(null);
+        wind.setVertexCoordinates(null);
         wind = wind.nextWind;
       }
-       
-
-
     }
 
     
     /** 
-     * Calculate Polar coordinates of Chute Velocity and 
+     * Calculate Polar angle of Chute Velocity and 
      * Absolute (relatively to Earth) Chute Velocity along Line Segment 
      * (we suppose that chute is flying along this line segment).
      * @param {number[]} pointA - Yandex Maps Coordinates: (latitude, longitude).
@@ -546,18 +437,16 @@ function(provide, VectorMath, Constant) {
      * @returns {Object} Object       
      * @returns {number} Object.chuteEdgeVelocity - Absolute Chute Velocity along 
      * line segment [pointA, pointB]; in m/sec; 
-     * Cases: chuteEdgeVelocity < 0 - If it is impossible to fly this segment;
-     * chuteEdgeVelocity == 0 - hanging above pointA all time;    
+     * Cases: chuteEdgeVelocity < 0 - In this case it is impossible to fly this segment;
+     * chuteEdgeVelocity == 0 - hanging above pointA;    
      * chuteEdgeVelocity > 0 - chute will fly from pointA to pointB.
-     * @returns {Object} Object.Object - Polar coordinates of Chute Velocity. 
-     * In case, when it is impossible to fly this edge (chuteEdgeVelocity <0), 
-     * it will returns polar coordinates of reasonable Chute velocity. 
-     * @returns {number} Object.Object.radius
-     * @returns {number} Object.Object.angle
+     * @returns {number} Object.chutePolarAngle - Polar angle of Chute Velocity. 
+     * @returns {boolean} Object.chuteCanFlyAlongLine - Is true iff chute velotity 
+     * is greater or equal to wind velocity projection to direction that is 
+     * perpendicula to the Line Segment. 
      */    
     calculateChuteVelocity(
-      pointA, pointB, chute, wind, edgeChuteDirection = true
-    ) {
+      pointA, pointB, chute, wind, edgeChuteDirection = true) {
           
       // Let's find right orthonormal basis (e, f), first vector of which (e)
       // has the same direction with vector [pointA, pointB].      
@@ -601,29 +490,30 @@ function(provide, VectorMath, Constant) {
       var wf = wx * fx + wy * fy;     
        
       // Let's find coordinates (ce, cf) of chute velocity 
-      // in basis (e, f):
-      
+      // in basis (e, f):     
       var cf = (-1)*wf;
       
       // it is impossible to fly this segment
       if (chute.horizontalVel < Math.abs(cf)) {
-        let polarCoordinates = 
-          VectorMath.getPolarFromCartesian([0, sign(cf)*chute.horizontalVel]);
-        polarCoordinates.angle += angle1;  
-        return({
-          chuteEdgeVelocity: -1, 
-          polarCoordinates: polarCoordinates
+        let chutePolarAngle = 
+            (VectorMath.getPolarFromCartesian(
+                 [0, sign(cf)*chute.horizontalVel])).angle;
+        chutePolarAngle += angle1;  
+        return({          
+          chuteEdgeVelocity: 0,
+          //chuteEdgeVelocity: -1, 
+          chutePolarAngle: chutePolarAngle, 
+          chuteCanFlyAlongLine: false
         });
       }  
   
-      var directionSign = edgeChuteDirection ? 1 : -1; 
-  
+      var directionSign = edgeChuteDirection ? 1 : -1;   
       var ce = directionSign * Math.sqrt(chute.horizontalVel**2 - cf**2);
       
-      // Polar coordinates of Chute velocity relative to bases {e, f}
-      var polarCoordinates = VectorMath.getPolarFromCartesian([ce, cf]);
+      // Polar angle of Chute velocity relative to bases {e, f}
+      var chutePolarAngle = (VectorMath.getPolarFromCartesian([ce, cf])).angle;
       // Polar angle of Chute velocity 
-      polarCoordinates.angle += angle1;
+      chutePolarAngle += angle1;
 
       //console.log('polarCoordinates: ');
       //console.log(polarCoordinates);
@@ -631,7 +521,8 @@ function(provide, VectorMath, Constant) {
       var chuteEdgeVelocity = ce + we;
       return({
         chuteEdgeVelocity: chuteEdgeVelocity,
-        polarCoordinates: polarCoordinates
+        chutePolarAngle: chutePolarAngle, 
+        chuteCanFlyAlongLine: true
       });       
     }   
   }

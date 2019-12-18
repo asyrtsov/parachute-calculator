@@ -261,7 +261,6 @@ input[type=range]::-moz-range-thumb {
   background-image: url("../images/chute.svg");
   background-size: 100%;
   height: 25px;
-  opacity: 0.9;
   width: 25px;
 }
 

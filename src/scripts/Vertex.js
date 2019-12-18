@@ -3,9 +3,11 @@ ymaps.modules.define('Vertex', [
   'Rectangle',
   'TriangleVertexImage', 
   'Placemark',   
-  'templateLayoutFactory'
+  'templateLayoutFactory', 
+  'ChuteImage',
 ],
-function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateLayoutFactory) {
+function(provide, Circle, Rectangle, TriangleVertexImage, Placemark, 
+    templateLayoutFactory, ChuteImage) {
   /**
    * Vertex of Path. 
    * Vertex consists of: Invisible Event Circle (it is used for catching 
@@ -49,7 +51,7 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
       this.placemarkHintContent = null;
       this.placemarkIsVisible = true;
       
-      // Image of Vertex. 
+      // Image of Vertex. Object of classes: ymaps.Circle or TriangleVertexImage.
       // To set it, use this.setTriangleImage() or this.setCircleImage()
       // You should not add Vertex to Map until Image is not set up.
       this.image = null;
@@ -70,6 +72,9 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
       this.prevEdge = null;
       this.nextEdge = null;
 
+      // Image of chute which shows chute direction on the this.nextEdge 
+      this.chuteImage = new ChuteImage();
+
       // true if this Vertex is situated between 
       // Base Vertex and Last Vertex of Path.
       // null - for Base Vertex itself.
@@ -78,6 +83,7 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
       this.clickNumber = 0;
 
       this.vertexIsOnMap = false;
+      this.chuteIsOnMap = false;
       // Vertex single clicking switcher
       this.singleClickingIsOn = true;
      
@@ -116,6 +122,27 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
       }.bind(this));
     
     }
+
+
+    setChuteImageCoordinates(point, angle = null) {
+      this.chuteImage.setCoordinates(point);
+      if (angle != null) {
+        this.chuteImage.rotate(angle);
+      }
+      if (point == null) {
+        if (this.chuteIsOnMap) {
+          this.path.map.geoObjects.remove(this.chuteImage);
+          this.chuteIsOnMap = false;
+        }
+      } else {
+        if (!this.chuteIsOnMap) {
+          this.path.map.geoObjects.add(this.chuteImage);
+          this.chuteIsOnMap = true;
+        }
+      }      
+    }
+
+
 
 
     scale(scale) {
@@ -296,7 +323,7 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
       if (this.vertexIsOnMap) {
         this.path.map.geoObjects.remove(this.image);
         this.path.map.geoObjects.remove(this.heightPlacemark);  
-      }
+      } 
 
       var point = this.getCoordinates();      
       //var color = '#0000FF';
@@ -329,7 +356,8 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
       if (!this.vertexIsOnMap && this.isTriangleVertex != null) {
         this.path.map.geoObjects.add(this.eventCircle);         
         this.path.map.geoObjects.add(this.image);
-        this.path.map.geoObjects.add(this.heightPlacemark);       
+        this.path.map.geoObjects.add(this.heightPlacemark);  
+        //this.path.map.geoObjects.add(this.chuteImage);     
         this.vertexIsOnMap = true;
       }      
     }
@@ -339,10 +367,26 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
       if (this.vertexIsOnMap) {
         this.path.map.geoObjects.remove(this.eventCircle);         
         this.path.map.geoObjects.remove(this.image);
-        this.path.map.geoObjects.remove(this.heightPlacemark);       
+        this.path.map.geoObjects.remove(this.heightPlacemark);    
         this.vertexIsOnMap = false;
       }               
+      this.removeChuteImageFromMap();
     }  
+
+    
+    addChuteImageToMap() {
+      if (!this.chuteIsOnMap) {
+        this.path.map.geoObjects.add(this.chuteImage);
+        this.chuteIsOnMap = true;  
+      }
+    }  
+
+    removeChuteImageFromMap() {
+      if (this.chuteIsOnMap) {
+        this.path.map.geoObjects.remove(this.chuteImage);
+        this.chuteIsOnMap = false;  
+      }
+    }
 
     
     /** 
@@ -415,6 +459,7 @@ function(provide, Circle, Rectangle, TriangleVertexImage,   Placemark, templateL
      
       this.eventCircle.geometry.setCoordinates(point);
       this.heightPlacemark.geometry.setCoordinates(point);
+      this.chuteImage.setCoordinates(point);
       
       // Note: it supposed in in case of Triangle Vertex, pervVertex != null.
       if (this.isTriangleVertex) {

@@ -139,7 +139,7 @@ function(provide, Wind) {
     removeWindVertices() {
       var wind = this.firstWind;
       while(wind != null) {
-        wind.setPoint(null);       
+        wind.setVertexCoordinates(null);       
         wind = wind.nextWind;
       }     
     }

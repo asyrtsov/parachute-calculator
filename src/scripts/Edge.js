@@ -1,8 +1,10 @@
 ymaps.modules.define('Edge', [
   'Polygon', 
-  'VectorMath'  
+  'VectorMath', 
+  'Arrow', 
+  'ChuteImage',  
 ],
-function(provide, Polygon, VectorMath) {
+function(provide, Polygon, VectorMath, Arrow, ChuteImage) {
   /**
    * PathEdge consists of two Rectangles: 
    * Image Rectangle and Invisible Event Rectangle.
@@ -16,13 +18,7 @@ function(provide, Polygon, VectorMath) {
      * @param {Path} edgeImageWidthWidth
      * @param {boolean} chuteDirection      
      */
-    constructor(
-      prevVertex, 
-      nextVertex,
-      path, 
-      chuteDirection = true
-    ) {
-
+    constructor(prevVertex, nextVertex, path, chuteDirection = true) {
       this.prevVertex = prevVertex;
       this.nextVertex = nextVertex;
       this.path = path; 
@@ -56,8 +52,10 @@ function(provide, Polygon, VectorMath) {
         zIndex: (zIndex - 1)        
       });
             
+      //this.chuteImage = new ChuteImage();
+
       this.calculateEdgeRectangles();
-      
+            
       this.clickNumber = 0;
 
       this.edgeIsOnMap = false;
@@ -81,7 +79,8 @@ function(provide, Polygon, VectorMath) {
     addToMap() {
       if (!this.edgeIsOnMap) {
         this.path.map.geoObjects.add(this.eventRectangle);         
-        this.path.map.geoObjects.add(this.image);    
+        this.path.map.geoObjects.add(this.image);
+        //this.path.map.geoObjects.add(this.chuteImage);    
         this.edgeIsOnMap = true;
       }
     }
@@ -89,7 +88,8 @@ function(provide, Polygon, VectorMath) {
     removeFromMap() {
       if (this.edgeIsOnMap) {
         this.path.map.geoObjects.remove(this.eventRectangle);         
-        this.path.map.geoObjects.remove(this.image);    
+        this.path.map.geoObjects.remove(this.image);
+        //this.path.map.geoObjects.remove(this.chuteImage);    
         this.edgeIsOnMap = false;
       }
     }
@@ -170,8 +170,10 @@ function(provide, Polygon, VectorMath) {
      */
     calculateEdgeRectangles() {
       var pointA = this.prevVertex.getCoordinates();
-      var pointB = this.nextVertex.isTriangleVertex ?   
-        this.nextVertex.image.getEdgePoint() : this.nextVertex.getCoordinates();
+      var pointB = 
+          this.nextVertex.isTriangleVertex ?   
+              this.nextVertex.image.getEdgePoint() : 
+              this.nextVertex.getCoordinates();
       
       var vertices = 
         this.calculateRectangleVertices(pointA, pointB, this.edgeWidth);
@@ -181,7 +183,13 @@ function(provide, Polygon, VectorMath) {
       var imageVertices = 
         this.calculateRectangleVertices(pointA, pointB, this.edgeImageWidth);
 
-      this.image.geometry.setCoordinates([imageVertices]);           
+      this.image.geometry.setCoordinates([imageVertices]);   
+      
+      /*
+      var x = (pointA[0] + pointB[0])/2, 
+          y = (pointA[1] + pointB[1])/2;
+      
+      this.chuteImage.setCoordinates([x, y]); */
     }
 
               
@@ -194,7 +202,7 @@ function(provide, Polygon, VectorMath) {
           geodesicVectorAB = VectorMath.subVectors(pointB, pointA);
 
       var cartVectorAB = 
-            VectorMath.toLocalVector(geodesicVectorAB, latitude);         
+              VectorMath.toLocalVector(geodesicVectorAB, latitude);         
 
       var v = VectorMath.normaliseVector(cartVectorAB);
       

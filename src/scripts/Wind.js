@@ -24,20 +24,21 @@ function(provide, WindVertex) {
 
       //this.vertex = null;   
 
-      this.point = null;
+      //this.point = null;
 
       this.vertex = new WindVertex(height, map);
     }
 
 
-    setPoint(point) {
-      this.point = point;
-      this.vertex.setCoordinates(point);
+    setVertexCoordinates(point) {
+      //this.point = point;
+      this.vertex.setCoordinates(point);      
     } 
 
+    /*
     getPoint() {
       return this.point;
-    }
+    }*/
 
 
     setNextWind(wind) {
@@ -92,7 +93,7 @@ function(provide, WindVertex) {
      */
     setHeight(height) {
       this.height = height;
-      this.vertex.printPlacemark(height);      
+      this.vertex.printPlacemark(Math.floor(height));      
     }
          
     getAngle() {

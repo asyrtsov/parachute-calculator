@@ -33,7 +33,8 @@ function(
       // Define size of Triangle Image of Vertices
       this.triangleScale = 1;
       // Radius for Event Circle of Vertices, in meters
-      this.vertexEventRadius = Constant.isMobile ? 6*this.vertexRadius : 3*this.vertexRadius;
+      this.vertexEventRadius = 
+          Constant.isMobile ? 6*this.vertexRadius : 3*this.vertexRadius;
       // Width of Event Rectangle of Edges
       this.edgeEventRectangleWidth = 1;
 
@@ -210,7 +211,8 @@ function(
       var edge1 = new Edge(prevVertex, vertex, this, edgeChuteDirection);
       var edge2 = new Edge(vertex, nextVertex, this, edgeChuteDirection);
       
-      if (vertex.prevVertex.isBetweenBaseAndLast == true || vertex.prevVertex.isBetweenBaseAndLast == null) {
+      if (vertex.prevVertex.isBetweenBaseAndLast == true || 
+          vertex.prevVertex.isBetweenBaseAndLast == null) {
         vertex.setIsBetweenBaseAndLast(true);
       } else {
         vertex.setIsBetweenBaseAndLast(false);  
@@ -240,6 +242,9 @@ function(
       }
 
       vertex.removeFromMap();
+      if (vertex == this.lastVertex && vertex.prevVertex != null) {
+        vertex.prevVertex.setChuteImageCoordinates(null);
+      }
 
       var prevVertex = vertex.prevVertex;
       var nextVertex = vertex.nextVertex;
@@ -253,7 +258,7 @@ function(
           var nextEdge = vertex.nextEdge;
           
           var edgeChuteDirection = 
-            prevEdge.getChuteDirection() || nextEdge.getChuteDirection();
+              prevEdge.getChuteDirection() || nextEdge.getChuteDirection();
 
           prevEdge.removeFromMap();
           nextEdge.removeFromMap();

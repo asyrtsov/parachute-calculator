@@ -12,14 +12,14 @@ function init() {
     'Chute',
     'Path',
     'Calculator',
-    'DialogWindows'
+    'DialogWindows', 'Circle'
   ]).spread(function (
     AppMap,
     WindList,
     Chute,
     Path,
     Calculator,
-    DialogWindows
+    DialogWindows, Circle
   ) {
     // Yandex map
     var map = new AppMap();
@@ -30,14 +30,14 @@ function init() {
     // Winds at several heights
     var windList = new WindList(map);
 
-    // List of vertices and edges
+    // List of Vertices and Edges
     var path = new Path(map);
-    
+
     // Calculator will make all computations
     var calculator = new Calculator(path, chute, windList);
 
     path.setCalculator(calculator);
-      
+
     // Click on the map will add vertice to the end of the Path,
     // double click on the map will add vertice to the beginning of the Path.
     var clickNumber = 0;
@@ -46,12 +46,18 @@ function init() {
       clickNumber++;
       if (clickNumber == 1) {
         setTimeout(function() {
-          if (clickNumber == 1) {  // Single Click           
+          if (clickNumber == 1) {  // Single Click
+
+            //var c = new ymaps.Placemark(null);
+            //map.geoObjects.add(c);
+            //c.geometry.setCoordinates(point);
+            ///console.log(c.geometry.getRadius());
+
             // We add vertex to the end of the Path
             path.addVertex(point, true);
           } else {  // Double Click
             // We add new vertex to the beginning of the Path
-            path.addVertex(point, false);   
+            path.addVertex(point, false);
           }
           clickNumber = 0;
         }, 200);

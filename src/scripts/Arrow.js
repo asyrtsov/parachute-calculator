@@ -11,7 +11,7 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
    */
   class Arrow extends Placemark {
 
-    constructor(coordinates) {      
+    constructor(coordinates = null) {      
 
       var arrowStartSize = 25;
       // radius of start active area for Arrow
@@ -38,7 +38,9 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
       this.arrowStartSize = arrowStartSize;
       this.arrowStartRadius = arrowStartRadius;   
 
-      this.setCoordinates(coordinates);
+      if (coordinates != null) {
+        this.setCoordinates(coordinates);
+      }
       
       this.boundChange = this.boundChange.bind(this);
        

@@ -329,7 +329,7 @@ function(provide, Constant, Wind) {
 
           function alertError(str) {
             alert(str);
-            $("#windHeightInput").val(wind.height);
+            $("#windHeightInput").val(Math.floor(wind.height));
           }   
         });
         
