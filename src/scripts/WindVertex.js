@@ -11,29 +11,45 @@ function(provide, Circle, Placemark, templateLayoutFactory,
    * Wind Vertex consists of Vertex Image (Circle) and
    * Vertex Placemark for output.
    */
-  class WindVertex {
+  class WindVertex extends PreVertex {
     /**
-     * @param {number[]} point - Yandex.Maps coordinates of center.
-     * @param {number} radius
+     * @param {AppMap} map
      */
-    //constructor(wind, map, radius = 4) {
-    constructor(height, map) {
+    constructor(map) {
+      super(map);
 
-      this.height = height;
       this.map = map;
 
-      var color = "#0000FF";
-      var strokeColor = "#00FF00";
-      var radius = 4;
+      //var color = "#0000FF";
+      //var strokeColor = "#00FF00";
+      //var radius = 4;
 
-      var point = null;
+      //var point = null;
 
       // Coordinates will be set up later (image is not on the map now).
+      /*
       this.image = new ymaps.Circle([point, radius], {}, {
         fillColor: color,
         strokeColor: strokeColor,
         strokeWidth: 2
+      }); */
+
+      //console.log('imageRadius:' + this.imageRadius);
+
+      this.strokeColor = '#00FF00';
+
+      this.image = new ymaps.Circle([null, this.imageRadius], {}, {
+        fillColor: this.color,
+        strokeColor: this.strokeColor,
+        strokeWidth: 2,
+        zIndex: 1
       });
+
+      //console.log('image: '); console.log(this.image);
+
+      this.image.setCoordinates = function(coordinates) {
+        this.image.geometry.setCoordinates(coordinates);
+      }.bind(this);
 
       var MyIconLayout = ymaps.templateLayoutFactory.createClass(
         '<div class="px-2 py-1 bg-success text-center rounded border d-inline-block"' +
@@ -43,46 +59,63 @@ function(provide, Circle, Placemark, templateLayoutFactory,
 
       // Placemark for Height of Chute at this vertex.
       // Coordinates will be set up later.
+      /*
       this.heightPlacemark = new ymaps.Placemark(point, {}, {
         iconLayout: MyIconLayout,
         iconOffset: [0, -35],
         cursor: 'arrow'
-      });
+      });  */
+
+      this.heightPlacemark.options.set('iconLayout', MyIconLayout);
+
 
       this.prevVertex = null;
       this.nextVertex = null;
 
       // Image of chute which shows chute direction on the this.nextEdge
-      this.chuteImage = new ChuteImage();
+      //this.chuteImage = new ChuteImage();
 
-      this.placemarkIsVisible = true;
+      //this.placemarkIsVisible = true;
       //this.printPlacemark(wind.getHeight() + "&nbsp;м");
-      this.printPlacemark(height);
+
+
+      //this.printPlacemarkAndHint(height);
 
       this.clickNumber = 0;
-      this.placemarkIsShown = true;
+      //this.placemarkIsShown = true;
 
-      this.image.events.add('click', function(e) {
+      this.eventCircle.events.add('click', function(e) {
         e.stopPropagation();  // remove standart zoom for click
-        this.processVertexClick();
+        this.switchPlacemarkIsVisible();
+        //this.processVertexClick();
       }.bind(this));
 
       // remove standart map zoom for double click
+      /*
       this.image.events.add('dblclick', function(e) {
         e.stopPropagation();
-      });
+      });  */
 
-      this.vertexIsOnMap = false;
-      this.chuteIsOnMap = false;
+      //this.vertexIsOnMap = false;
+      //this.chuteIsOnMap = false;
       this.edge = null;
     }
 
 
+    /*
     getCoordinates() {
       return this.image.geometry.getCoordinates();
+    }   */
+
+
+    setNullCoordinates() {
+      this.setCoordinates(null);
+      this.chuteImage.setCoordinates(null);
     }
 
 
+
+    /*
     setCoordinates(point) {
       if (point == null) {
         if (this.vertexIsOnMap) {
@@ -95,9 +128,10 @@ function(provide, Circle, Placemark, templateLayoutFactory,
         this.image.geometry.setCoordinates(point);
         this.heightPlacemark.geometry.setCoordinates(point);
       }
-    }
+    }  */
 
 
+    /*
     setChuteImageCoordinates(point) {
       this.chuteImage.setCoordinates(point);
       if (point == null) {
@@ -111,24 +145,37 @@ function(provide, Circle, Placemark, templateLayoutFactory,
           this.chuteIsOnMap = true;
         }
       }
-    }
+    }  */
 
 
     scale(scale) {
-      var radius = this.image.geometry.getRadius();
-      radius = radius * scale;
-      this.image.geometry.setRadius(radius);
+      //var radius = this.image.geometry.getRadius();
+      //radius = radius * scale;
+      //this.image.geometry.setRadius(radius);
+      super.scale(scale);
+      this.imageRadius = this.imageRadius * scale;
+      this.image.geometry.setRadius(this.imageRadius);
     }
 
 
+    /**
+     * this.placemarkIsVisible is defined in PreVertex class.
+     */
     processVertexClick() {
-      this.placemarkIsVisible = !this.placemarkIsVisible;
-      this.heightPlacemark.options.set('visible', this.placemarkIsVisible);
+      this.switchPlacemarkIsVisible();
+    }
+
+
+    printPlacemarkAndHint(str) {
+      str += '&nbsp;м';
+      super.printPlacemarkAndHint(str);
     }
 
     /**
      * @param {string | null} str - This will be printed in this.heightPlacemark
      */
+
+    /*
     printPlacemark(str) {
       var newStr = (str == null) ? '' : str;
       this.heightPlacemark.properties.set('iconContent', newStr  + "&nbsp;м");
@@ -148,26 +195,28 @@ function(provide, Circle, Placemark, templateLayoutFactory,
       this.map.geoObjects.add(this.heightPlacemark);
       //this.map.geoObjects.add(this.chuteImage);
       this.vertexIsOnMap = true;
-    }
+    }  */
 
+    /*
     removeFromMap() {
       if (!this.vertexIsOnMap) {
         console.warn('Wind Vertex have already been removed.');
         return;
       }
       this.map.geoObjects.remove(this.image);
-      this.map.geoObjects.remove(this.heightPlacemark);
+      this.map.geoObjects.remove(this.heightPlacemark); */
       //this.map.geoObjects.remove(this.chuteImage);
       /*
       if (this.chuteImageIsOnMap) {
         this.map.geoObjects.remove(this.chuteImage);
         this.chuteImageIsOnMap = false;
       }    */
+      /*
       this.vertexIsOnMap = false;
       this.removeChuteImageFromMap();
-    }
+    } */
 
-
+    /*
     addChuteImageToMap() {
       if (!this.chuteIsOnMap) {
         this.path.map.geoObjects.add(this.chuteImage);
@@ -180,7 +229,7 @@ function(provide, Circle, Placemark, templateLayoutFactory,
         this.path.map.geoObjects.remove(this.chuteImage);
         this.chuteIsOnMap = false;
       }
-    }
+    }  */
 
   }
   provide(WindVertex);

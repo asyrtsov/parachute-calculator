@@ -33,7 +33,7 @@ function(
       // Define size of Triangle Image of Vertices
       this.triangleScale = 1;
       // Radius for Event Circle of Vertices, in meters
-      this.vertexEventRadius = 
+      this.vertexEventRadius =
           Constant.isMobile ? 6*this.vertexRadius : 3*this.vertexRadius;
       // Width of Event Rectangle of Edges
       this.edgeEventRectangleWidth = 1;
@@ -47,7 +47,7 @@ function(
 
       this.calculator = null;
 
-      this.pathBoundChange = this.pathBoundChange.bind(this);   
+      this.pathBoundChange = this.pathBoundChange.bind(this);
       this.map.events.add('boundschange', this.pathBoundChange);
     }
 
@@ -97,7 +97,7 @@ function(
 
       if (this.length > 0) {
 
-        if (isAddedtoEnd) {  
+        if (isAddedtoEnd) {
           // We should add vertex to the end of path
 
           var lastPoint = this.lastVertex.getCoordinates();
@@ -107,11 +107,11 @@ function(
 
           if (this.length > 1) {
             this.lastVertex.setCircleVertex(this.vertexRadius);
-            this.lastVertex.prevEdge.calculateEdgeRectangles(); 
-          }  
+            this.lastVertex.prevEdge.calculateEdgeRectangles();
+          }
 
-          this.lastVertex = vertex;   
-          
+          this.lastVertex = vertex;
+
           this.lastVertex.setIsBetweenBaseAndLast(true);
         } else {
           // We should add vertex to the beginning of path
@@ -120,10 +120,10 @@ function(
 
           if (this.length == 1) {
             this.firstVertex.setTriangleVertex(point);
-          } 
+          }
 
           edge = new Edge(vertex, this.firstVertex, this);
-      
+
           this.firstVertex = vertex;
 
           this.firstVertex.setIsBetweenBaseAndLast(false);
@@ -135,7 +135,7 @@ function(
 
         this.calculator.calculateHeight(isAddedtoEnd);
 
-      } else {  // this.length == 0;    
+      } else {  // this.length == 0;
         this.firstVertex = vertex;
         this.lastVertex = vertex;
         this.baseVertex = vertex;
@@ -147,16 +147,16 @@ function(
         vertex.printPlacemark(Math.floor(vertex.height) + "&nbsp;м");
 
         vertex.addToMap();
-        this.length++;        
+        this.length++;
       }
 
       return([vertex, edge]);
     }
 
     /**
-     * You shouldn't setBaseVertex to vertex with height == null 
+     * You shouldn't setBaseVertex to vertex with height == null
      * or height < 0.
-     * @param {Vertex} vertex 
+     * @param {Vertex} vertex
      */
     setBaseVertex(vertex) {
       this.baseVertex.setStrokeColor(this.baseVertex.color);
@@ -186,9 +186,9 @@ function(
         v.isBetweenBaseAndLast = false;
       }
       var v = this.baseVertex;
-      while((v = v.nextVertex) != null) { 
+      while((v = v.nextVertex) != null) {
         v.isBetweenBaseAndLast = true;
-      }   
+      }
     }
 
 
@@ -202,21 +202,21 @@ function(
     divideEdge(edge, point) {
       var prevVertex = edge.prevVertex,
           nextVertex = edge.nextVertex;
-          
+
       var edgeChuteDirection = edge.getChuteDirection();
-         
-      var vertex = new Vertex(point, this.vertexEventRadius, this);    
+
+      var vertex = new Vertex(point, this.vertexEventRadius, this);
       vertex.setCircleVertex(this.vertexRadius);
 
       var edge1 = new Edge(prevVertex, vertex, this, edgeChuteDirection);
       var edge2 = new Edge(vertex, nextVertex, this, edgeChuteDirection);
-      
-      if (vertex.prevVertex.isBetweenBaseAndLast == true || 
+
+      if (vertex.prevVertex.isBetweenBaseAndLast == true ||
           vertex.prevVertex.isBetweenBaseAndLast == null) {
         vertex.setIsBetweenBaseAndLast(true);
       } else {
-        vertex.setIsBetweenBaseAndLast(false);  
-      }  
+        vertex.setIsBetweenBaseAndLast(false);
+      }
 
       this.length++;
 
@@ -256,18 +256,18 @@ function(
 
           var prevEdge = vertex.prevEdge;
           var nextEdge = vertex.nextEdge;
-          
-          var edgeChuteDirection = 
+
+          var edgeChuteDirection =
               prevEdge.getChuteDirection() || nextEdge.getChuteDirection();
 
           prevEdge.removeFromMap();
           nextEdge.removeFromMap();
-          
+
           var prevPoint = prevVertex.getCoordinates();
-          
+
           if (nextVertex == this.lastVertex) {
             nextVertex.setTriangleVertex(prevPoint);
-          } 
+          }
 
           edge = new Edge(prevVertex, nextVertex, this, edgeChuteDirection);
           edge.addToMap();
@@ -275,7 +275,7 @@ function(
         } else if (nextVertex == null) {  // last vertex case
           var prevEdge = vertex.prevEdge;
 
-          prevEdge.removeFromMap(); 
+          prevEdge.removeFromMap();
 
           this.lastVertex = prevVertex;
           this.lastVertex.nextVertex = null;
@@ -284,10 +284,10 @@ function(
           if (prevVertex.prevVertex != null) {
             var prevPrevPoint = prevVertex.prevVertex.getCoordinates();
             prevVertex.setTriangleVertex(prevPrevPoint);
-            prevVertex.prevEdge.calculateEdgeRectangles();  
+            prevVertex.prevEdge.calculateEdgeRectangles();
           }
         } else {  // first vertex case
-          vertex.nextEdge.removeFromMap(); 
+          vertex.nextEdge.removeFromMap();
 
           nextVertex.prevVertex = null;
           this.firstVertex = nextVertex;
@@ -313,7 +313,7 @@ function(
      * Drag vertex with neibour edges.
      * @param {Vertex} vertex
      */
-    dragVertex(vertex) { 
+    dragVertex(vertex) {
       this.calculator.calculateHeight(vertex.isBetweenBaseAndLast);
 
       if (vertex.nextEdge != null) {
@@ -342,7 +342,7 @@ function(
         this.lastVertex = null;
       }
 
-      this.calculator.windList.removeWindVertices();
+      this.calculator.windList.setNullCoordinates();
     }
 
   }

@@ -1,57 +1,61 @@
 ymaps.modules.define('WindList', ['Wind'],
 function(provide, Wind) {
-  
+
   /**
-   * List of winds at different heights; 
-   * always contains wind at height = 0m (surface wind); 
+   * List of winds at different heights;
+   * always contains wind at height = 0m (surface wind);
    * that surface wind is always first and cannot be removed.
-   * List will be sorted for height (from bottom to top); 
+   * All winds must have number height.
+   * List will be sorted for height (from bottom to top);
    * all winds should have different heights.
    */
   class WindList {
     constructor(map) {
-      this.map = map; 
+      //this.map = map;
 
       // Surface wind: 5 m/sec, West
       var angle = 0;
-      this.firstWind = new Wind(5, angle, 0, this.map);
-      this.map.windOutput.print(this.firstWind.toString());
-      this.map.arrow.rotate(angle);
-          
+      this.firstWind = new Wind(5, angle, 0, map);
+      this.firstWind.vertex.addToMap();
+      map.windOutput.print(this.firstWind.toString());
+      map.arrow.rotate(angle);
+
       this.lastWind = this.firstWind;
       this.numberOfWinds = 1;
 
-      this.windVertexRadius = 4;   
-      
-      this.pathBoundChange = this.pathBoundChange.bind(this);   
-      this.map.events.add('boundschange', this.pathBoundChange);      
+      //this.windVertexRadius = 4;
+
+      this.pathBoundChange = this.pathBoundChange.bind(this);
+      map.events.add('boundschange', this.pathBoundChange);
     }
-    
-       
+
+
     /**
      * Add wind to the List and sort List.
+     * Note: wind.height must be a number.
      * @param {Wind} wind
-     */ 
-    addWind(wind) {      
-      this.lastWind.setNextWind(wind);      
+     */
+    addWind(wind) {
+      wind.vertex.addToMap();
+      this.lastWind.setNextWind(wind);
       this.lastWind = wind;
       this.numberOfWinds++;
       this.sortList();
-    } 
-    
-    
+    }
+
+
     /**
-     * Remove wind from WindList. 
+     * Remove wind from WindList.
      * Note: you cannot remove firstWind by construction.
-     * @param {Wind} wind - It is supposed that wind belongs to WindList.  
+     * @param {Wind} wind - It is supposed that wind belongs to WindList.
      */
-    removeWind(wind) {     
+    removeWind(wind) {
       // First wind, that is, surface wind, cannot be removed
       if (wind == this.firstWind) {
         console.warn("This wind was not removed, because it was firstWind.");
         return;
       }
-      
+
       if (wind.vertex.vertexIsOnMap) {
         wind.vertex.removeFromMap();
       }
@@ -59,13 +63,13 @@ function(provide, Wind) {
       wind.prevWind.setNextWind(wind.nextWind);
       if (wind == this.lastWind) {
         this.lastWind = this.lastWind.prevWind;
-      }                                       
-      this.numberOfWinds--;         
+      }
+      this.numberOfWinds--;
     }
-    
-        
+
+
     /**
-     * Check if this list has a wind with given height.  
+     * Check if this list has a wind with given height.
      * @param {number} height
      */
     heightIsInList(height) {
@@ -82,7 +86,6 @@ function(provide, Wind) {
      * Bubble sort (it is practical for small list)
      */
     sortList() {
-
       while(true) {
         var wind = this.firstWind;
         var swapped = false;
@@ -90,14 +93,14 @@ function(provide, Wind) {
         while(wind != this.lastWind) {
           if (wind.height > wind.nextWind.height) {
             this.swapWindAndNextWind(wind);
-            swapped = true;          
+            swapped = true;
           } else {
             wind = wind.nextWind;
           }
         }
         if (!swapped) break;
       }
-    } 
+    }
 
 
     /**
@@ -108,40 +111,41 @@ function(provide, Wind) {
       var wind = this.firstWind;
       var i=0;
       while(wind != null) {
-        console.log('wind #' + i + ':'); console.log(wind);
+        console.log('wind #' + i + ':');
+        console.log(wind);
         i++;
         wind = wind.nextWind;
       }
     }
-    
+
 
     /**
-     * Swap wind and wind.nextWind.  
+     * Swap wind and wind.nextWind.
      */
-    swapWindAndNextWind(wind) { 
+    swapWindAndNextWind(wind) {
       var nextWind = wind.nextWind;
       if (nextWind == null) return;
 
       nextWind.setPrevWind(wind.prevWind);
       var nextWindNextWind = nextWind.nextWind;
       nextWind.setNextWind(wind);
-      wind.setNextWind(nextWindNextWind); 
-      
+      wind.setNextWind(nextWindNextWind);
+
       if (this.firstWind == wind) {
         this.firstWind = nextWind;
       }
       if (this.lastWind == nextWind) {
         this.lastWind = wind;
-      }        
+      }
     }
 
-    
-    removeWindVertices() {
+
+    setNullCoordinates() {
       var wind = this.firstWind;
       while(wind != null) {
-        wind.setVertexCoordinates(null);       
+        wind.vertex.setNullCoordinates();
         wind = wind.nextWind;
-      }     
+      }
     }
 
 
@@ -153,17 +157,17 @@ function(provide, Wind) {
         this.scale(scale);
       }
     }
-  
-  
+
+
     scale(scale) {
-      this.windVertexRadius *= scale;
-        var wind = this.firstWind;
-        while (wind != null) {
-          wind.vertex.scale(scale);
-          wind = wind.nextWind;
-        }      
+      //this.windVertexRadius = this.windVertexRadius * scale;
+      var wind = this.firstWind;
+      while (wind != null) {
+        wind.vertex.scale(scale);
+        wind = wind.nextWind;
+      }
     }
   }
-      
-  provide(WindList);  
+
+  provide(WindList);
 });

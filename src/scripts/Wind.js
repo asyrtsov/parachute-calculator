@@ -4,41 +4,25 @@ ymaps.modules.define('Wind', [
 function(provide, WindVertex) {
 
   /**
-   * Wind at particular height.  
+   * Wind at particular height.
    */
   class Wind {
-    /** 
+    /**
      * Wind at special height.
      * @param {number} value - In m/sec; value must be >= 0.
-     * @param {number} angle - Angle between current wind and West wind; in degrees.    
+     * @param {number} angle - Angle between current wind and West wind; in degrees.
      * @param {(number | null)} height - In meters; height must be >= 0.
      */
     constructor(value, angle, height, map) {
-            
       this.value = value;
-      this.height = height;
-      this.setAngle(angle); 
+      this.setAngle(angle);
 
       this.prevWind = null;
-      this.nextWind = null; 
+      this.nextWind = null;
 
-      //this.vertex = null;   
-
-      //this.point = null;
-
-      this.vertex = new WindVertex(height, map);
+      this.vertex = new WindVertex(map);
+      this.setHeight(height);
     }
-
-
-    setVertexCoordinates(point) {
-      //this.point = point;
-      this.vertex.setCoordinates(point);      
-    } 
-
-    /*
-    getPoint() {
-      return this.point;
-    }*/
 
 
     setNextWind(wind) {
@@ -46,20 +30,20 @@ function(provide, WindVertex) {
       if (wind != null) {
         wind.prevWind = this;
       }
-    }  
+    }
 
     setPrevWind(wind) {
       this.prevWind = wind;
       if (wind != null) {
         wind.nextWind = this;
       }
-    }  
-   
+    }
+
     /**
      * @param {number} value - In m/sec; value must be >= 0.
      */
     setValue(value) {
-      this.value = value;                   
+      this.value = value;
     }
 
     /**
@@ -67,24 +51,23 @@ function(provide, WindVertex) {
      * @param {number} angle
      */
     setAngle(angle) {
-      
-      angle = Math.floor(angle); 
-      
-      if (angle != -180) {  // we want to differ -180 degree and 180 degree at wind menu scale             
+      angle = Math.floor(angle);
+
+      if (angle != -180) {  // we want to differ -180 degree and 180 degree at wind menu scale
         if (angle >= 0) {
           angle = angle % 360;
         } else {
           // negative angle case
           angle = angle * (-1);
           angle = angle % 360;
-          angle = 360 - angle;        
+          angle = 360 - angle;
         }
-        
+
         if (angle > 180) {
           angle -= 360;
         }
-      }      
-      this.angle = angle;            
+      }
+      this.angle = angle;
     }
 
     /**
@@ -93,17 +76,17 @@ function(provide, WindVertex) {
      */
     setHeight(height) {
       this.height = height;
-      this.vertex.printPlacemark(Math.floor(height));      
+      this.vertex.printPlacemarkAndHint(Math.floor(height));
     }
-         
+
     getAngle() {
       return(this.angle);
     }
-    
+
     getValue() {
       return(this.value);
     }
-    
+
     getHeight() {
       return(this.height);
     }
@@ -113,25 +96,25 @@ function(provide, WindVertex) {
       str += (this.value + ' м/с, ' + this.getDirection());
       return str;
     }
-        
+
     /**
      * Calculate wind coordinates in cartesian coordinate system.
      * @return {number[]} [vx, vy] - coordinates, in m/sec.
      */
-    getXY () {      
-      var radiandirection = this.angle * ((2*Math.PI)/360);       
+    getXY () {
+      var radiandirection = this.angle * ((2*Math.PI)/360);
       var vx = this.value * Math.cos(radiandirection);
       var vy = this.value * Math.sin(radiandirection);
-      return [vx, vy];      
-    } 
-    
+      return [vx, vy];
+    }
+
     /**
      * Get name of wind direction (E, EN, N, NW, W, WS, S, SE)
-     */    
-    getDirection() {     
+     */
+    getDirection() {
       var angleSwitch = Math.floor((this.angle + 180 + 22)/45);
       var direction;
-      
+
       switch(angleSwitch) {
         case 0: direction = "В"; break;
         case 1: direction = "СВ"; break;
@@ -141,12 +124,12 @@ function(provide, WindVertex) {
         case 5: direction = "ЮЗ"; break;
         case 6: direction = "Ю"; break;
         case 7: direction = "ЮВ"; break;
-        case 8: direction = "В"; break;    
+        case 8: direction = "В"; break;
       }
-      
-      return(direction);     
-    }      
+
+      return(direction);
+    }
   }
-      
-  provide(Wind);  
-});      
+
+  provide(Wind);
+});

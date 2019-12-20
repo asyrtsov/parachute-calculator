@@ -29,7 +29,7 @@ function(provide, Circle, Placemark, templateLayoutFactory,
       // Event Circle (invisible)
       this.eventCircle = new ymaps.Circle(
           [coordinates, this.eventRadius], {}, {
-            draggable: true,
+            // draggable: true,
             // vertex will be invisible
             fillOpacity: 0,
             strokeOpacity: 0,
@@ -43,7 +43,7 @@ function(provide, Circle, Placemark, templateLayoutFactory,
 
       // Vertex Image
       this.image = null;
-      this.imageZIndex = 1;
+      //this.imageZIndex = 1;
       // Blue color
       this.color = '#0000FF';
       this.strokeColor = '#0000FF';
@@ -51,10 +51,16 @@ function(provide, Circle, Placemark, templateLayoutFactory,
       // Image of chute which shows chute direction on the this.nextEdge
       this.chuteImage = new ChuteImage();
 
-      this.placemarkHintContent = null;
+      //this.placemarkHintContent = null;
+      this.hintContent = null;
+
       this.placemarkIsVisible = true;
 
       this.vertexIsOnMap = false;
+
+      //this.printPlacemarkAndHint('EEE')
+
+      //this.printPlacemarkAndHint = this.printPlacemarkAndHint.bind(this);
 
       // remove standart map zoom for double click
       this.eventCircle.events.add('dblclick', function(e) {
@@ -74,6 +80,7 @@ function(provide, Circle, Placemark, templateLayoutFactory,
       this.image.setCoordinates(point);
     }
 
+
     /**
      * this.image should be added before using this function.
      */
@@ -81,8 +88,8 @@ function(provide, Circle, Placemark, templateLayoutFactory,
       this.eventRadius = this.eventRadius * scale;
       this.eventCircle.geometry.setRadius(this.eventRadius);
 
-      this.imageRadius = this.imageRadius * scale;
-      this.image.scale(scale);
+      //this.imageRadius = this.imageRadius * scale;
+      //this.image.scale(scale);
     }
 
 
@@ -108,8 +115,8 @@ function(provide, Circle, Placemark, templateLayoutFactory,
       if (this.vertexIsOnMap) {
         this.map.geoObjects.remove(this.eventCircle);
         this.map.geoObjects.remove(this.heightPlacemark);
-        this.map.geoObjects.add(this.image);
-        this.map.geoObjects.add(this.chuteImage);
+        this.map.geoObjects.remove(this.image);
+        this.map.geoObjects.remove(this.chuteImage);
         this.vertexIsOnMap = false;
       } else {
         console.warn('Vertex has already been removed from Map!');
@@ -138,18 +145,53 @@ function(provide, Circle, Placemark, templateLayoutFactory,
     }
 
 
+    switchPlacemarkIsVisible() {
+      this.placemarkIsVisible = !this.placemarkIsVisible;
+      this.heightPlacemark.options.set('visible', this.placemarkIsVisible);
+
+      if (this.placemarkIsVisible) {
+        this.map.geoObjects.remove(this.eventCircle);
+        this.eventCircle.properties.set('hintContent', null);
+        this.map.geoObjects.add(this.eventCircle);
+      } else {
+        this.eventCircle.properties.set('hintContent', this.hintContent);
+      }
+    }
+
+
+    printPlacemarkAndHint(str) {
+      this.hintContent = '' + str;
+      this.heightPlacemark.properties.set('iconContent', '' + this.hintContent);
+      if (!this.placemarkIsVisible) {
+        this.eventCircle.properties.set('hintContent', '' + this.hintContent);
+      }
+    }
+
+
+
     /**
-     * @param {string} str - This will be printed in this.heightPlacemark
+     * @param {null | string} str - This will be printed in this.heightPlacemark
      */
     printPlacemark(str) {
-      this.heightPlacemark.properties.set('iconContent', str);
+      if (str == null) {
+        // Stop sign
+        this.heightPlacemark.properties.set('iconContent', '&#x26D4;');
+      } else {
+        this.heightPlacemark.properties.set('iconContent', str + "&nbsp;м");
+      }
     }
 
     printHint(str) {
-      this.placemarkHintContent = str;
+      //this.placemarkHintContent = str;
 
       if (!this.placemarkIsVisible) {
-        this.eventCircle.properties.set('hintContent', str);
+        if (str == null) {
+          // Stop sign
+          this.eventCircle.properties.set('iconContent', '&#x26D4;');
+        } else {
+          this.eventCircle.properties.set('iconContent', str + '&nbsp;м');
+        }
+        //this.eventCircle.properties.set('hintContent', str);
       }
     }
   }
