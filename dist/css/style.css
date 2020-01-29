@@ -1,20 +1,20 @@
-﻿html, 
-body, 
+﻿html,
+body,
 #map {
-  height: 100%; 
-  width: 100%; 
+  height: 100%;
+  width: 100%;
 }
 
 .darkScreen {
   position: absolute;
   top: 0;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); 
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 #settingsMenuDarkScreen {
   left: -100%;
-  width: 100%; 
+  width: 100%;
 }
 
 #settingsMenuDarkScreenClickable {
@@ -25,27 +25,27 @@ body,
 }
 
 .menu {
-  background-color: white;     
+  background-color: white;
   font-family: Arial,Helvetica,sans-serif;
-  font-size: 13px;    
+  font-size: 13px;
   height: 100%;
-  overflow-y: auto; 
-  position: absolute; 
-  text-align: left; 
-  top: 0;  
+  overflow-y: auto;
+  position: absolute;
+  text-align: left;
+  top: 0;
 }
 
 #settingsMenu {
   left: -100%;
   width: 100%;
-  transition: left 0.5s; 
+  transition: left 0.5s;
 }
 
 @media only screen and (min-width: 768px) {
   #settingsMenu {
     left: -50%;
     width: 50%;
-    transition: left 0.5s; 
+    transition: left 0.5s;
   }
 }
 
@@ -66,7 +66,7 @@ h1 {
   right: 0; */
   width: 35px;
   height: 35px;
-  cursor: pointer;  
+  cursor: pointer;
 
   display: flex;
   justify-content: center;
@@ -74,7 +74,7 @@ h1 {
 }
 
 #settingsMenuHeaderRectangle:hover {
-  background-color: grey;
+  background-color: rgb(222, 226, 230);
 }
 
 #windowCross {
@@ -82,20 +82,20 @@ h1 {
   background-size: 100%;
   height: 15px;
   width: 15px;
-  /*position: absolute; 
-  top: 15px; 
+  /*position: absolute;
+  top: 15px;
   right: 15px; */
-  cursor: pointer; 
+  cursor: pointer;
 }
 
 .placemarkCross {
   background-size: 100%;
   height: 7px;
   width: 7px;
-  /*position: absolute; 
-  top: 15px; 
+  /*position: absolute;
+  top: 15px;
   right: 15px; */
-  cursor: pointer;   
+  cursor: pointer;
 }
 
 .placemarkCrossImage {
@@ -109,13 +109,13 @@ h1 {
 
 #windInputHeader {
   display: flex;
-  justify-content: flex-end;  
+  justify-content: flex-end;
 }
 
 #windInputHeaderArrowRectangle {
   width: 35px;
   height: 35px;
-  cursor: pointer;    
+  cursor: pointer;
 
   display: flex;
   justify-content: flex-end;
@@ -126,16 +126,16 @@ h1 {
 
 
 
-#windowArrow {
+.windowArrow {
   background-image: url("../images/window_arrow.svg");
   background-size: 100%;
   height: 15px;
   width: 15px;
   margin-right: 0;
-  /*position: absolute; 
-  top: 15px; 
+  /*position: absolute;
+  top: 15px;
   right: 15px; */
-  cursor: pointer; 
+  cursor: pointer;
 }
 
 .header {
@@ -144,15 +144,40 @@ h1 {
   color: white;
   margin-bottom: 0px;
   padding-left: 15px;
-}  
+}
 
 
-
+.settingsFont,
 .chute-nav,
 label {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 13px;
+  //font-weight: 700;
 }
+
+
+.form-control {
+  font-size: 13px;
+  height: 30px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  border-width: 1px;
+}
+
+.form-control:focus {
+  border: 2px solid #ffdb4d;
+  box-shadow: none;
+}
+
+.btn {
+  font-size: 13px;
+  height: 30px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  border-width: 1px;
+  background-color: #ffdb4d;
+}
+
+
 
 .displayNone {
   display: none;
@@ -160,8 +185,8 @@ label {
 
 
 #helpLinkContent {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 13px;
+  //font-weight: 700;
 }
 
 #helpLinkContent ul {
@@ -173,14 +198,56 @@ label {
 }
 
 #windTable tr:hover {
-  background-color: rgba(0, 247, 255, 0.137);
+  background-color: #ffeaa02d;
+  //background-color: #ffeba0;
   cursor: pointer;
 }
 
+#windTable td {
+  border-bottom: 1px solid rgb(222, 226, 230);
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+#windTable tr {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+#windInput .form-group {
+  //border-bottom: 1px solid rgb(222, 226, 230);
+  //border-top: 1px solid rgb(222, 226, 230);
+}
+
+
+.navbar {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.nav-link {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.nav-link:hover {
+  background-color: #ffeaa02d;
+}
+
+#helpLinkContent a {
+  color: #0044BB;
+  text-decoration: none;
+}
+
+#helpLinkContent a:hover {
+  color: red;
+}
+
+
 /*
 .hoverColor {
-  background-color: red; 
-  color: black; 
+  background-color: red;
+  color: black;
 } */
 
 /*
@@ -195,14 +262,14 @@ input[type=range] {
   /* -webkit-appearance: none;
   appearance: none; */
   width: 100%;
-  /* height: 20px;    
+  /* height: 20px;
   background: #d3d3d3; */
   outline: none;
   /* opacity: 0.7;
   -webkit-transition: .2s;
   transition: opacity .2s; */
   margin-top: 10px;
-} 
+}
 
 /*
 input[type=range]::-webkit-slider-thumb {
@@ -210,7 +277,7 @@ input[type=range]::-webkit-slider-thumb {
   appearance: none;
   width: 8px;
   height: 8px;
-  border-radius: 50%; 
+  border-radius: 50%;
   background: rgb(26, 109, 242);
   cursor: pointer;
 }
@@ -258,7 +325,7 @@ input[type=range]::-moz-range-thumb {
 }
 
 .chute {
-  background-image: url("../images/chute.svg");
+  background-image: url("../images/chute-with-arrow.svg");
   background-size: 100%;
   height: 25px;
   width: 25px;
@@ -270,18 +337,18 @@ input[type=range]::-moz-range-thumb {
   border-radius: 3px;
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 13px;  
+  font-size: 13px;
   height: 28px;
   max-width: 200px;
   padding: 4px;
   padding-bottom: 10px;
   text-align: center;
 
-  cursor: pointer;  
-  user-select: none;  
+  cursor: pointer;
+  user-select: none;
 
   background-color: rgb(255, 255, 255);
-  width: 28px; 
+  width: 28px;
 }
 
 .outputControlElement {
@@ -293,7 +360,7 @@ input[type=range]::-moz-range-thumb {
   max-width: 300px;
   padding: 4px;
   padding-bottom: 10px;
-  text-align: center; 
+  text-align: center;
 }
 
 

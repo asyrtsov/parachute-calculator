@@ -20,7 +20,7 @@ function(provide, WindVertex) {
       this.prevWind = null;
       this.nextWind = null;
 
-      this.vertex = new WindVertex(map);
+      this.vertex = new WindVertex(map, height);
       this.setHeight(height);
     }
 

@@ -4,17 +4,17 @@ function(provide) {
 
 // Determine mobile or desktop case.
 var isMobile = false;
-if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
   isMobile = true;
 }
   /** These varialables are constants for app */
   var Constant = {
-    defaultBaseHeight: 300, 
+    defaultBaseHeight: 300,
     defaultStartHeight: 300,
     defaultFinalHeight: 0,
     defaultZoom: 16,
-    defaultCalculationDirection: true,  
-    // We will not consider cases when horizontal velocity
+    defaultCalculationDirection: true,
+    // We will not consider the cases when horizontal velocity
     // is more than maxChuteHorizontalVelocity
     maxChuteHorizontalVelocity: 100,  // wingsuit
     maxChuteVerticalVelocity: 50,  // free fall

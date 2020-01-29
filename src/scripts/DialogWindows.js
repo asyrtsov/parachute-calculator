@@ -7,11 +7,11 @@ function(provide, Constant, Wind) {
    * @param {Chute} chute
    * @param {WindList} windList
    * @param {Path} path
-   * @param {Calculator} calculator 
+   * @param {Calculator} calculator
    */
   DialogWindows.initMenu = function(map, chute, windList, path, calculator) {
-    
-    // First active link in Menu will be Dz link  
+
+    // First active link in Menu will be Dz link
     this.prevLinkId = 'helpLink';
 
     initMenuWindow();
@@ -19,7 +19,7 @@ function(provide, Constant, Wind) {
     initChuteWindow();
     initHeightWindow();
     initWindWindow();
-    
+
     /**
      * Settings Menu initialization
      */
@@ -38,57 +38,57 @@ function(provide, Constant, Wind) {
 
         $('#' + DialogWindows.prevLinkId).removeClass('active');
         $(this).addClass('active');
-            
+
         DialogWindows.prevLinkId = currentLinkId;
-      })
+      });
 
       // Close Settings Menu after clicking Cross or Dark screen
       $("#settingsMenuHeaderRectangle, #settingsMenuDarkScreenClickable").click(function() {
-        
+
         $("#settingsMenuDarkScreen").css("left", "-100%");
 
         if (window.matchMedia("(min-width: 768px)").matches) {
-          $("#settingsMenu").css("left", "-50%");  
+          $("#settingsMenu").css("left", "-50%");
         } else {
-          $("#settingsMenu").css("left", "-100%");              
+          $("#settingsMenu").css("left", "-100%");
         }
-      });   
+      });
 
       // Loose focus after pressing Enter on input field.
       $("input").keypress(function(e) {
         if (e.keyCode === 13 || e.keyCode === 9) {  // Enter keycode
           $("input").blur();     // Forced loose of focus
-        }    
+        }
       });
     }
 
-  
+
     /**
      * Dz Window initialization
      */
     function initDzWindow() {
       // Set default options: dz array
       for(var i=0; i<map.dz.length; i++) {
-        $("#dz").append("<option>" + map.dz[i].name + "</option>");    
+        $("#dz").append("<option>" + map.dz[i].name + "</option>");
       }
-      
+
       $("#dz").on("change", function() {
-        var mapCenter = map.dz[this.selectedIndex].mapCenter;      
+        var mapCenter = map.dz[this.selectedIndex].mapCenter;
         map.setCenter(mapCenter, Constant.defaultZoom);
-        map.arrow.setCoordinates(mapCenter);                
+        map.arrow.setCoordinates(mapCenter);
         // path.clear() will print results too
         path.clear();
       });
     }
 
 
-    /** 
+    /**
      * Chute Window initialization.
      */
     function initChuteWindow() {
       $("#chutehorvel").val(chute.horizontalVel);
       $("#chutevervel").val(chute.verticalVel);
-    
+
       $("#chutehorvel").on("change", function () {
         var chutehorvel = Number.parseFloat($("#chutehorvel").val());
         if ((chutehorvel>=0) && (chutehorvel<=Constant.maxChuteHorizontalVelocity)) {
@@ -105,19 +105,19 @@ function(provide, Constant, Wind) {
             }
           }
           $("#chutehorvel").val(chute.horizontalVel);
-          return;           
+          return;
         }
 
         if (path.length > 0) {
-          calculator.calculateHeight();           
-        }        
-      });  
+          calculator.calculateHeight();
+        }
+      });
 
-      $("#chutevervel").on("change", function () {                           
+      $("#chutevervel").on("change", function () {
         var chutevervel = Number.parseFloat($("#chutevervel").val());
         if (( chutevervel>=0) && (chutevervel<=Constant.maxChuteVerticalVelocity)) {
           chute.verticalVel = chutevervel;
-          $("#chutevervel").val(chutevervel);    
+          $("#chutevervel").val(chutevervel);
         } else {
           if (Number.isNaN(chutevervel)) {
             alert('Недопустимое значение!');
@@ -129,28 +129,28 @@ function(provide, Constant, Wind) {
             }
           }
           $("#chutevervel").val(chute.verticalVel);
-          return;           
+          return;
         }
-                
+
         if (path.length > 0) {
-          calculator.calculateHeight();           
+          calculator.calculateHeight();
         }
       });
-    }    
+    }
 
-    
+
     /**
      * Height Window initialization.
      */
     function initHeightWindow() {
       $("#baseVertexHeight").val(Math.floor(Constant.defaultBaseHeight));
 
-      $("#baseVertexHeight").on("change", function() {            
+      $("#baseVertexHeight").on("change", function() {
         var n = Number.parseFloat($("#baseVertexHeight").val());
-        
-        if ((n >= 0) && (n <= Constant.maxHeight)) { 
+
+        if ((n >= 0) && (n <= Constant.maxHeight)) {
             path.setBaseVertexHeight(n);
-            $("#baseVertexHeight").val(Math.floor(n));                  
+            $("#baseVertexHeight").val(Math.floor(n));
         } else {
 
           if (Number.isNaN(n)) {
@@ -159,28 +159,28 @@ function(provide, Constant, Wind) {
             if (n < 0) {
               alert('Высота в базовой точке должна быть неотрицательной!');
             } else {
-              alert('Высота в базовой точке должна быть не больше ' + Constant.maxHeight + 'м !');  
+              alert('Высота в базовой точке должна быть не больше ' + Constant.maxHeight + 'м !');
             }
-          }  
-          
+          }
+
           if (path.length > 0) {
             $("#baseVertexHeight").val(Math.floor(path.baseVertex.height));
           } else {
-            $("#baseVertexHeight").val(Math.floor(path.baseVertexHeight));  
-          } 
-        } 
+            $("#baseVertexHeight").val(Math.floor(path.baseVertexHeight));
+          }
+        }
       });
     }
 
 
 
-    /** 
+    /**
      * Wind Window initialization.
-     */    
+     */
     function initWindWindow() {
 
       $("#windValueInput").prop("max", "" + Constant.maxWindValue);
-      // Draw scales for Range Input Sliders in WindInput window    
+      // Draw scales for Range Input Sliders in WindInput window
       drawWindScales();
 
 
@@ -193,10 +193,10 @@ function(provide, Constant, Wind) {
         $("#windInput").addClass("displayNone");
         $("#windScreen").removeClass("displayNone");
 
-        var windTable = document.getElementById("windTable"); 
-        windTable.innerHTML = '';   
+        var windTable = document.getElementById("windTable");
+        windTable.innerHTML = '';
         var funcArray = [];
-        var row = []; 
+        var row = [];
         var wind = windList.firstWind;
         for(var i=0; i < windList.numberOfWinds; i++) {
           row[i] = windTable.insertRow(i);
@@ -205,15 +205,15 @@ function(provide, Constant, Wind) {
           var cell1 = row[i].insertCell(0);
           var cell2 = row[i].insertCell(1);
           var cell3 = row[i].insertCell(2);
-          cell1.innerHTML = (wind.height == null)? "?" : wind.height + " м";      
+          cell1.innerHTML = (wind.height == null)? "?" : wind.height + " м";
           cell2.innerHTML = '<div class=\"arrow\"></div>';
           cell2.firstChild.style.transform = "rotate(" + (-1)*wind.getAngle() + "deg)";
           cell3.innerHTML = wind.value + " м/c";
           wind = wind.nextWind;
-        } 
+        }
 
         // Button Add Wind in WindScreen window
-        $("#addWind").click(function() {        
+        $("#addWind").click(function() {
           var w = new Wind(5, 0, null, map);
 
           $("#addWind").off('click');
@@ -221,7 +221,7 @@ function(provide, Constant, Wind) {
             row[i].removeEventListener('click', funcArray[i]);
           }
           drawWindInput(w);
-        });      
+        });
 
         function createRowClickListener(w) {
           return (function(e) {
@@ -234,11 +234,11 @@ function(provide, Constant, Wind) {
               row[i].removeEventListener('click', funcArray[i]);
             }
 
-            drawWindInput(w);    
-          }); 
+            drawWindInput(w);
+          });
         }
       }
-      
+
       /**
        * Draw WindInput window in Wind Menu
        */
@@ -248,22 +248,22 @@ function(provide, Constant, Wind) {
 
         if (wind == windList.firstWind) {
           $("#windHeightInput").prop("disabled", true);
-          $("#removeWind").addClass("displayNone");       
+          $("#removeWind").addClass("displayNone");
         } else {
           $("#windHeightInput").prop("disabled", false);
           $("#removeWind").removeClass("displayNone");
         }
-        $("#windHeightInput").val(wind.getHeight());    
+        $("#windHeightInput").val(wind.getHeight());
         $("#windDirectionInput").val(wind.getAngle());
         $("#windValueInput").val(wind.getValue());
         var angle = wind.getAngle();
         $("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");
-        $("#menuWindValue").html(wind.getValue() + " м/с");      
+        $("#menuWindValue").html(wind.getValue() + " м/с");
 
 
         // Button 'Back to WindScreen' in WindInput window
-        $("#windInputHeaderArrowRectangle").click(function() { 
-          $("#windHeightInput").off("change"); 
+        $("#windInputHeaderArrowRectangle").click(function() {
+          $("#windHeightInput").off("change");
           $("#windDirectionInput").off('input change');
           $("#windValueInput").off('input change');
           $("#removeWind").off('click');
@@ -279,8 +279,8 @@ function(provide, Constant, Wind) {
             if (path.length > 0) {
               calculator.calculateHeight();
             }
-          } 
-          $("#windHeightInput").off("change"); 
+          }
+          $("#windHeightInput").off("change");
           $("#windDirectionInput").off('input change');
           $("#windValueInput").off('input change');
           $("#removeWind").off('click');
@@ -288,11 +288,11 @@ function(provide, Constant, Wind) {
           drawWindScreen();
         });
 
-            
-        // Input for WindHeight in WindInput window  
-        $("#windHeightInput").on("change", function() {        
-          
-          var heightString = $("#windHeightInput").val();      
+
+        // Input for WindHeight in WindInput window
+        $("#windHeightInput").on("change", function() {
+
+          var heightString = $("#windHeightInput").val();
           var height = Number.parseFloat(heightString);
 
           if (!Number.isNaN(height)) {
@@ -308,8 +308,8 @@ function(provide, Constant, Wind) {
                   }
 
                   if (path.length > 0) {
-                    calculator.calculateHeight();       
-                  }                       
+                    calculator.calculateHeight();
+                  }
                 } else {
                   alertError('Такая высота уже была!');
                 }
@@ -319,9 +319,9 @@ function(provide, Constant, Wind) {
             } else {  // height <= 0
               if (height == 0) {
                 alertError('Поверхностный ветер уже задан!');
-              } else {  // height < 0              
+              } else {  // height < 0
                 alertError('Высота должна быть больше нуля!');
-              }             
+              }
             }
           } else {
             alertError('Недопустимое значение!');
@@ -330,47 +330,47 @@ function(provide, Constant, Wind) {
           function alertError(str) {
             alert(str);
             $("#windHeightInput").val(Math.floor(wind.height));
-          }   
+          }
         });
-        
-                        
-        // Range Input Slider for Wind Direction in WindInput window.  
+
+
+        // Range Input Slider for Wind Direction in WindInput window.
         $("#windDirectionInput").on('input change', function() {
-          var angleStr = $("#windDirectionInput").val();          
+          var angleStr = $("#windDirectionInput").val();
           var angle = Number.parseInt(angleStr);
-          
+
           wind.setAngle(angle);
           if (wind == windList.firstWind) {
-            map.windOutput.print(wind.toString()); 
+            map.windOutput.print(wind.toString());
             map.arrow.rotate(angle);
           }
 
           $("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");
 
           if ((wind.height != null) && (path.length > 0)) {
-            calculator.calculateHeight();         
-          }            
+            calculator.calculateHeight();
+          }
         });
 
-        // Range Input Slider for  Wind Value in WindInput window.   
+        // Range Input Slider for  Wind Value in WindInput window.
         $("#windValueInput").on('input change', function() {
           var valueStr = $("#windValueInput").val();
           var value = Number.parseInt(valueStr);
 
           wind.setValue(value);
           if (wind == windList.firstWind) {
-            map.windOutput.print(wind.toString()); 
-          } 
+            map.windOutput.print(wind.toString());
+          }
 
           $("#menuWindValue").html(value + " м/с");
-          
+
           if ((wind.height != null) && (path.length > 0)) {
-            calculator.calculateHeight();         
-          }       
+            calculator.calculateHeight();
+          }
         });
-      }              
+      }
     }
-   
+
     /**
      * Draw scales for Wind Window:
      *   wind direction scale (E, N, W, S, E),
@@ -382,48 +382,48 @@ function(provide, Constant, Wind) {
       var directionPlateSpan = 5;
       var directionPlateNumber = 4*directionPlateSpan + 1;
       var windValuePlateNumber = 0;
-      
+
       for(var i=0; i<directionPlateNumber; i++) {
         var str = "";
         switch (i) {
-          case 0: 
+          case 0:
             str = "В";
             break;
-          case directionPlateSpan: 
+          case directionPlateSpan:
             str = "С";
             break;
-          case directionPlateSpan*2: 
+          case directionPlateSpan*2:
             str = "З";
-            break;      
-          case directionPlateSpan*3: 
+            break;
+          case directionPlateSpan*3:
             str = "Ю";
             break;
-          case directionPlateSpan*4: 
+          case directionPlateSpan*4:
             str = "В";
             break;
           default:
-            str = "&nbsp";          
+            str = "&nbsp";
         }
         $("#windDirectionInputScale").append("<div class='directionPlate'>" + str + "</div>");
-    
-        var str2;        
+
+        var str2;
         if (i % 5 == 0) {
           str2 = windValuePlateNumber;
           windValuePlateNumber += (Constant.maxWindValue / 4);
         } else {
           str2 = "&nbsp";
-        }        
+        }
         $("#windValueInputScale").append("<div class='directionPlate'>" + str2 + "</div>");
-       
+
       }
       $(".directionPlate").css({
         "width": 100/(directionPlateNumber) + "%",
-        "float": "left", 
+        "float": "left",
         "text-align": "center"
-      });     
-    }     
+      });
+    }
 
   }
 
-  provide(DialogWindows);  
-});  
+  provide(DialogWindows);
+});

@@ -1,14 +1,9 @@
 ymaps.modules.define('Path', [
   'Vertex',
   'Edge',
-  'Constant'
+  'Constant',
 ],
-function(
-  provide,
-  Vertex,
-  Edge,
-  Constant
-) {
+function(provide, Vertex, Edge, Constant) {
   /**
    * List of Vertices and Edges.
    * Image of Last Vertex is Triangle. Images of other Vertices are Circles.
@@ -19,62 +14,14 @@ function(
      */
     constructor(map) {
       this.map = map;
+
       this.firstVertex = null;
       this.lastVertex = null;
-
       this.baseVertex = null;
+
       this.baseVertexHeight = Constant.defaultBaseHeight;
-
-      // number of vertices
-      this.length = 0;
-
-      // Radius of Circle Image of Vertices, in meters
-      this.vertexRadius = Constant.isMobile ? 4 : 4;
-      // Define size of Triangle Image of Vertices
-      this.triangleScale = 1;
-      // Radius for Event Circle of Vertices, in meters
-      this.vertexEventRadius =
-          Constant.isMobile ? 6*this.vertexRadius : 3*this.vertexRadius;
-      // Width of Event Rectangle of Edges
-      this.edgeEventRectangleWidth = 1;
-
-      // On the map: line segments should be under vertex images,
-      // vertex images should be under vertices
-      this.vertexZIndex = 2;
-      this.vertexImageZIndex = 1;
-      this.edgeZIndex = 0;
-      this.edgeImageZIndex = -1;
-
+      this.length = 0;    // number of vertices
       this.calculator = null;
-
-      this.pathBoundChange = this.pathBoundChange.bind(this);
-      this.map.events.add('boundschange', this.pathBoundChange);
-    }
-
-
-    pathBoundChange(e) {
-      var newZoom = e.get('newZoom'),
-            oldZoom = e.get('oldZoom');
-      if (newZoom != oldZoom) {
-        var scale = (2**(oldZoom - newZoom));
-        this.scale(scale);
-      }
-    }
-
-    scale(scale) {
-      this.vertexRadius *= scale;
-      this.vertexEventRadius *= scale;
-      this.edgeEventRectangleWidth *= scale;
-      this.triangleScale *= scale;
-      if (this.length > 0 ) {
-        var vertex = this.lastVertex;
-        vertex.scale(scale);
-        for(var i=1; i < this.length; i++) {
-          vertex = vertex.prevVertex;
-          vertex.scale(scale);
-          vertex.nextEdge.scale(scale);
-        }
-      }
     }
 
 
@@ -90,61 +37,58 @@ function(
      * @return {Array} New Last Vertex and new Vast Edge of Path.
      */
     addVertex(point, isAddedtoEnd) {
-
-      var vertex = new Vertex(point, this.vertexEventRadius, this);
+      var vertex = new Vertex(this.map, point, this);
+      vertex.chuteImage.setCalculator(this.calculator);
 
       var edge = null;
 
       if (this.length > 0) {
-
         if (isAddedtoEnd) {
           // We should add vertex to the end of path
-
           var lastPoint = this.lastVertex.getCoordinates();
-          vertex.setTriangleVertex(lastPoint);
+          vertex.setTriangleImage(lastPoint);
 
           edge = new Edge(this.lastVertex, vertex, this);
 
           if (this.length > 1) {
-            this.lastVertex.setCircleVertex(this.vertexRadius);
+            this.lastVertex.setCircleImage();
             this.lastVertex.prevEdge.calculateEdgeRectangles();
           }
 
           this.lastVertex = vertex;
-
           this.lastVertex.setIsBetweenBaseAndLast(true);
         } else {
           // We should add vertex to the beginning of path
-
-          vertex.setCircleVertex(this.vertexRadius);
+          vertex.setCircleImage();
 
           if (this.length == 1) {
-            this.firstVertex.setTriangleVertex(point);
+            this.firstVertex.setTriangleImage(point);
           }
 
           edge = new Edge(vertex, this.firstVertex, this);
 
           this.firstVertex = vertex;
-
           this.firstVertex.setIsBetweenBaseAndLast(false);
         }
 
         vertex.addToMap();
         edge.addToMap();
+        vertex.prevVertex.chuteImage.show();
         this.length++;
 
         this.calculator.calculateHeight(isAddedtoEnd);
 
       } else {  // this.length == 0;
+        vertex.setCircleImage();
         this.firstVertex = vertex;
         this.lastVertex = vertex;
         this.baseVertex = vertex;
         this.firstVertex.setHeight(this.baseVertexHeight);
-        vertex.setStrokeColor('#FFFF00');
-        vertex.setCircleVertex(this.vertexRadius);
+        vertex.setStrokeColor('#FFFF00');  // Yellow color
         vertex.isBetweenBaseAndLast = null;
-        vertex.printHint("h=" + Math.floor(vertex.height) + "&nbsp;м");
-        vertex.printPlacemark(Math.floor(vertex.height) + "&nbsp;м");
+        var str = Math.floor(vertex.height) + '&nbsp;м';
+        vertex.printHint('h=' + str);
+        vertex.printPlacemark(str);
 
         vertex.addToMap();
         this.length++;
@@ -205,8 +149,10 @@ function(
 
       var edgeChuteDirection = edge.getChuteDirection();
 
-      var vertex = new Vertex(point, this.vertexEventRadius, this);
-      vertex.setCircleVertex(this.vertexRadius);
+      var vertex = new Vertex(this.map, point, this);
+      vertex.chuteImage.setCalculator(this.calculator);
+
+      vertex.setCircleImage();
 
       var edge1 = new Edge(prevVertex, vertex, this, edgeChuteDirection);
       var edge2 = new Edge(vertex, nextVertex, this, edgeChuteDirection);
@@ -243,7 +189,9 @@ function(
 
       vertex.removeFromMap();
       if (vertex == this.lastVertex && vertex.prevVertex != null) {
-        vertex.prevVertex.setChuteImageCoordinates(null);
+        //vertex.prevVertex.setChuteImageCoordinates(null);
+        //vertex.prevVertex.chuteImage.setCoordinates(null);
+        vertex.prevVertex.chuteImage.hide();
       }
 
       var prevVertex = vertex.prevVertex;
@@ -266,7 +214,7 @@ function(
           var prevPoint = prevVertex.getCoordinates();
 
           if (nextVertex == this.lastVertex) {
-            nextVertex.setTriangleVertex(prevPoint);
+            nextVertex.setTriangleImage(prevPoint);
           }
 
           edge = new Edge(prevVertex, nextVertex, this, edgeChuteDirection);
@@ -283,7 +231,7 @@ function(
 
           if (prevVertex.prevVertex != null) {
             var prevPrevPoint = prevVertex.prevVertex.getCoordinates();
-            prevVertex.setTriangleVertex(prevPrevPoint);
+            prevVertex.setTriangleImage(prevPrevPoint);
             prevVertex.prevEdge.calculateEdgeRectangles();
           }
         } else {  // first vertex case
@@ -293,7 +241,7 @@ function(
           this.firstVertex = nextVertex;
 
           if (this.length == 2) {
-            nextVertex.setCircleVertex(this.vertexRadius);
+            nextVertex.setCircleImage();
           }
         }
       } else {  // case: only one circle
@@ -342,7 +290,7 @@ function(
         this.lastVertex = null;
       }
 
-      this.calculator.windList.setNullCoordinates();
+      this.calculator.calculateHeight();
     }
 
   }

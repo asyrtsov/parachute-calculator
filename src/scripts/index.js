@@ -3,7 +3,6 @@
  * Vertices of the Path. Path is a set of Vertices and Edges.
  * You can input Path by clicking on the Yandex Map.
  */
-
 ymaps.ready(init);
 function init() {
   ymaps.modules.require([
@@ -12,14 +11,14 @@ function init() {
     'Chute',
     'Path',
     'Calculator',
-    'DialogWindows', 'Circle'
+    'DialogWindows',
   ]).spread(function (
     AppMap,
     WindList,
     Chute,
     Path,
     Calculator,
-    DialogWindows, Circle
+    DialogWindows
   ) {
     // Yandex map
     var map = new AppMap();
@@ -35,8 +34,8 @@ function init() {
 
     // Calculator will make all computations
     var calculator = new Calculator(path, chute, windList);
-
     path.setCalculator(calculator);
+    windList.setCalculator(calculator);
 
     // Click on the map will add vertice to the end of the Path,
     // double click on the map will add vertice to the beginning of the Path.
@@ -47,12 +46,6 @@ function init() {
       if (clickNumber == 1) {
         setTimeout(function() {
           if (clickNumber == 1) {  // Single Click
-
-            //var c = new ymaps.Placemark(null);
-            //map.geoObjects.add(c);
-            //c.geometry.setCoordinates(point);
-            ///console.log(c.geometry.getRadius());
-
             // We add vertex to the end of the Path
             path.addVertex(point, true);
           } else {  // Double Click
@@ -63,7 +56,6 @@ function init() {
         }, 200);
       }
     });
-
 
     /**
      * Menu initialization

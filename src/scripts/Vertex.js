@@ -2,68 +2,53 @@ ymaps.modules.define('Vertex', [
   'Circle',
   'Rectangle',
   'TriangleVertexImage',
-  'Placemark',
   'templateLayoutFactory',
-  'ChuteImage',
+  'PreVertex',
 ],
-function(provide, Circle, Rectangle, TriangleVertexImage, Placemark,
-    templateLayoutFactory, ChuteImage) {
+function(provide, Circle, Rectangle, TriangleVertexImage,
+    templateLayoutFactory, PreVertex) {
   /**
    * Vertex of Path.
-   * Vertex consists of: Invisible Event Circle (it is used for catching
-   * events for Vertex), Vertex Placemark for Output, Vertex Image (Circle or Triangle).
-   * Also it contains references to previous and next Vertices.
+   * Vertex extends PreVertex:
+   * we add Vertex Image (Circle or Triangle) and special layouts
+   * for Vertex Placemark (with and without closing cross).
    */
-  class Vertex {
+  class Vertex extends PreVertex {
     /**
      * @param {number[]} point - Yandex.Maps coordinates of center.
-     * @param {number} eventRadius - Radius of Event Circle.
+     * @param {AppMap} map
      * @param {Path} path - Link to parent Path; we need it because some vertex
      * operations (like clicking on Placemark Cross = Path clear) change the Path.
      */
-    constructor(point, eventRadius, path) {
+    constructor(map, point, path) {
+      var scale = 2**(16 - map.getZoom());
 
-      // Event Circle (invisible)
-      this.eventCircle = new ymaps.Circle(
-        [point, eventRadius],
-        {},
-        {
-          draggable: true,
-          // vertex will be invisible
-          fillOpacity: 0,
-          strokeOpacity: 0,
-          strokeWidth: 0,
-          zIndex: 2
-        }
-      );
+      super(map, scale, point);
 
+      this.map = map;
+      this.path = path;
+      this.scale = scale;
 
-      // Output Placemark
-      this.heightPlacemark = new ymaps.Placemark(
-        [point[0], point[1]],
-        {iconContent: ''},
-        {
-          iconOffset: [0, -35],
-          cursor: 'arrow'
-        }
-      );
+      this.setScale = this.setScale.bind(this);
+      map.events.add('boundschange', this.setScale);
 
-      this.placemarkHintContent = null;
-      this.placemarkIsVisible = true;
+      this.eventCircle.options.set('draggable', true);
+      this.eventCircle.options.set('zIndex', 12);
+      //this.heightPlacemark.options.set('zIndex', 1);
 
       // Image of Vertex. Object of classes: ymaps.Circle or TriangleVertexImage.
       // To set it, use this.setTriangleImage() or this.setCircleImage()
-      // You should not add Vertex to Map until Image is not set up.
+      // You should not add Vertex to Map until Image is not initialized.
       this.image = null;
-      this.imageZIndex = 1;
+      this.imageZIndex = 5;
+      // null - for undefined (this.image = null),
+      // true - for Triangle Image, false - for Circle Image.
+      this.imageIsTriangle = null;
+      this.circleImageRadius = 4;
+
       // Blue color
       this.color = '#0000FF';
       this.strokeColor = '#0000FF';
-
-      // null - for undefined, true - for Triangle Vertex Image, false - for Circle Vertex Image.
-      this.isTriangleVertex = null;
-
-      this.path = path;
 
       // References to some another Vertices.
       this.prevVertex = null;
@@ -72,20 +57,12 @@ function(provide, Circle, Rectangle, TriangleVertexImage, Placemark,
       this.prevEdge = null;
       this.nextEdge = null;
 
-      // Image of chute which shows chute direction on the this.nextEdge
-      this.chuteImage = new ChuteImage();
-
       // true if this Vertex is situated between
       // Base Vertex and Last Vertex of Path.
       // null - for Base Vertex itself.
       this.isBetweenBaseAndLast = null;
 
       this.clickNumber = 0;
-
-      this.vertexIsOnMap = false;
-      this.chuteIsOnMap = false;
-      // Vertex single clicking switcher
-      this.singleClickingIsOn = true;
 
       // Turning on/off vertex when conditon
       // "reachable/unreachable" was changed
@@ -94,6 +71,7 @@ function(provide, Circle, Rectangle, TriangleVertexImage, Placemark,
       this.wasTurnOffBecauseBackUnreachable = false;
 
       // Chute height at this vertex. It will be calculated later.
+      // Use this.setHeight to set up this.height.
       this.height = null;
 
       this.eventCircle.events.add('click', function(e) {
@@ -101,15 +79,13 @@ function(provide, Circle, Rectangle, TriangleVertexImage, Placemark,
         this.processVertexClick();
       }.bind(this));
 
-      // remove standart map zoom for double click
-      this.eventCircle.events.add('dblclick', function(e) {
-        e.stopPropagation();
-      });
 
       this.eventCircle.events.add('contextmenu', function(e) {
         e.stopPropagation();
         if (this.path.baseVertex != this && this.height != null && this.height >= 0) {
           this.path.setBaseVertex(this);
+        } else if (this.height < 0) {
+          alert('Нельзя вершину с отрицательной высотой делать базовой');
         }
       }.bind(this));
 
@@ -124,41 +100,44 @@ function(provide, Circle, Rectangle, TriangleVertexImage, Placemark,
     }
 
 
-    setChuteImageCoordinates(point, angle = null) {
-      this.chuteImage.setCoordinates(point);
-      if (angle != null) {
-        this.chuteImage.rotate(angle);
+    /**
+     * Set the same coordinates for Event Circle,
+     * Vertex Placemark, Vertex Image.
+     * Change Direction of Triangle for this Vertex
+     * (if this Vertex is Triangle Vertex)
+     */
+    setCoordinates(point) {
+      super.setCoordinates(point);
+
+      // Note: it supposed that in case of Triangle Vertex, prevVertex != null.
+      if (this.image != null) {
+        if (this.imageIsTriangle) {
+          var prevPoint = this.prevVertex.getCoordinates();
+          // Here we calculate vertices of Image Triangle
+          this.image.setCoordinates(prevPoint, point);
+        } else {
+          // In this case, this.image is a Circle, so
+          // we can set coordinates of it center.
+          this.image.geometry.setCoordinates(point);
+        }
       }
-      if (point == null) {
-        if (this.chuteIsOnMap) {
-          this.path.map.geoObjects.remove(this.chuteImage);
-          this.chuteIsOnMap = false;
-        }
-      } else {
-        if (!this.chuteIsOnMap) {
-          this.path.map.geoObjects.add(this.chuteImage);
-          this.chuteIsOnMap = true;
-        }
+
+      if (this.nextVertex != null && this.nextVertex.imageIsTriangle) {
+        var nextPoint = this.nextVertex.getCoordinates();
+        this.nextVertex.image.setCoordinates(point, nextPoint);
       }
     }
 
 
+    setScale() {
+      var scale = 2**(16 - this.map.getZoom());
+      super.setScale(scale);
+      this.scale = scale;
 
-
-    scale(scale) {
-      var radius = this.eventCircle.geometry.getRadius();
-      radius = radius * scale;
-      this.eventCircle.geometry.setRadius(radius);
-
-      if (this.isTriangleVertex) {
-        var triangleScale = this.image.getScale();
-        triangleScale *= scale;
-        this.image.setScale(triangleScale);
-
+      if (this.imageIsTriangle) {
+        this.image.setScale(scale);
       } else {
-        radius = this.image.geometry.getRadius();
-        radius = radius * scale;
-        this.image.geometry.setRadius(radius);
+        this.image.geometry.setRadius(this.circleImageRadius * scale);
       }
     }
 
@@ -211,13 +190,13 @@ function(provide, Circle, Rectangle, TriangleVertexImage, Placemark,
     /**
      * @param {number[]} prevPoint - Previuos point that define direction of Triangle.
      */
-    setTriangleVertex(prevPoint) {
-
-      this.isTriangleVertex = true;
+    setTriangleImage(prevPoint) {
+      this.imageIsTriangle = true;
+      var map = this.map;
 
       if (this.vertexIsOnMap) {
-        this.path.map.geoObjects.remove(this.image);
-        this.path.map.geoObjects.remove(this.heightPlacemark);
+        map.geoObjects.remove(this.image);
+        map.geoObjects.remove(this.heightPlacemark);
       }
 
       var point1 = prevPoint;
@@ -225,7 +204,8 @@ function(provide, Circle, Rectangle, TriangleVertexImage, Placemark,
 
       // Set Triangle Image
       this.image =
-        new TriangleVertexImage(point1, point2, this.color, this.strokeColor, this.path.triangleScale, this.imageZIndex);
+          new TriangleVertexImage(point1, point2, this.scale,
+              this.color, this.strokeColor, this.imageZIndex);
 
       // Set Placemark with Closing Cross
       var path = this.path;
@@ -254,7 +234,6 @@ function(provide, Circle, Rectangle, TriangleVertexImage, Placemark,
             this.constructor.superclass.clear.call(this);
           },
 
-
           getShape: function () {
             var parentElement = this.getParentElement();
             if (parentElement != null) {
@@ -271,7 +250,6 @@ function(provide, Circle, Rectangle, TriangleVertexImage, Placemark,
               return null;
             }
           },
-
 
           clickFunc: function(e) {
             e.preventDefault();
@@ -308,31 +286,29 @@ function(provide, Circle, Rectangle, TriangleVertexImage, Placemark,
       this.heightPlacemark.options.set('iconShape', MyIconShape);
 
       if (this.vertexIsOnMap) {
-        this.path.map.geoObjects.add(this.image);
-        this.path.map.geoObjects.add(this.heightPlacemark);
+        map.geoObjects.add(this.image);
+        map.geoObjects.add(this.heightPlacemark);
       }
     }
 
-    /**
-     * @param {number} radius - Radious of Vertex Image.
-     */
-    setCircleVertex(radius) {
 
-      this.isTriangleVertex = false;
+    setCircleImage() {
+      this.imageIsTriangle = false;
+      var map = this.map;
 
       if (this.vertexIsOnMap) {
-        this.path.map.geoObjects.remove(this.image);
-        this.path.map.geoObjects.remove(this.heightPlacemark);
+        map.geoObjects.remove(this.image);
+        map.geoObjects.remove(this.heightPlacemark);
       }
 
       var point = this.getCoordinates();
-      //var color = '#0000FF';
-      this.image = new ymaps.Circle([point, radius], {}, {
-        fillColor: this.color,
-        strokeColor: this.strokeColor,
-        strokeWidth: 2,
-        zIndex: this.imageZIndex
-      });
+      this.image = new ymaps.Circle(
+          [point, this.circleImageRadius * this.scale], {}, {
+            fillColor: this.color,
+            strokeColor: this.strokeColor,
+            strokeWidth: 2,
+            zIndex: this.imageZIndex
+          });
 
       // Set Placemark without Closing Cross
       var MyIconLayout = ymaps.templateLayoutFactory.createClass(
@@ -346,74 +322,31 @@ function(provide, Circle, Rectangle, TriangleVertexImage, Placemark,
       this.heightPlacemark.options.set('iconShape', null);
 
       if (this.vertexIsOnMap) {
-        this.path.map.geoObjects.add(this.image);
-        this.path.map.geoObjects.add(this.heightPlacemark);
+        map.geoObjects.add(this.image);
+        map.geoObjects.add(this.heightPlacemark);
       }
     }
 
 
     addToMap() {
-      if (!this.vertexIsOnMap && this.isTriangleVertex != null) {
-        this.path.map.geoObjects.add(this.eventCircle);
-        this.path.map.geoObjects.add(this.image);
-        this.path.map.geoObjects.add(this.heightPlacemark);
-        //this.path.map.geoObjects.add(this.chuteImage);
-        this.vertexIsOnMap = true;
+      if (this.image != null) {
+        if (!this.vertexIsOnMap) {
+          this.map.geoObjects.add(this.image);
+        }
+        super.addToMap();
+      } else {
+        console.warn('The image was not initialized yet!');
       }
     }
 
 
     removeFromMap() {
       if (this.vertexIsOnMap) {
-        this.path.map.geoObjects.remove(this.eventCircle);
-        this.path.map.geoObjects.remove(this.image);
-        this.path.map.geoObjects.remove(this.heightPlacemark);
-        this.vertexIsOnMap = false;
+        this.map.geoObjects.remove(this.image);
       }
-      this.removeChuteImageFromMap();
+      super.removeFromMap();
     }
 
-
-    addChuteImageToMap() {
-      if (!this.chuteIsOnMap) {
-        this.path.map.geoObjects.add(this.chuteImage);
-        this.chuteIsOnMap = true;
-      }
-    }
-
-    removeChuteImageFromMap() {
-      if (this.chuteIsOnMap) {
-        this.path.map.geoObjects.remove(this.chuteImage);
-        this.chuteIsOnMap = false;
-      }
-    }
-
-
-    /**
-     * Turn off single clicking on vertex.
-     * Remember, that single clicking on vertex
-     * shows or hides Placemark.
-     */
-    turnOffSingleClicking() {
-      if (this.singleClickingIsOn) {
-        this.singleClickingIsOn = false;
-      } else {
-        console.warn("Single clicking is already off!");
-      }
-    }
-
-    /**
-     * Turn on single clicking on vertex.
-     * Remember, that single clicking on vertex
-     * shows or hides Placemark.
-     */
-    turnOnSingleClicking() {
-      if (!this.singleClickingIsOn) {
-        this.singleClickingIsOn = true;
-      } else {
-        console.warn("Single clicking is already on!");
-      }
-    }
 
     /**
      * Process both click and dblclick on this vertex.
@@ -425,19 +358,8 @@ function(provide, Circle, Rectangle, TriangleVertexImage, Placemark,
       if (this.clickNumber == 1) {
         setTimeout(function() {
           if (this.clickNumber == 1) {  // Single Click (show/hide Placemark)
-            if (this.singleClickingIsOn) {
-              if (this.nextVertex != null) {
-                this.placemarkIsVisible = !this.placemarkIsVisible;
-                this.heightPlacemark.options.set('visible', this.placemarkIsVisible);
-                //console.log(this.heightPlacemark);
-                if (this.placemarkIsVisible) {
-                  this.path.map.geoObjects.remove(this.eventCircle);
-                  this.eventCircle.properties.set('hintContent', null);
-                  this.path.map.geoObjects.add(this.eventCircle);
-                } else {
-                  this.eventCircle.properties.set('hintContent', this.placemarkHintContent);
-                }
-              }
+            if (this.nextVertex != null) {
+              this.switchPlacemarkIsVisible();
             }
             this.clickNumber = 0;
           } else {  // Double Click (remove Vertex)
@@ -448,62 +370,32 @@ function(provide, Circle, Rectangle, TriangleVertexImage, Placemark,
       }
     }
 
-
-    /**
-     * Set the same coordinates for Event Circle,
-     * Vertex Placemark, Vertex Image.
-     * Change Direction of Triangles (if vertex is Triangle vertex)
-     * for this Vertex, prevVertex, nextVertex.
-     */
-    setCoordinates(point) {
-
-      this.eventCircle.geometry.setCoordinates(point);
-      this.heightPlacemark.geometry.setCoordinates(point);
-      this.chuteImage.setCoordinates(point);
-
-      // Note: it supposed in in case of Triangle Vertex, pervVertex != null.
-      if (this.isTriangleVertex) {
-         var prevPoint = this.prevVertex.eventCircle.geometry.getCoordinates();
-         // Here we calculate vertices of Image Triangle
-         this.image.setCoordinates(prevPoint, point);
-      } else {
-        // In this case, this.image is a Circle, so
-        // we can set coordinates of it center.
-        this.image.geometry.setCoordinates(point);
-      }
-
-      if (this.nextVertex != null && this.nextVertex.isTriangleVertex) {
-        var nextPoint = this.nextVertex.eventCircle.geometry.getCoordinates();
-        this.nextVertex.image.setCoordinates(point, nextPoint);
-      }
-    }
-
-
-    getCoordinates() {
-      return this.eventCircle.geometry.getCoordinates();
-    }
-
-
     setColor(color) {
       this.color = color;
       if (this.image != null) {
         this.image.options.set('fillColor', color);
+      } else {
+        console.warn('The image was not initialized yet!');
       }
     }
+
 
     setStrokeColor(color) {
       this.strokeColor = color;
       if (this.image != null) {
         this.image.options.set('strokeColor', color);
+      } else {
+        console.warn('The image was not initialized yet!');
       }
     }
+
 
     setHeight(height) {
       this.height = height;
 
       if (typeof(height) == 'number') {
-        this.printHint(Math.floor(height) + '&nbsp;м');
-        this.printPlacemark(Math.floor(height) + '&nbsp;м');
+        this.printPlacemarkAndHint(Math.floor(height) + '&nbsp;м');
+
         // Blue color.
         this.setColor('#0000FF');
         if (this.path.baseVertex == this) {
@@ -512,42 +404,14 @@ function(provide, Circle, Rectangle, TriangleVertexImage, Placemark,
         } else {
           this.setStrokeColor('#0000FF');
         }
-        //if (this.prevEdge != null) {
-        //  this.prevEdge.setColor('#0000FF');
-        //}
-
       } else {
-        this.printHint('&#x26D4;');
-        this.printPlacemark('&#x26D4;');
+        this.printPlacemarkAndHint('&#x26D4;');
         // Red color.
         this.setColor('#FF0000');
         this.setStrokeColor('#FF0000');
-        //if (this.prevEdge != null) {
-        //  this.prevEdge.setColor('#FF0000');
-        //}
-        /*
-        if (firstUnreachable) {
-          firstUnreachable = false;
-        } else {
-        }  */
-      }
-    }
-
-
-    /**
-     * @param {string} str - This will be printed in this.heightPlacemark
-     */
-    printPlacemark(str) {
-      this.heightPlacemark.properties.set('iconContent', str);
-    }
-
-    printHint(str) {
-      this.placemarkHintContent = str;
-
-      if (!this.placemarkIsVisible) {
-        this.eventCircle.properties.set('hintContent', str);
       }
     }
   }
+
   provide(Vertex);
 });

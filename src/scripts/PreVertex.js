@@ -1,66 +1,47 @@
 ymaps.modules.define('PreVertex', [
   'Circle',
   'Placemark',
-  'templateLayoutFactory',
   'ChuteImage',
-  'Constant'
+  'Constant',
 ],
-function(provide, Circle, Placemark, templateLayoutFactory,
-    ChuteImage, Constant) {
+function(provide, Circle, Placemark, ChuteImage, Constant) {
   /**
-   * 'Abstract' class. You should initialize this.image before
-   * using some methods.
    * Vertex consists of: Invisible Event Circle (it is used for catching
-   * events for Vertex), Vertex Placemark for Output, Chute Placemark,
-   * Link to Vertex Image (you should initialize it later).
+   * events for Vertex), Vertex Placemark for Output, Chute Placemark.
    */
   class PreVertex {
     /**
      * @param {AppMap} map - Yandex.Map.
-     * @param {null | number[]} coordinates - Yandex.Maps coordinates of center.
+     * @param {number} scale
+     * @param {number[] | null} coordinates - Yandex.Maps coordinates of center.
      */
-    constructor(map, coordinates = null) {
+    constructor(map, scale, coordinates = null) {
       this.map = map;
 
-      this.imageRadius = 4;
-      this.eventRadius =
-          Constant.isMobile ? 6*this.imageRadius : 3*this.imageRadius;
+      var radius = 4;
+      this.eventRadius = Constant.isMobile ? 6*radius : 3*radius;
 
       // Event Circle (invisible)
       this.eventCircle = new ymaps.Circle(
-          [coordinates, this.eventRadius], {}, {
-            // draggable: true,
-            // vertex will be invisible
+          [coordinates, this.eventRadius * scale], {}, {
             fillOpacity: 0,
             strokeOpacity: 0,
             strokeWidth: 0,
-            zIndex: 2
+            zIndex: 10
           });
 
       // Output Placemark
       this.heightPlacemark = new ymaps.Placemark(
-        coordinates, {iconContent: ''}, {iconOffset: [0, -35], cursor: 'arrow'});
-
-      // Vertex Image
-      this.image = null;
-      //this.imageZIndex = 1;
-      // Blue color
-      this.color = '#0000FF';
-      this.strokeColor = '#0000FF';
+        coordinates,
+        {iconContent: ''},
+        {iconOffset: [0, -35], cursor: 'arrow', zIndex: 8});
 
       // Image of chute which shows chute direction on the this.nextEdge
       this.chuteImage = new ChuteImage();
 
-      //this.placemarkHintContent = null;
       this.hintContent = null;
-
       this.placemarkIsVisible = true;
-
       this.vertexIsOnMap = false;
-
-      //this.printPlacemarkAndHint('EEE')
-
-      //this.printPlacemarkAndHint = this.printPlacemarkAndHint.bind(this);
 
       // remove standart map zoom for double click
       this.eventCircle.events.add('dblclick', function(e) {
@@ -71,36 +52,33 @@ function(provide, Circle, Placemark, templateLayoutFactory,
 
     /**
      * Set the same coordinates for Event Circle and Vertex Placemark.
-     * this.image should be added before using this function.
      * @param {null | number[]} point
      */
     setCoordinates(point) {
       this.eventCircle.geometry.setCoordinates(point);
       this.heightPlacemark.geometry.setCoordinates(point);
-      this.image.setCoordinates(point);
     }
 
 
     /**
-     * this.image should be added before using this function.
+     * Hiding Vertex.
      */
-    scale(scale) {
-      this.eventRadius = this.eventRadius * scale;
-      this.eventCircle.geometry.setRadius(this.eventRadius);
-
-      //this.imageRadius = this.imageRadius * scale;
-      //this.image.scale(scale);
+    hide() {
+      this.setCoordinates(null);
+      //this.chuteImage.setCoordinates(null);
+      this.chuteImage.hide();
     }
 
 
-    /**
-     * this.image should be added before using this function.
-     */
+    setScale(scale) {
+      this.eventCircle.geometry.setRadius(this.eventRadius * scale);
+    }
+
+
     addToMap() {
       if (!this.vertexIsOnMap) {
         this.map.geoObjects.add(this.eventCircle);
         this.map.geoObjects.add(this.heightPlacemark);
-        this.map.geoObjects.add(this.image);
         this.map.geoObjects.add(this.chuteImage);
         this.vertexIsOnMap = true;
       } else {
@@ -108,14 +86,11 @@ function(provide, Circle, Placemark, templateLayoutFactory,
       }
     }
 
-    /**
-     * this.image should be added before using this function.
-     */
+
     removeFromMap() {
       if (this.vertexIsOnMap) {
         this.map.geoObjects.remove(this.eventCircle);
         this.map.geoObjects.remove(this.heightPlacemark);
-        this.map.geoObjects.remove(this.image);
         this.map.geoObjects.remove(this.chuteImage);
         this.vertexIsOnMap = false;
       } else {
@@ -126,22 +101,6 @@ function(provide, Circle, Placemark, templateLayoutFactory,
 
     getCoordinates() {
       return this.eventCircle.geometry.getCoordinates();
-    }
-
-    /**
-     * this.image should be added before using this function.
-     */
-    setColor(color) {
-      this.color = color;
-      this.image.options.set('fillColor', color);
-    }
-
-    /**
-     * this.image should be added before using this function.
-     */
-    setStrokeColor(color) {
-      this.strokeColor = color;
-      this.image.options.set('strokeColor', color);
     }
 
 
@@ -159,41 +118,22 @@ function(provide, Circle, Placemark, templateLayoutFactory,
     }
 
 
-    printPlacemarkAndHint(str) {
+    printPlacemark(str) {
+      this.heightPlacemark.properties.set('iconContent', '' + str);
+    }
+
+    printHint(str) {
       this.hintContent = '' + str;
-      this.heightPlacemark.properties.set('iconContent', '' + this.hintContent);
       if (!this.placemarkIsVisible) {
         this.eventCircle.properties.set('hintContent', '' + this.hintContent);
       }
     }
 
-
-
-    /**
-     * @param {null | string} str - This will be printed in this.heightPlacemark
-     */
-    printPlacemark(str) {
-      if (str == null) {
-        // Stop sign
-        this.heightPlacemark.properties.set('iconContent', '&#x26D4;');
-      } else {
-        this.heightPlacemark.properties.set('iconContent', str + "&nbsp;м");
-      }
-    }
-
-    printHint(str) {
-      //this.placemarkHintContent = str;
-
-      if (!this.placemarkIsVisible) {
-        if (str == null) {
-          // Stop sign
-          this.eventCircle.properties.set('iconContent', '&#x26D4;');
-        } else {
-          this.eventCircle.properties.set('iconContent', str + '&nbsp;м');
-        }
-        //this.eventCircle.properties.set('hintContent', str);
-      }
+    printPlacemarkAndHint(str) {
+      this.printPlacemark(str);
+      this.printHint(str);
     }
   }
+
   provide(PreVertex);
 });

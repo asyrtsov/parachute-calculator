@@ -11,7 +11,7 @@ function(provide, Wind) {
    */
   class WindList {
     constructor(map) {
-      //this.map = map;
+      this.map = map;
 
       // Surface wind: 5 m/sec, West
       var angle = 0;
@@ -23,10 +23,16 @@ function(provide, Wind) {
       this.lastWind = this.firstWind;
       this.numberOfWinds = 1;
 
-      //this.windVertexRadius = 4;
+      this.calculator = null;
+    }
 
-      this.pathBoundChange = this.pathBoundChange.bind(this);
-      map.events.add('boundschange', this.pathBoundChange);
+    setCalculator(calculator) {
+      this.calculator = calculator;
+      var wind = this.firstWind;
+      while(wind != null) {
+        wind.vertex.chuteImage.setCalculator(calculator);
+        wind = wind.nextWind;
+      }
     }
 
 
@@ -40,6 +46,7 @@ function(provide, Wind) {
       this.lastWind.setNextWind(wind);
       this.lastWind = wind;
       this.numberOfWinds++;
+      wind.vertex.chuteImage.setCalculator(this.calculator);
       this.sortList();
     }
 
@@ -140,30 +147,10 @@ function(provide, Wind) {
     }
 
 
-    setNullCoordinates() {
+    hide() {
       var wind = this.firstWind;
       while(wind != null) {
-        wind.vertex.setNullCoordinates();
-        wind = wind.nextWind;
-      }
-    }
-
-
-    pathBoundChange(e) {
-      var newZoom = e.get('newZoom'),
-            oldZoom = e.get('oldZoom');
-      if (newZoom != oldZoom) {
-        var scale = (2**(oldZoom - newZoom));
-        this.scale(scale);
-      }
-    }
-
-
-    scale(scale) {
-      //this.windVertexRadius = this.windVertexRadius * scale;
-      var wind = this.firstWind;
-      while (wind != null) {
-        wind.vertex.scale(scale);
+        wind.vertex.hide();
         wind = wind.nextWind;
       }
     }
