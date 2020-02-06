@@ -20,6 +20,8 @@ function(provide, Circle, templateLayoutFactory, PreVertex) {
       this.height = height;
       this.scale = scale;
 
+      this.type = 'windVertex';
+
       this.setScale = this.setScale.bind(this);
       this.map.events.add('boundschange', this.setScale);
 

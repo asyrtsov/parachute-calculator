@@ -29,6 +29,8 @@ function(provide, Circle, Rectangle, TriangleVertexImage,
       this.path = path;
       this.scale = scale;
 
+      this.type = 'pathVertex';
+
       this.setScale = this.setScale.bind(this);
       map.events.add('boundschange', this.setScale);
 
@@ -85,7 +87,9 @@ function(provide, Circle, Rectangle, TriangleVertexImage,
         if (this.path.baseVertex != this && this.height != null && this.height >= 0) {
           this.path.setBaseVertex(this);
         } else if (this.height < 0) {
-          alert('Нельзя вершину с отрицательной высотой делать базовой');
+          alert('Нельзя вершину с отрицательной высотой делать базовой!');
+        } else if (this.height == null) {
+          alert('Нельзя вершину с неопределенной высотой делать базовой!');
         }
       }.bind(this));
 

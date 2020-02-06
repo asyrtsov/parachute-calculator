@@ -57,6 +57,8 @@ function(provide, Vertex, Edge, Constant) {
 
           this.lastVertex = vertex;
           this.lastVertex.setIsBetweenBaseAndLast(true);
+
+          vertex.prevVertex.chuteImage.show();
         } else {
           // We should add vertex to the beginning of path
           vertex.setCircleImage();
@@ -69,11 +71,13 @@ function(provide, Vertex, Edge, Constant) {
 
           this.firstVertex = vertex;
           this.firstVertex.setIsBetweenBaseAndLast(false);
+
+          vertex.chuteImage.show();
         }
 
         vertex.addToMap();
         edge.addToMap();
-        vertex.prevVertex.chuteImage.show();
+        //vertex.prevVertex.chuteImage.show();
         this.length++;
 
         this.calculator.calculateHeight(isAddedtoEnd);
