@@ -76,6 +76,7 @@ function(provide, WindVertex) {
      */
     setHeight(height) {
       this.height = height;
+      this.vertex.height = height;
       this.vertex.printPlacemarkAndHint(Math.floor(height));
     }
 
