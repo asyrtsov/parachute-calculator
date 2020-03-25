@@ -48,10 +48,18 @@ function(provide, Circle, templateLayoutFactory, PreVertex) {
       this.nextVertex = null;
       this.edge = null;
 
+
+      this.eventCircle.events.add('contextmenu', function(e) {
+        e.stopPropagation();
+        this.switchPlacemarkIsVisible();
+      }.bind(this));
+
+
+      /*
       this.eventCircle.events.add('click', function(e) {
         e.stopPropagation();  // remove standart zoom for click
         this.switchPlacemarkIsVisible();
-      }.bind(this));
+      }.bind(this));  */
     }
 
 

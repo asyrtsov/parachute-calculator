@@ -15,15 +15,15 @@ function(provide, Polygon, VectorMath) {
      * @param {Vertex} prevVertex
      * @param {Vertex} nextVertex
      * @param {Path} edgeImageWidthWidth
-     * @param {boolean} chuteDirection
      */
-    constructor(prevVertex, nextVertex, path, chuteDirection = true) {
+    //constructor(prevVertex, nextVertex, path, chuteDirection = true) {
+    constructor(prevVertex, nextVertex, path) {
       this.prevVertex = prevVertex;
       this.nextVertex = nextVertex;
       this.path = path;
       this.map = path.map;
       // true - if Chute motion and Edge has the same direction
-      this.chuteDirection = chuteDirection;
+      //this.chuteDirection = chuteDirection;
 
       this.edgeWidth = 1;
       this.edgeImageWidth = this.edgeWidth / 10; // edgeImageWidth;
@@ -113,6 +113,7 @@ function(provide, Polygon, VectorMath) {
     }
 
 
+    /*
     getChuteDirection() {
       return this.chuteDirection;
     }
@@ -120,7 +121,7 @@ function(provide, Polygon, VectorMath) {
     getColor() {
       var color = this.chuteDirection ? "#0000FF" : "#000050";
       return color;
-    }
+    }  */
 
 
     /**
@@ -139,6 +140,7 @@ function(provide, Polygon, VectorMath) {
             this.clickNumber = 0;
           } else {
             if (this.clickNumber == 2) {  // Double Click (change chute direction)
+              /*
               this.chuteDirection = !this.chuteDirection;
               let color = this.getColor();
               this.image.options.set("fillColor", color);
@@ -146,7 +148,7 @@ function(provide, Polygon, VectorMath) {
               this.clickNumber = 0;
 
               this.path.calculator.calculateHeight();
-              this.path.printHeightsAndWindPoints();
+              this.path.printHeightsAndWindPoints();  */
             }
           }
         }.bind(this), 200);

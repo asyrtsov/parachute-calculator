@@ -39,6 +39,8 @@ function(provide, Circle, Placemark, ChuteImage, Constant) {
       // Image of chute which shows chute direction on the this.nextEdge
       this.chuteImage = new ChuteImage();
 
+      this.chuteImageBack = new ChuteImage();
+
       this.hintContent = null;
       this.placemarkIsVisible = true;
       this.vertexIsOnMap = false;
@@ -59,6 +61,11 @@ function(provide, Circle, Placemark, ChuteImage, Constant) {
       this.heightPlacemark.geometry.setCoordinates(point);
     }
 
+    setCalculator(calculator) {
+      this.chuteImage.setCalculator(calculator);
+      this.chuteImageBack.setCalculator(calculator);
+    }
+
 
     /**
      * Hiding Vertex.
@@ -67,6 +74,7 @@ function(provide, Circle, Placemark, ChuteImage, Constant) {
       this.setCoordinates(null);
       //this.chuteImage.setCoordinates(null);
       this.chuteImage.hide();
+      this.chuteImageBack.hide();
     }
 
 
@@ -80,6 +88,7 @@ function(provide, Circle, Placemark, ChuteImage, Constant) {
         this.map.geoObjects.add(this.eventCircle);
         this.map.geoObjects.add(this.heightPlacemark);
         this.map.geoObjects.add(this.chuteImage);
+        this.map.geoObjects.add(this.chuteImageBack);
         this.vertexIsOnMap = true;
       } else {
         console.warn('Vertex has already been added to Map!');
@@ -92,6 +101,7 @@ function(provide, Circle, Placemark, ChuteImage, Constant) {
         this.map.geoObjects.remove(this.eventCircle);
         this.map.geoObjects.remove(this.heightPlacemark);
         this.map.geoObjects.remove(this.chuteImage);
+        this.map.geoObjects.remove(this.chuteImageBack);
         this.vertexIsOnMap = false;
       } else {
         console.warn('Vertex has already been removed from Map!');

@@ -78,6 +78,7 @@ function(provide, Constant, Wind) {
         map.arrow.setCoordinates(mapCenter);
         // path.clear() will print results too
         path.clear();
+        clearVertexDirections();
       });
     }
 
@@ -94,22 +95,20 @@ function(provide, Constant, Wind) {
         if ((chutehorvel>=0) && (chutehorvel<=Constant.maxChuteHorizontalVelocity)) {
           chute.horizontalVel = chutehorvel;
           $("#chutehorvel").val(chutehorvel);
-        } else {
+          clearVertexDirections();
+          if (path.length > 0) {
+            calculator.calculateHeight();
+          }
+        } else {  // Incorrect value.
           if (Number.isNaN(chutehorvel)) {
             alert('Недопустимое значение!');
+          } else if (chutehorvel < 0) {
+            alert('Скорость должна быть неотрицательной!');
           } else {
-            if (chutehorvel < 0) {
-              alert('Скорость должна быть неотрицательной!');
-            } else {
-              alert('Скорость должна быть не больше ' + Constant.maxChuteHorizontalVelocity + 'м/с !');
-            }
+            alert('Скорость должна быть не больше ' + Constant.maxChuteHorizontalVelocity + 'м/с !');
           }
           $("#chutehorvel").val(chute.horizontalVel);
           return;
-        }
-
-        if (path.length > 0) {
-          calculator.calculateHeight();
         }
       });
 
@@ -118,22 +117,20 @@ function(provide, Constant, Wind) {
         if (( chutevervel>=0) && (chutevervel<=Constant.maxChuteVerticalVelocity)) {
           chute.verticalVel = chutevervel;
           $("#chutevervel").val(chutevervel);
-        } else {
+          clearVertexDirections();
+          if (path.length > 0) {
+            calculator.calculateHeight();
+          }
+        } else {  // Incorrect value.
           if (Number.isNaN(chutevervel)) {
             alert('Недопустимое значение!');
+          } else if (chutevervel < 0) {
+            alert('Скорость должна быть неотрицательной!');
           } else {
-            if (chutevervel < 0) {
-              alert('Скорость должна быть неотрицательной!');
-            } else {
-              alert('Скорость должна быть не больше ' + Constant.maxChuteVerticalVelocity + 'м/с !');
-            }
+            alert('Скорость должна быть не больше ' + Constant.maxChuteVerticalVelocity + 'м/с !');
           }
           $("#chutevervel").val(chute.verticalVel);
           return;
-        }
-
-        if (path.length > 0) {
-          calculator.calculateHeight();
         }
       });
     }
@@ -149,8 +146,9 @@ function(provide, Constant, Wind) {
         var n = Number.parseFloat($("#baseVertexHeight").val());
 
         if ((n >= 0) && (n <= Constant.maxHeight)) {
-            path.setBaseVertexHeight(n);
-            $("#baseVertexHeight").val(Math.floor(n));
+          clearVertexDirections();
+          path.setBaseVertexHeight(n);
+          $("#baseVertexHeight").val(Math.floor(n));
         } else {
 
           if (Number.isNaN(n)) {
@@ -182,7 +180,6 @@ function(provide, Constant, Wind) {
       $("#windValueInput").prop("max", "" + Constant.maxWindValue);
       // Draw scales for Range Input Sliders in WindInput window
       drawWindScales();
-
 
       drawWindScreen();
 
@@ -307,6 +304,7 @@ function(provide, Constant, Wind) {
                     windList.sortList();
                   }
 
+                  clearVertexDirections();
                   if (path.length > 0) {
                     calculator.calculateHeight();
                   }
@@ -316,13 +314,12 @@ function(provide, Constant, Wind) {
               } else {  // height > Constant.maxHeight
                 alertError('Высота должны быть не больше ' + Constant.maxHeight + ' м!');
               }
-            } else {  // height <= 0
-              if (height == 0) {
-                alertError('Поверхностный ветер уже задан!');
-              } else {  // height < 0
-                alertError('Высота должна быть больше нуля!');
-              }
+            } else if (height == 0) {
+              alertError('Поверхностный ветер уже задан!');
+            } else {  // height < 0
+              alertError('Высота должна быть больше нуля!');
             }
+
           } else {
             alertError('Недопустимое значение!');
           }
@@ -347,6 +344,8 @@ function(provide, Constant, Wind) {
 
           $("#menuArrow").css("transform", "rotate(" + (-1)*angle + "deg)");
 
+          clearVertexDirections();
+
           if ((wind.height != null) && (path.length > 0)) {
             calculator.calculateHeight();
           }
@@ -363,6 +362,8 @@ function(provide, Constant, Wind) {
           }
 
           $("#menuWindValue").html(value + " м/с");
+
+          clearVertexDirections();
 
           if ((wind.height != null) && (path.length > 0)) {
             calculator.calculateHeight();
@@ -423,6 +424,27 @@ function(provide, Constant, Wind) {
       });
     }
 
+    /**
+     * Clearing directions: skydiver will fly face forward.
+     * We will clear direction after all changing in
+     * Dialog windows.
+     */
+    function clearVertexDirections() {
+      var wind = windList.firstWind;
+      while(true) {
+        wind.vertex.chuteImage.chuteDirection = true;
+        wind.vertex.chuteImageBack.chuteDirection = true;
+        wind = wind.nextWind;
+        if (wind == null) break;
+      }
+      var vertex = path.firstVertex;
+      while(true) {
+        if (vertex == null) break;
+        vertex.chuteImage.chuteDirection = true;
+        vertex.chuteImageBack.chuteDirection = true;
+        vertex = vertex.nextVertex;
+      }
+    }
   }
 
   provide(DialogWindows);

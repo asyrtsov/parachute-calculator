@@ -45,6 +45,7 @@ function(provide, Circle, Rectangle, TriangleVertexImage,
       this.imageZIndex = 5;
       // null - for undefined (this.image = null),
       // true - for Triangle Image, false - for Circle Image.
+      // You should use this.imageIsTriangle only if this.image != null.
       this.imageIsTriangle = null;
       this.circleImageRadius = 4;
 
@@ -52,12 +53,16 @@ function(provide, Circle, Rectangle, TriangleVertexImage,
       this.color = '#0000FF';
       this.strokeColor = '#0000FF';
 
-      // References to some another Vertices.
+      this.heightPlacemarkColor = 'bg-info';
+
+      // References to previous and next Vertices.
       this.prevVertex = null;
       this.nextVertex = null;
 
       this.prevEdge = null;
       this.nextEdge = null;
+
+      this.nextWind = null;
 
       // true if this Vertex is situated between
       // Base Vertex and Last Vertex of Path.
@@ -84,13 +89,18 @@ function(provide, Circle, Rectangle, TriangleVertexImage,
 
       this.eventCircle.events.add('contextmenu', function(e) {
         e.stopPropagation();
+        if (this.nextVertex != null) {
+          this.switchPlacemarkIsVisible();
+        }
+
+        /*
         if (this.path.baseVertex != this && this.height != null && this.height >= 0) {
           this.path.setBaseVertex(this);
         } else if (this.height < 0) {
           alert('Нельзя вершину с отрицательной высотой делать базовой!');
         } else if (this.height == null) {
           alert('Нельзя вершину с неопределенной высотой делать базовой!');
-        }
+        }  */
       }.bind(this));
 
 
@@ -138,10 +148,12 @@ function(provide, Circle, Rectangle, TriangleVertexImage,
       super.setScale(scale);
       this.scale = scale;
 
-      if (this.imageIsTriangle) {
-        this.image.setScale(scale);
-      } else {
-        this.image.geometry.setRadius(this.circleImageRadius * scale);
+      if (this.image != null) {
+        if (this.imageIsTriangle) {
+          this.image.setScale(scale);
+        } else {
+          this.image.geometry.setRadius(this.circleImageRadius * scale);
+        }
       }
     }
 
@@ -214,10 +226,11 @@ function(provide, Circle, Rectangle, TriangleVertexImage,
       // Set Placemark with Closing Cross
       var path = this.path;
       var MyIconLayout = ymaps.templateLayoutFactory.createClass(
-        '<div class="px-2 py-1 bg-info d-inline-flex rounded border align-items-center"' +
+        '<div class="px-2 py-1 ' + this.heightPlacemarkColor +
+                  ' d-inline-flex rounded border align-items-center"' +
               'style="font-size: 11px; font-family: Arial, Verdana, sans-serif;">' +
-          '<div class="bg-info pr-2">$[properties.iconContent]</div>' +
-          '<div class="bg-info placemarkCross placemarkCrossImage"></div>' +
+          '<div class="' + this.heightPlacemarkColor + ' pr-2">$[properties.iconContent]</div>' +
+          '<div class="' + this.heightPlacemarkColor + ' placemarkCross placemarkCrossImage"></div>' +
           //'<div class="p-0 bg-info hoverColor">&#10006;</div>' +
         '</div>', {
           build: function () {
@@ -316,7 +329,7 @@ function(provide, Circle, Rectangle, TriangleVertexImage,
 
       // Set Placemark without Closing Cross
       var MyIconLayout = ymaps.templateLayoutFactory.createClass(
-        '<div class="px-2 py-1 bg-info text-center rounded border d-inline-block"' +
+        '<div class="px-2 py-1 ' + this.heightPlacemarkColor + ' text-center rounded border d-inline-block"' +
               'style="font-size: 11px; font-family: Arial, Verdana, sans-serif;">' +
           '$[properties.iconContent]' +
         '</div>'
@@ -362,8 +375,16 @@ function(provide, Circle, Rectangle, TriangleVertexImage,
       if (this.clickNumber == 1) {
         setTimeout(function() {
           if (this.clickNumber == 1) {  // Single Click (show/hide Placemark)
-            if (this.nextVertex != null) {
-              this.switchPlacemarkIsVisible();
+            //if (this.nextVertex != null) {
+            //  this.switchPlacemarkIsVisible();
+            //}
+
+            if (this.path.baseVertex != this && this.height != null && this.height >= 0) {
+              this.path.setBaseVertex(this);
+            } else if (this.height < 0) {
+              alert('Нельзя вершину с отрицательной высотой делать базовой!');
+            } else if (this.height == null) {
+              alert('Нельзя вершину с неопределенной высотой делать базовой!');
             }
             this.clickNumber = 0;
           } else {  // Double Click (remove Vertex)
@@ -374,20 +395,65 @@ function(provide, Circle, Rectangle, TriangleVertexImage,
       }
     }
 
+    /**
+     *
+     * @param {String} color - RGB.
+     * Note: You should reRenderImageColors() or reRender() Vertex
+     * or setTriangleImage() or setCircleImage()
+     * after changing heightPlacemarkColor.
+     */
     setColor(color) {
       this.color = color;
+      /*
       if (this.image != null) {
         this.image.options.set('fillColor', color);
+      } else {
+        console.warn('The image was not initialized yet!');
+      } */
+    }
+
+
+    /**
+     *
+     * @param {String} color - RGB.
+     */
+    setStrokeColor(color) {
+      this.strokeColor = color;
+      /*
+      if (this.image != null) {
+        this.image.options.set('strokeColor', color);
+      } else {
+        console.warn('The image was not initialized yet!');
+      }  */
+    }
+
+    reRenderImageColors() {
+      if (this.image != null) {
+        this.image.options.set('fillColor', this.color);
+        this.image.options.set('strokeColor', this.strokeColor);
       } else {
         console.warn('The image was not initialized yet!');
       }
     }
 
+    /**
+     * @param {String} color - Boostrap color class:
+     * bg-info, bg-warning, ...
+     * Note: You should reRender() Vertex or setTriangleImage() or
+     * setCircleImage() after changing heightPlacemarkColor.
+     */
+    setHeightPlacemarkColor(color) {
+      this.heightPlacemarkColor = color;
+    }
 
-    setStrokeColor(color) {
-      this.strokeColor = color;
+
+    reRender() {
       if (this.image != null) {
-        this.image.options.set('strokeColor', color);
+        if (this.imageIsTriangle) {
+          this.setTriangleImage(this.prevVertex.getCoordinates());
+        } else {
+          this.setCircleImage();
+        }
       } else {
         console.warn('The image was not initialized yet!');
       }
@@ -404,7 +470,7 @@ function(provide, Circle, Rectangle, TriangleVertexImage,
         this.setColor('#0000FF');
         if (this.path.baseVertex == this) {
           // Yellow color.
-          this.setStrokeColor('#FFFF00');
+          this.setStrokeColor('#FFC107');
         } else {
           this.setStrokeColor('#0000FF');
         }
@@ -414,6 +480,7 @@ function(provide, Circle, Rectangle, TriangleVertexImage,
         this.setColor('#FF0000');
         this.setStrokeColor('#FF0000');
       }
+      this.reRenderImageColors();
     }
   }
 

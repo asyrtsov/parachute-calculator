@@ -30,7 +30,8 @@ function(provide, Wind) {
       this.calculator = calculator;
       var wind = this.firstWind;
       while(wind != null) {
-        wind.vertex.chuteImage.setCalculator(calculator);
+        //wind.vertex.chuteImage.setCalculator(calculator);
+        wind.vertex.setCalculator(calculator);
         wind = wind.nextWind;
       }
     }
@@ -46,7 +47,8 @@ function(provide, Wind) {
       this.lastWind.setNextWind(wind);
       this.lastWind = wind;
       this.numberOfWinds++;
-      wind.vertex.chuteImage.setCalculator(this.calculator);
+      //wind.vertex.chuteImage.setCalculator(this.calculator);
+      wind.vertex.setCalculator(this.calculator);
       this.sortList();
     }
 
@@ -152,6 +154,21 @@ function(provide, Wind) {
       while(wind != null) {
         wind.vertex.hide();
         wind = wind.nextWind;
+      }
+    }
+
+
+
+    /**
+     * Clearing directions: skydiver will fly face forward.
+     */
+    clearDirections() {
+      var wind = this.firstWind;
+      while(true) {
+        wind.vertex.chuteImage.chuteDirection = true;
+        wind.vertex.chuteImageBack.chuteDirection = true;
+        wind = wind.nextWind;
+        if (wind == null) break;
       }
     }
   }
