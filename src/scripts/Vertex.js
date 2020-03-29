@@ -35,7 +35,8 @@ function(provide, Circle, Rectangle, TriangleVertexImage,
       map.events.add('boundschange', this.setScale);
 
       this.eventCircle.options.set('draggable', true);
-      this.eventCircle.options.set('zIndex', 12);
+      this.eventCircle.options.set('zIndex', 120);
+      //console.log(this.eventCircle.options);
       //this.heightPlacemark.options.set('zIndex', 1);
 
       // Image of Vertex. Object of classes: ymaps.Circle or TriangleVertexImage.
@@ -271,7 +272,7 @@ function(provide, Circle, Rectangle, TriangleVertexImage,
           clickFunc: function(e) {
             e.preventDefault();
             if (this.path.length > 2) {
-              if (confirm("Удалить все метки? \n\n (для удаления только одной метки дважды щелкните по ней)")) {
+              if (confirm("Удалить путь? \n\n (для удаления только одной вершины дважды щелкните по ней)")) {
                 this.path.clear();
               };
             } else {

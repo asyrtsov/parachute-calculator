@@ -57,6 +57,10 @@ function init() {
       }
     });
 
+    map.events.add('boundschange', function() {
+      calculator.calculateHeight();
+    });
+
     /**
      * Menu initialization
      */

@@ -27,17 +27,27 @@ function(provide, Constant, Wind) {
 
       $('#helpLinkContent').css('display', 'block');
       $('#helpLink').addClass('active');
+      //$('#helpLink').css('color', '#0044BB');
+     // $('#helpLink').css('color', '#000000');
+      //$('#helpLink').css('font-weight', '700');
+      DialogWindows.prevLinkId = 'helpLink';
 
       $('nav a').on('click', function(e) {
         e.preventDefault();
 
         let currentLinkId = $(this).attr('id');
 
-        $('#' + DialogWindows.prevLinkId + "Content").css('display', 'none');
-        $('#' + currentLinkId + "Content").css('display', 'block');
+        $('#' + DialogWindows.prevLinkId + 'Content').css('display', 'none');
+        $('#' + currentLinkId + 'Content').css('display', 'block');
 
+       // $('#' + DialogWindows.prevLinkId).css('color', 'rgb(0, 0, 0, 0.5)');
+        //$('#' + DialogWindows.prevLinkId).css('color', '#999999');
+       // $('#' + DialogWindows.prevLinkId).css('font-weight', '400');
         $('#' + DialogWindows.prevLinkId).removeClass('active');
         $(this).addClass('active');
+        //$(this).css('color', '#0044BB');
+       // $(this).css('color', '#000000');
+       // $(this).css('font-weight', '700');
 
         DialogWindows.prevLinkId = currentLinkId;
       });

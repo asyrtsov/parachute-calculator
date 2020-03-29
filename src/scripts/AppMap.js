@@ -73,6 +73,28 @@ function(provide, Map, ZoomControl, Constant,
     }
 
     /**
+     *
+     * @param {number[]} point
+     */
+    getPixelCoordinates(point) {
+      var projection = this.options.get('projection');
+      return (this.converter.globalToPage(
+          projection.toGlobalPixels(
+              point,
+              this.getZoom()
+          )
+      ));
+    }
+
+    getPixelDistance(pointA, pointB) {
+      var x = this.getPixelCoordinates(pointB)[0] -
+          this.getPixelCoordinates(pointA)[0];
+      var y = this.getPixelCoordinates(pointB)[1] -
+          this.getPixelCoordinates(pointA)[1];
+       return Math.sqrt(x**2 + y**2);
+    }
+
+    /**
      * Processing of yandex.maps search
      */   /*
     setSearchProcessor(calculator) {

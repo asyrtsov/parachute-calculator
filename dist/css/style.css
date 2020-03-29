@@ -214,11 +214,6 @@ label {
   padding-bottom: 6px;
 }
 
-#windInput .form-group {
-  //border-bottom: 1px solid rgb(222, 226, 230);
-  //border-top: 1px solid rgb(222, 226, 230);
-}
-
 
 .navbar {
   padding-top: 0;
@@ -230,18 +225,23 @@ label {
   padding-bottom: 16px;
 }
 
-.nav-link:hover {
-  background-color: #ffeaa02d;
+.active {
+  font-weight: 700;
+  color: #000000;
 }
+
 
 #helpLinkContent a {
   color: #0044BB;
   text-decoration: none;
 }
 
-#helpLinkContent a:hover {
-  color: red;
+@media only screen and (min-width: 768px) {
+  #helpLinkContent a:hover {
+    color: red;
+  }
 }
+
 
 
 /*

@@ -53,7 +53,7 @@ function(provide, Placemark, templateLayoutFactory, Constant) {
     }
 
     processChuteImageClick() {
-      console.log('click');
+      //console.log('click');
       this.chuteDirection = !this.chuteDirection;
       if (this.calculator != null) {
         this.calculator.calculateHeight();
