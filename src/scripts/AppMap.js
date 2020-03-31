@@ -8,21 +8,18 @@ ymaps.modules.define('AppMap', [
 ],
 function(provide, Map, ZoomControl, Constant,
     MenuButton, OutputElement, Arrow) {
-  /**
-   * @extends Map
-   */
+
   class AppMap extends Map {
-
     constructor() {
-
       // Array of Dropzones and their coordinates.
       var dz = [
-        {name: "Коломна", mapCenter: [55.091289443603706, 38.917269584802675]},
-        {name: "Пущино", mapCenter: [54.78929269708931,37.64268598670033]},
-        {name: "Ватулино", mapCenter: [55.663193308717396,36.14121807608322]}
+        {name: 'Коломна', mapCenter: [55.091289443603706, 38.917269584802675]},
+        {name: 'Пущино', mapCenter: [54.78929269708931,37.64268598670033]},
+        {name: 'Ватулино', mapCenter: [55.663193308717396,36.14121807608322]},
+        {name: 'Skydive Dubai', mapCenter: [25.089337722640472,55.13236164813229]},
       ];
 
-      super("map", {
+      super('map', {
         center: dz[0].mapCenter,
         zoom: Constant.defaultZoom
       }, {
@@ -30,9 +27,10 @@ function(provide, Map, ZoomControl, Constant,
       });
 
       this.dz = dz;
+      this.path = null;
 
       // view from space
-      this.setType("yandex#satellite");
+      this.setType('yandex#satellite');
       this.cursors.push('arrow');
       this.controls.remove('trafficControl');
       this.controls.remove('zoomControl');
@@ -51,9 +49,8 @@ function(provide, Map, ZoomControl, Constant,
       this.searchControl.options.set('position', {top: 10, left: 45});
 
       // Settings menu (ymaps.Button)
-      var settingsButton = new MenuButton("Настройки", "images/icon_menu.svg",
-        "#settingsMenu", "#settingsMenuDarkScreen");
-      //this.controls.add(settingsButton, {position: {top: 45, left: 10}});
+      var settingsButton = new MenuButton('Настройки', 'images/icon_menu.svg',
+          '#settingsMenu', '#settingsMenuDarkScreen');
       this.controls.add(settingsButton, {position: {top: 10, left: 10}});
 
       // Output for Surface wind parameters (ymaps.Button)
@@ -69,12 +66,32 @@ function(provide, Map, ZoomControl, Constant,
         e.preventDefault();
       });
 
-      //this.menu = null;
+      this.moveArrow = this.moveArrow.bind(this);
+      this.events.add('boundschange', this.moveArrow);
+
+      this.searchControl.events.add('resultshow', function(e) {
+        this.processResultShow(e);
+      }.bind(this));
     }
 
     /**
-     *
-     * @param {number[]} point
+     * If arrow is out of the screen, we should
+     * shift it to to the center of the screen.
+     */
+    moveArrow() {
+      var arrowGeoCoordinates =
+          this.arrow.geometry.getCoordinates();
+      var arrowPixelCoordinates =
+          this.getPixelCoordinates(arrowGeoCoordinates);
+      var [x, y] = arrowPixelCoordinates;
+      if (x < 0 || y < 0 || x > screen.width || y > screen.height) {
+        this.arrow.setCoordinates(this.getCenter());
+      }
+    }
+
+    /**
+     * @param {number[]} point - Geo object coordinates.
+     * @returns {number[]} - Pixel coordinates.
      */
     getPixelCoordinates(point) {
       var projection = this.options.get('projection');
@@ -94,38 +111,29 @@ function(provide, Map, ZoomControl, Constant,
        return Math.sqrt(x**2 + y**2);
     }
 
+    setPath(path) {
+      this.path = path;
+    }
+
     /**
-     * Processing of yandex.maps search
-     */   /*
-    setSearchProcessor(calculator) {
-
-      this.calculator = calculator;
-      this.path = calculator.path;
-      this.windList = calculator.windList;
-
-      this.defaultZoom = Constant.defaultZoom;
-
-      this.searchControl.events.add('resultshow', function(e) {
-
-        this.path.clear();
-        this.setZoom(this.defaultZoom);
-        //this.windList.shiftList(this.getCenter());
-        this.map.arrow.setCoordinates(this.map.getCenter());
-
-        var index = e.get('index');
-        var geoObjectsArray = this.searchControl.getResultsArray();
-        var resultName = geoObjectsArray[index].properties.get('name');
-
-        var newDz = {
-          name: resultName,
-          mapCenter: this.getCenter()
-        };
-        this.dz.push(newDz);
-        $("#dz").append("<option>" + newDz.name + "</option>");
-        $("#dz").children()[this.dz.length - 1].selected = true;
-      }.bind(this));
-    }  */
-
+     * Processing Search result event.
+     * You should set up this.path before using this function.
+     */
+    processResultShow(e) {
+      this.path.clear();
+      this.setZoom(Constant.defaultZoom);
+      this.arrow.setCoordinates(this.getCenter());
+      var index = e.get('index');
+      var geoObjectsArray = this.searchControl.getResultsArray();
+      var resultName = geoObjectsArray[index].properties.get('name');
+      var newDz = {
+        name: resultName,
+        mapCenter: this.getCenter()
+      };
+      this.dz.push(newDz);
+      $('#dz').append('<option>' + newDz.name + '</option>');
+      $('#dz').children()[this.dz.length - 1].selected = true;
+    };
   }
   provide(AppMap);
 });

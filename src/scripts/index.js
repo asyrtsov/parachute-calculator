@@ -31,6 +31,7 @@ function init() {
 
     // List of Vertices and Edges
     var path = new Path(map);
+    map.setPath(path);
 
     // Calculator will make all computations
     var calculator = new Calculator(path, chute, windList);
