@@ -13,7 +13,7 @@ function(provide, Map, ZoomControl, Constant,
     constructor() {
       // Array of Dropzones and their coordinates.
       var dz = [
-        {name: 'Коломна', mapCenter: [55.091289443603706, 38.917269584802675]},
+        {name: 'Коломна!!!', mapCenter: [55.091289443603706, 38.917269584802675]},
         {name: 'Пущино', mapCenter: [54.78929269708931,37.64268598670033]},
         {name: 'Ватулино', mapCenter: [55.663193308717396,36.14121807608322]},
         {name: 'Skydive Dubai', mapCenter: [25.089337722640472,55.13236164813229]},
