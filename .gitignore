@@ -1,4 +1,7 @@
 gitignore/
 node_modules/
 .vscode/
+
 package-lock.json
+dist/style.css.map
+dist/debug.log

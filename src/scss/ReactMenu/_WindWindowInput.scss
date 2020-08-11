@@ -1,0 +1,28 @@
+@use 'InputRange';
+
+.windWindowInput {
+
+  padding-top: 3px;
+
+  .windInputHeader {
+    display: flex;
+    justify-content: flex-start;
+    padding-bottom: 20px;
+  }
+
+  .windInputHeaderArrowRectangle {
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    display: flex;
+    justify-content: flex-center;
+    align-items: center;
+  }
+
+  .windInputHeaderArrowRectangle:hover {
+    background-color: rgb(222, 226, 230);
+    border-radius: 50%;
+  }
+
+
+}

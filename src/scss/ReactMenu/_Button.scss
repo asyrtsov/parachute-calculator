@@ -1,0 +1,18 @@
+$orange-color: #ffdb4d;
+$orange-color-hover: #ffd633;
+
+.appButton {
+  color: black;
+  font-size: 13px;
+  height: 30px;
+  width: 130px;
+  padding: 3px 12px;
+  border: 1px solid $orange-color;
+  background-color: $orange-color;
+}
+
+.appButton:hover {
+  color: black;
+  border: 1px solid $orange-color-hover;
+  background-color: $orange-color-hover;
+}

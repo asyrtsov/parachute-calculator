@@ -1,0 +1,69 @@
+$font-family: Arial, Helvetica, sans-serif;
+
+.arrow {
+  background-image: url("../images/arrow.svg");
+  background-size: 100%;
+  height: 25px;
+  opacity: 0.9;
+  width: 25px;
+}
+
+.chute {
+  background-image: url("../images/chute-with-arrow.svg");
+  background-size: 100%;
+  height: 25px;
+  width: 25px;
+}
+
+.inputControlElement {
+  border-radius: 3px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  font-family: $font-family;
+  font-size: 13px;
+  height: 28px;
+  max-width: 200px;
+  padding: 4px;
+  padding-bottom: 10px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  background-color: rgb(255, 255, 255);
+  width: 28px;
+}
+
+.outputControlElement {
+  border-radius: 3px;
+  background-color: rgba(255, 255, 255, 0.75);
+  font-family: $font-family;
+  font-size: 11px;
+  height: 18px;
+  max-width: 300px;
+  padding: 4px;
+  padding-bottom: 10px;
+  text-align: center;
+}
+
+.iconimage {
+  background-image: url("../images/icon_menu.svg");
+  background-size: 100%;
+  height: 20px;
+  width: 20px;
+}
+
+.placemarkCross {
+  background-size: 100%;
+  height: 7px;
+  width: 7px;
+  /*position: absolute;
+  top: 15px;
+  right: 15px; */
+  cursor: pointer;
+}
+
+.placemarkCrossImage {
+  background-image: url("../images/window_cross.svg");
+}
+
+.placemarkCrossImagePointed {
+  background-image: url("../images/window_cross_pointed.svg");
+}
