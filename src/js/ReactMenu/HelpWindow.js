@@ -30,10 +30,13 @@ export default class HelpWindow extends React.Component {
         return function() {
           var scrollHeight = 0;
           for(var j=0; j<=i; j++) {
-            scrollHeight += this.helpRef[j].current.scrollHeight + 3;
+            scrollHeight += this.helpRef[j].current.scrollHeight;
           }
 
-          this.mainRef.current.scrollTop = scrollHeight;
+          // padding-top of container = 35px, padding-bottom of
+          // <p> = 16px. So, you should add 35-16 = 19.
+          const shift = (i == 0) ? 35 : 19;
+          this.mainRef.current.scrollTop = scrollHeight + shift;
         }.bind(this)
       }.bind(this))(i);
     }
@@ -59,6 +62,11 @@ export default class HelpWindow extends React.Component {
     if (!this.props.isShown) {
       return;
     }
+
+    // We set the.mainRef height because we have a scroll.
+    // window.innerHeight is a height of window,
+    // two headings have both about 90px
+    // and we want have 70px height from the bottom of window.
     var height = window.innerHeight - 150;
     this.mainRef.current.setAttribute('style', 'height: ' + height + 'px');
     this.helpRef[8].current.setAttribute('style', 'height: ' + height + 'px');
@@ -77,9 +85,9 @@ export default class HelpWindow extends React.Component {
           <ul>{this.helpListItems}</ul>
         </div>
 
-        <div ref={this.helpRef[1]}>
-          <h1 style={{color: 'red', marginTop: '40px'}}>Предупреждение</h1>
-          <p style={{color: 'red'}}>
+        <div ref={this.helpRef[1]} style={{color: 'red', paddingTop: '40px'}}>
+          <h1>Предупреждение</h1>
+          <p>
           Данная программа может быть использована только
           для предварительного анализа. Перед полётами в незнакомом месте
           консультируйтесь с инструкторами.

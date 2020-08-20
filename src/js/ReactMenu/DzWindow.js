@@ -3,7 +3,6 @@ import React from 'react';
 export default class DzWindow extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {value: this.props.initialDz.name};
 
     var dz =[];
     for(let i=0; i < this.props.dzArray.length; i++) {
@@ -19,9 +18,9 @@ export default class DzWindow extends React.Component {
     this.handleChange = this.handleChange.bind(this);
   }
 
+
   handleChange(event) {
     this.props.handleChange(event.target.value);
-    this.setState({value: event.target.value});
   }
 
 
@@ -34,7 +33,7 @@ export default class DzWindow extends React.Component {
       <div style={{paddingTop: '35px'}}>
         {/* form-control is Bootstrap CSS class */}
         <select className="form-control"
-                value={this.state.value}
+                value={this.props.currentDz.name}
                 onChange={this.handleChange}>
           {this.optionItems}
         </select>

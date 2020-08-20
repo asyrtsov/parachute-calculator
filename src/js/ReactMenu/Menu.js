@@ -61,30 +61,25 @@ export default class Menu extends React.Component {
         <div className="container">
           <DzWindow
               dzArray={this.props.dzArray}
-              initialDz={this.props.currentDz}
+              currentDz={this.props.currentDz}
               handleChange={this.props.handleDzChange}
               isShown={this.state.activeKey == "dz"} />
 
           <ChuteWindow
-              initialHorizontalVel={this.props.horizontalVel}
-              initialVerticalVel={this.props.verticalVel}
-              handleVelocitySubmit={this.props.handleVelocitySubmit}
-
-              handleHorizontalVelSubmit={this.props.handleHorizontalVelSubmit}
-              handleVerticalVelSubmit={this.props.handleVerticalVelSubmit}
+              chute={this.props.chute}
+              handleSubmit={this.props.handleChuteSubmit}
               isShown={this.state.activeKey == "chute"} />
 
           <HeightWindow
-              initialHeight={this.props.height}
-              handleHeightSubmit={this.props.handleHeightSubmit}
+              height={this.props.height}
+              handleSubmit={this.props.handleHeightSubmit}
               isShown={this.state.activeKey == "height"} />
 
           <WindWindow
               windList={this.props.windList}
               maxWindValue={this.props.maxWindValue}
-              handleWindHeightSubmit={this.props.handleWindHeightSubmit}
-              handleWindAngleChange={this.props.handleWindAngleChange}
-              handleWindValueChange={this.props.handleWindValueChange}
+              handleWindSave={this.props.handleWindSave}
+              handleWindDelete={this.props.handleWindDelete}
               isShown={this.state.activeKey == "wind"} />
 
           <HelpWindow

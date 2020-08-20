@@ -5,25 +5,24 @@ export default class WindWindowList extends React.Component {
     super(props);
 
     this.handleTableClick = this.handleTableClick.bind(this);
-    //this.handleButtonClick = this.handleButtonClick.bind(this);
   }
 
 
   // Change selected wind
   handleTableClick(wind) {
     return function() {
-      this.props.selectWind(wind);
+      this.props.handleSelectClick(wind);
     }.bind(this);
   }
 
-  // Create new wind
-  /*
-  handleButtonClick() {
-    this.props.switchPanel(null);
-  }  */
-
 
   render() {
+
+    if (!this.props.isShown) {
+      return null;
+    }
+
+
     var windList = this.props.windList;
     var wind = windList.firstWind;
 
@@ -59,7 +58,7 @@ export default class WindWindowList extends React.Component {
         {/* btn is Bootstrap CSS class */}
         <button className="btn appButton"
                 style={{marginTop: '20px'}}
-                onClick={this.props.addWind}>
+                onClick={this.props.handleAddClick}>
           Добавить ветер
         </button>
       </div>

@@ -1,105 +1,184 @@
 import React from 'react';
-import InputText from './InputText';
-import InputRange from './InputRange';
 
 export default class WindWindowInput extends React.Component {
   constructor(props) {
     super(props);
 
-    var wind = this.props.wind;
+    console.log('WindWindowInput: constructor');
 
-    this.state = (wind == null) ?
-        {height: '', angle: 0, value: 5} :
-        {
-          height: wind.height,
-          angle: wind.angle,
-          value: wind.value
-        };
-
-    this.windIsSet = (wind == null) ? false: true;
-
-    this.handleHeightSubmit = this.handleHeightSubmit.bind(this);
-    this.handleAngleChange = this.handleAngleChange.bind(this);
-    this.handleValueChange = this.handleValueChange.bind(this);
-    this.handleRemoveClick = this.handleRemoveClick.bind(this);
-  }
-
-
-  handleHeightSubmit(height) {
-    console.log('handleHeightSubmit')
-    var answer = (this.props.wind != null) ?
-        this.props.handleHeightSubmit(this.props.wind, height) :
-        this.props.handleHeightSubmit(null, height,
-            this.state.angle, this.state.value);
-
-    if (answer.isOk) {
-      this.setState({height: height});
-      this.windIsSet = true;
+    this.state = {
+      height: '',
+      value: '',
+      angle: '',
+      ownUpdate: false,
+      saveButtonIsAvialable: false,
+      deleteButtonIsShown: false
     }
 
+    this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleSaveClick = this.handleSaveClick.bind(this);
   }
 
-  handleAngleChange(angle) {
-    console.log('handleAngleChange');
-    this.setState({angle: angle});
-    if (this.props.wind != null) {
-      this.props.handleAngleChange(this.props.wind, angle);
-    }
-  }
 
-  handleValueChange(value) {
-    console.log('handleValueChange');
-    this.setState({value: value});
-    if (this.props.wind != null) {
-      this.props.handleValueChange(this.props.wind, value);
+  static getDerivedStateFromProps(props, state) {
+    console.log('WindWindowInput: getDerivedStateFromProps');
+    if (state.ownUpdate) {
+      return {...state, ownUpdate: false};
+    } else {
+      if (props.fromWindList) {
+        const wind = (props.selectedWind == null) ?
+            {height: '', value: '', angle: ''} :
+            props.selectedWind.getParamsString();
+
+        return {
+          ...wind,
+          ownUpdate: false,
+          saveButtonIsAvialable: false,
+          deleteButtonIsShown: !props.selectedWindIsFirstWind};
+        /*
+        if (
+          wind.height != state.height
+          || wind.value != state.value
+          || wind.angle != state.agle) {
+          return {...wind, ownUpdate: false};
+        }  */
+      } else {
+        return null;
+      }
     }
   }
 
-  handleRemoveClick() {
 
+  handleInputChange(event) {
+    this.setState({
+      [event.target.name]: event.target.value,
+      ownUpdate: true,
+      saveButtonIsAvialable: true
+    });
+  }
+
+
+  handleSaveClick() {
+    const height = Number.parseFloat(this.state.height);
+    const value = Number.parseFloat(this.state.value);
+    const angle = Number.parseFloat(this.state.angle);
+    const heightIsNaN = Number.isNaN(height);
+    const valueIsNaN = Number.isNaN(value);
+    if (heightIsNaN || valueIsNaN) {
+      if (heightIsNaN && valueIsNaN) {
+        alert('Значение высоты должно быть числом! \n' +
+              'Значение скорости должно быть числом!');
+      } else if (heightIsNaN) {
+        alert('Значение высоты должно быть числом!');
+      } else if (valueIsNaN) {
+        alert('Значение скорости должно быть числом!');
+      }
+      return;
+    }
+
+    var isOk = this.props.handleSaveClick([height, value, angle]);
+    if (isOk) {
+      this.setState({saveButtonIsAvialable: false});
+    }
+  }
+
+  componentDidUpdate() {
+    if (this.props.fromWindList) {
+      this.props.setFromWindList(false);
+    }
   }
 
 
   render() {
+    if (!this.props.isShown) {
+      return null;
+    }
+
+    var deleteButtonIsAvialable =
+      (this.props.selectedWind != null) ||
+      (this.props.selectedWind == null &&
+       this.state.height != '' &&
+       this.state.value != '' &&
+       !this.state.saveButtonIsAvialable);
+
     return (
       <div className="windWindowInput">
 
         <div className="windInputHeader">
-          <div className="windInputHeaderArrowRectangle"
-               onClick={this.props.handleBackClick}>
-            <div className="windowArrow"
-                 style={{marginLeft: 'auto', marginRight: 'auto'}}>
+          <div
+            className="windInputHeaderArrowRectangle"
+            onClick={this.props.handleBackClick}>
+            <div
+              className="windowArrow"
+              style={{marginLeft: 'auto', marginRight: 'auto'}}>
             </div>
           </div>
         </div>
 
-        <InputText inputLabel="Высота, на которой дует ветер (м)"
-                   initialInputValue={this.state.height}
-                   hhandleSubmit={this.handleHeightSubmit} />
-        <InputText inputLabel="Скорость ветра (м/c)"
-                   value={this.state.value}
-                   hhandleChange={this.handleValueChange} />
-        <InputRange min="-180" max="180" step="5"
-                    value={this.state.angle}
-                    scale={['В', 'С', 'З', 'Ю', 'В']}
-                    handleChange={this.handleAngleChange} />
+        <div style={{marginBottom: '8px'}}>Высота, на которой дует ветер (м)</div>
+        <input
+          type="text"
+          name="height"
+          className="form-control"
+          value={this.state.height}
+          disabled={!this.state.deleteButtonIsShown}
+          onChange={this.handleInputChange} />
+
+        <div style={{marginBottom: '8px'}}>Скорость ветра (м/c)</div>
+        <input
+          type="text"
+          name="value"
+          className="form-control"
+          value={this.state.value}
+          onChange={this.handleInputChange} />
+
+        <div
+            className="d-flex justify-content-between"
+            style={{marginTop: '40px' , marginBottom: '8px'}}>
+          <div>Направление ветра</div>
+          <div
+            className="arrow"
+            style={{transform: 'rotate(' + (-1)*Number(this.state.angle) + 'deg)'}}>
+          </div>
+        </div>
+        <input
+          type="range"
+          name="angle"
+          className="input-range"
+          min="-180"
+          max="180"
+          step="5"
+          value={this.state.angle}
+          onChange={this.handleInputChange} />
+
+        <div className="d-flex justify-content-center">
+          <button
+            className={this.state.saveButtonIsAvialable ?
+              "btn appButton appButton_hover" :
+              "btn appButton" }
+            disabled={!this.state.saveButtonIsAvialable}
+            style={{marginTop: '30px'}}
+            onClick={this.handleSaveClick}>
+            Сохранить
+          </button>
+        </div>
 
         <div className="d-flex justify-content-center">
           {/* btn is Bootstrap CSS class */}
-          <button className="btn appButton"
-                  style={{marginTop: '30px'}}
-                  onClick={this.handleRemoveClick}>
+          <button
+            className={deleteButtonIsAvialable ?
+              "btn appButton appButton_hover" :
+              "btn appButton" }
+            disabled={!deleteButtonIsAvialable}
+            style={{
+              marginTop: '30px',
+              display: this.state.deleteButtonIsShown ? 'block' : 'none'
+            }}
+            onClick={() => {this.props.handleDeleteClick();}}>
             Удалить
           </button>
         </div>
 
-        <div className="d-flex justify-content-center">
-          <button className="btn appButton"
-                  style={{marginTop: '30px'}}
-                  onClick={this.handleRemoveClick}>
-            Сохранить
-          </button>
-        </div>
       </div>
     );
   }

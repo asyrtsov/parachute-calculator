@@ -23,6 +23,8 @@ function(provide, Wind) {
       this.lastWind = this.firstWind;
       this.numberOfWinds = 1;
 
+      this.currentWind = this.firstWind;
+
       this.calculator = null;
     }
 
@@ -92,7 +94,8 @@ function(provide, Wind) {
 
 
     /**
-     * Bubble sort (it is practical for small list)
+     * Bubble sort (it is practical for small list).
+     * Note: it is LINK sort, that is, all wind will be the same.
      */
     sortList() {
       while(true) {

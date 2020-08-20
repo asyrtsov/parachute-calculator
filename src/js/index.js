@@ -70,6 +70,6 @@ function init() {
      */
     var reactDomRender  = DialogWindows.initMenu(map, chute, windList, path, calculator);
     path.setReactDomRender(reactDomRender);
-
+    map.setReactDomRender(reactDomRender);
   });
 }

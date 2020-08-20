@@ -75,6 +75,10 @@ function(provide, Map, ZoomControl, Constant,
       }.bind(this));
     }
 
+    setReactDomRender(reactDomRender) {
+      this.reactDomRender = reactDomRender;
+    }
+
     /**
      * If arrow is out of the screen, we should
      * shift it to to the center of the screen.
@@ -132,8 +136,13 @@ function(provide, Map, ZoomControl, Constant,
         mapCenter: this.getCenter()
       };
       this.dz.push(newDz);
+
+      this.reactDomRender();
+
+
+      /*
       $('#dz').append('<option>' + newDz.name + '</option>');
-      $('#dz').children()[this.dz.length - 1].selected = true;
+      $('#dz').children()[this.dz.length - 1].selected = true;  */
     };
   }
   provide(AppMap);

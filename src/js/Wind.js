@@ -5,6 +5,7 @@ function(provide, WindVertex) {
 
   /**
    * Wind at particular height.
+   * @typedef {Object} Wind
    */
   class Wind {
     /**
@@ -90,6 +91,14 @@ function(provide, WindVertex) {
 
     getHeight() {
       return(this.height);
+    }
+
+    getParamsString() {
+      return {
+        height: this.height.toString(),
+        value: this.value.toString(),
+        angle: this.angle.toString()
+      };
     }
 
     toString() {

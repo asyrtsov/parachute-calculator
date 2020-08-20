@@ -29,6 +29,147 @@ function(provide, Constant, Wind) {
       }
     }
 
+
+    /**
+     * @param {string} dzName
+     */
+    function handleDzChange(dzName) {
+      for(let i=0; i<map.dz.length; i++) {
+        if ((map.dz)[i].name == dzName) {
+          console.log(dzName);
+          map.currentDz = (map.dz)[i];
+          var mapCenter = map.dz[i].mapCenter;
+          map.setCenter(mapCenter, Constant.defaultZoom);
+          map.arrow.setCoordinates(mapCenter);
+          // path.clear() will print results too
+          path.clear();
+          clearVertexDirections();
+          closeMenu();
+          reactDomRender();
+          return;
+        }
+      }
+    }
+
+
+    /**
+     * @param {string} item - Two value: 'horizontalVel' or 'verticalVel'
+     * (horizontal or vertical velocity).
+     */
+    function handleChuteSubmit(item) {
+      return function(value) {
+        if (value < 0) {
+          alert('Скорость должна быть неотрицательной!');
+        } else {
+          if (item == 'horizontalVel') {
+            chute.horizontalVel = value;
+          } else if (item == 'verticalVel') {
+            chute.verticalVel = value;
+          }
+
+          clearVertexDirections();
+          if (path.length > 0) {
+            calculator.calculateHeight();
+          }
+
+          if ((item == 'horizontalVel') &&
+          (value > Constant.maxChuteHorizontalVelocity)
+          || (item == 'verticalVel') &&
+          (value > Constant.maxChuteVerticalVelocity)) {
+            alert('Предупреждение: вы ввели большую скорость!');
+          }
+        }
+        reactDomRender();
+      }
+    }
+
+    /**
+     * @param {number} value
+     */
+    function handleHeightSubmit(value) {
+      if (value >= 0) {
+        if (value > Constant.maxHeight) {
+          alert('Предупреждение: вы ввели большую высоту!');
+        }
+        clearVertexDirections();
+        path.setBaseVertexHeight(value);
+      } else {
+        alert('Высота в базовой точке должна быть неотрицательной!');
+      }
+
+      reactDomRender();
+    }
+
+    /**
+     *
+     * @param {object} heightValueAngle - [number, number, number].
+     * @param {Wind} wind
+     * @returns {boolean} - true iff wind was saved.
+     */
+    function handleWindSave(heightValueAngle, wind) {
+      const [height, value, angle] = heightValueAngle;
+
+      if (height >= Constant.maxHeight) {
+        alert('Предупреждение: вы ввели большую высоту!');
+      } else if (height < 0) {
+        alert('Ошибка: высота должна быть не меньше 0!');
+        return false;
+      }
+
+      if (value >= Constant.maxWindValue) {
+        alert('Предупреждение: вы ввели большую скорость ветра!');
+      } else if (value < 0) {
+        alert('Ошибка: скорость должна быть не меньше 0!');
+        return false;
+      }
+
+      const heightIsInList = windList.heightIsInList(height);
+      if (wind != null) {  // wind is changed
+        if (height != wind.height && heightIsInList) {
+            alert('Такая высота уже была!');
+            return false;
+        }
+      } else {  // new wind case
+        if (heightIsInList) {
+          alert('Такая высота уже была!');
+          return false;
+        }
+      }
+
+      if (wind != null) {
+        wind.height = height;
+        wind.value = value;
+        wind.angle = angle;
+      } else {
+        const w = new Wind(value, angle, height, map);
+        windList.addWind(w);
+      }
+
+      windList.sortList();
+
+      if (wind == windList.firstWind) {
+        map.windOutput.print(wind.toString());
+        map.arrow.rotate(angle);
+      }
+
+      if (path.length > 0) {
+        calculator.calculateHeight();
+      }
+
+      reactDomRender();
+      return true;
+    }
+
+
+    function handleWindDelete(wind) {
+      windList.removeWind(wind);
+      if (path.length > 0) {
+        calculator.calculateHeight();
+      }
+      reactDomRender();
+    }
+
+
     /**
      * Clearing directions: skydiver will fly face forward.
      * We will clear direction after all changing in
@@ -51,183 +192,27 @@ function(provide, Constant, Wind) {
       }
     }
 
-    function handleDzChange(dzName) {
-      for(let i=0; i<map.dz.length; i++) {
-        if ((map.dz)[i].name == dzName) {
-          map.currentDz = (map.dz)[i];
-          var mapCenter = map.dz[i].mapCenter;
-          map.setCenter(mapCenter, Constant.defaultZoom);
-          map.arrow.setCoordinates(mapCenter);
-          // path.clear() will print results too
-          path.clear();
-          clearVertexDirections();
-          closeMenu();
-          return;
-        }
-      }
-    }
-
-
-
-    function handleVelocitySubmit(velType, value) {
-      if (value < 0) {
-        return ({type: 'error', message: 'Скорость должна быть неотрицательной!'});
-      }
-
-      if (velType == 'horizontalVel') {
-        chute.horizontalVel = value;
-      } else {
-        chute.verticalVel = value;
-      }
-
-      clearVertexDirections();
-      if (path.length > 0) {
-        calculator.calculateHeight();
-      }
-
-      if ((velType == 'horizontalVel') &&
-          (value > Constant.maxChuteHorizontalVelocity)
-          || (velType == 'verticalVel') &&
-          (value > Constant.maxChuteVerticalVelocity)) {
-        return ({
-          type: 'warning',
-          message: 'Очень большая скорость!'
-        });
-      } else {
-        return ({type: 'Ok', message: ''});
-      }
-    }
-
-
-
-
-
-
-    function handleHorizontalVelSubmit(value) {
-      if (value < 0) {
-        return ({type: 'error', message: 'Скорость должна быть неотрицательной!'});
-      }
-      if (value > Constant.maxChuteHorizontalVelocity) {
-        return ({
-          type: 'warning',
-          message: 'Очень большая скорость!'
-        });
-      }
-      chute.horizontalVel = value;
-      clearVertexDirections();
-      if (path.length > 0) {
-        calculator.calculateHeight();
-      }
-      return ({type: 'Ok', message: ''});
-    }
-
-    function handleVerticalVelSubmit(value) {
-      if (value < 0) {
-        return {type: 'error', message: 'Скорость должна быть неотрицательной!'};
-      }
-      if (value > Constant.maxChuteVerticalVelocity) {
-        return ({
-          type: false,
-          message: 'Скорость должна быть не больше ' + Constant.maxChuteVerticalVelocity + 'м/с !'
-        });
-      }
-      chute.verticalVel = value;
-      clearVertexDirections();
-      if (path.length > 0) {
-        calculator.calculateHeight();
-      }
-      return ({isOk: true, message: ''});
-    }
-
-    function handleHeightSubmit(value) {
-      if (value < 0) {
-        return {isOk: false, message: 'Высота в базовой точке должна быть неотрицательной!'};
-      }
-      if (value > Constant.maxHeight) {
-        return ({
-          isOk: false,
-          message: 'Высота в базовой точке должна быть не больше ' + Constant.maxHeight + 'м !'
-        });
-      }
-
-      clearVertexDirections();
-      path.setBaseVertexHeight(value);
-      return ({isOk: true, message: ''});
-    }
-
-
-    function handleWindHeightSubmit(wind, height, angle = null, value = null) {
-
-      if (height > 0) {
-        if (height <= Constant.maxHeight) {
-          if (!windList.heightIsInList(height)) {
-            if (wind == null) {
-              wind = new Wind()
-              wind.setHeight(height);
-              windList.addWind(wind);
-            } else {
-              wind.setHeight(height);
-              windList.sortList();
-            }
-
-            clearVertexDirections();
-            if (path.length > 0) {
-              calculator.calculateHeight();
-            }
-          } else {
-            return {isOk: false, message: 'Такая высота уже была!'};
-          }
-        } else {  // height > Constant.maxHeight
-          return {
-            isOk: false,
-            message: 'Высота должны быть не больше ' + Constant.maxHeight + ' м!'
-          };
-        }
-      } else if (height == 0) {
-        return {isOk: false, message: 'Поверхностный ветер уже задан!'};
-      } else {  // height < 0
-        return {isOk: false, message:'Высота должна быть больше нуля!'};
-      }
-    }
-
-
-
-    function handleWindAngleChange(wind, angle) {
-      wind.setAngle(angle);
-      if (path.length > 0) {
-        calculator.calculateHeight();
-      }
-    }
-
-    function handleWindValueChange(wind, value) {
-      wind.setValue(value);
-      if (path.length > 0) {
-        calculator.calculateHeight();
-      }
-    }
-
-
 
     function reactDomRender() {
       //console.log('reactDomRender');
 
       ReactDOM.render(
         <Menu closeMenu={closeMenu}
+
               dzArray={map.dz}
               currentDz={map.currentDz}
               handleDzChange={handleDzChange}
-              horizontalVel={chute.horizontalVel}
-              verticalVel={chute.verticalVel}
-              handleVelocitySubmit={handleVelocitySubmit}
-              handleHorizontalVelSubmit={handleHorizontalVelSubmit}
-              handleVerticalVelSubmit={handleVerticalVelSubmit}
+
+              chute={chute}
+              handleChuteSubmit={handleChuteSubmit}
+
               height={Math.floor(path.baseVertexHeight)}
               handleHeightSubmit={handleHeightSubmit}
+
               windList={windList}
               maxWindValue={Constant.maxWindValue}
-              handleWindHeightSubmit={handleWindHeightSubmit}
-              handleWindAngleChange={handleWindAngleChange}
-              handleWindValueChange={handleWindValueChange} />,
+              handleWindSave={handleWindSave}
+              handleWindDelete={handleWindDelete} />,
         document.getElementById('menu')
       );
     }

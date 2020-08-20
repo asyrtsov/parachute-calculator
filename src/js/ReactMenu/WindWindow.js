@@ -7,73 +7,103 @@ export default class WindWindow extends React.Component {
   constructor(props) {
     super(props);
 
+    console.log('WindWindow: constructor');
+
     this.state = {
-        currentWind: props.windList.firstWind,
-        isWindList: true
+      selectedWind: null,
+      isWindList: true,
+      fromWindList: false
     };
 
-    //this.switchPanel = this.switchPanel.bind(this);
-    //this.addWind = this.addWind.bind(this);
+    this.handleAddClick = this.handleAddClick.bind(this);
+    this.handleSelectClick = this.handleSelectClick.bind(this);
 
-    //this.selectWind = this.selectWind.bind(this);
-    this.setCurrentWindHeight = this.setCurrentWindHeight.bind(this);
+    this.handleDeleteClick = this.handleDeleteClick.bind(this);
+    this.handleSaveClick = this.handleSaveClick.bind(this);
   }
 
-  /*
-  switchPanel(wind = null) {
-    this.wind = wind;
-    this.setState((state) => ({
-      isWindList: !state.isWindList
-    }));
-  }  */
 
-  /*
-  addWind() {
+  handleAddClick() {
     this.setState({
-      wind: null,
-      isWindList: false
+      selectedWind: null,
+      isWindList: false,
+      fromWindList: true
     });
-  } */
-
-  /*
-  selectWind = (wind) => {
-    this.setState({
-      currentWind: wind,
-      isWindList: false
-    });
-  }  */
-
-
-  setCurrentWindHeight(height) {
-    this.props.handleWindHeightSubmit(this.state.currentWind, height);
   }
 
+  handleSelectClick(wind) {
+    this.setState({
+      selectedWind: wind,
+      isWindList: false,
+      fromWindList: true
+    });
+  }
+
+  handleDeleteClick() {
+    if (this.state.selectedWind != null) {
+      this.props.handleWindDelete(this.state.selectedWind);
+    }
+    this.setState({isWindList: true});
+  }
+
+  /**
+   * @param {object} heightValueAngle - [height, value, angle] array.
+   */
+  handleSaveClick(heightValueAngle) {
+    return (
+      this.props.handleWindSave(heightValueAngle, this.state.selectedWind));
+    //this.setState({isWindList: true});
+  }
 
 
   render() {
+    /*
     if (!this.props.isShown) {
       return null;
-    }
+    }  */
 
+    return (
+      <div>
+        <WindWindowList
+          windList={this.props.windList}
+          handleSelectClick={this.handleSelectClick}
+          handleAddClick={this.handleAddClick}
+          isShown={this.props.isShown && this.state.isWindList} />
+
+        <WindWindowInput
+          selectedWind={this.state.selectedWind}
+          selectedWindIsFirstWind={
+            this.state.selectedWind == this.props.windList.firstWind}
+          maxWindValue={this.props.maxWindValue}
+          handleDeleteClick={this.handleDeleteClick}
+          handleSaveClick={this.handleSaveClick}
+          handleBackClick={() => {this.setState({isWindList: true})}}
+          isShown={this.props.isShown && !this.state.isWindList}
+          fromWindList={this.state.fromWindList}
+          setFromWindList={(value) => {this.setState({fromWindList: value})}} />
+      </div>
+    );
+
+    /*
     if (this.state.isWindList) {
       return (
         <WindWindowList
           windList={this.props.windList}
-          selectWind={
-              (wind) => {this.setState({currentWind: wind, isWindList: false})}}
-          addWind={
-              () => {this.setState({currentWind: null, isWindList: false})}} />
+          handleSelectClick={this.handleSelectClick}
+          handleAddClick={this.handleAddClick} />
       );
     } else {
       return (
         <WindWindowInput
-          wind={this.state.currentWind}
+          selectedWind={this.state.selectedWind}
           maxWindValue={this.props.maxWindValue}
-          handleWindHeightSubmit={this.setCurrentWindHeight}
-          handleWindAngleChange={this.props.handleWindAngleChange}
-          handleWindValueChange={this.props.handleWindValueChange}
-          handleBackClick={() => {this.setState({isWindList: true})}} />
+
+          handleDeleteClick={this.handleDeleteClick}
+          handleSaveClick={this.handleSaveClick}
+          handleBackClick={() => {this.setState({isWindList: true})}}
+
+          isShown={this.state.isWindList}/>
       );
-    }
+    }  */
   }
 }

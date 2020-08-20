@@ -7,12 +7,13 @@ import React from 'react';
 export default class InputText extends React.Component {
   constructor(props) {
     super(props);
+
     this.state = {
-      value: this.props.submittedValue
+      value: '',
+      ownUpdate: false
     };
-    // this.state.value isn't passed validaton,
-    // we will restore previous value (prevValue)
-    this.prevValue = this.state.value;
+
+    //console.log('InputText: constructor')
 
     this.ref = React.createRef();
 
@@ -21,36 +22,35 @@ export default class InputText extends React.Component {
     this.handleKeyPress = this.handleKeyPress.bind(this);
   }
 
+
+  static getDerivedStateFromProps(props, state) {
+    if (state.ownUpdate) {
+      return {
+        value: state.value,
+        ownUpdate: false
+      }
+    } else {
+      if (props.submittedValue != state.value) {
+        return {
+          value: props.submittedValue,
+          ownUpdate: false
+        };
+      }
+      return null;
+    }
+  }
+
+
   handleSubmit() {
     var numberValue = Number.parseFloat(this.state.value);
     if (!Number.isNaN(numberValue)) {
-      if (numberValue != this.prevValue) {
-        if (typeof(this.props.handleSubmit) != 'undefined') {
-          var answer = this.props.handleSubmit(numberValue);
-          if (answer.type != 'error') {
-            this.setState({value: numberValue});
-            this.prevValue = numberValue;
-            if (answer.type == 'warning') {
-              alert(answer.message);
-            }
-          } else {
-            alert(answer.message);
-            console.log(this.state.value);
-            console.log(this.prevValue);
-            this.setState({value: this.prevValue});
-
-            //this.setState(function(state, props) {
-            //  return {value: this.props.submittedValue};
-            //});
-          }
-        } else {
-          this.setState({value: numberValue});
-          this.prevValue = numberValue;
-        }
-      }
+      this.props.handleSubmit(numberValue);
     } else {
-      alert('Величина должна быть числом!');
-      this.setState({value: this.prevValue});
+      alert('Значение должно быть числом');
+      this.setState({
+        value: this.props.submittedValue,
+        ownUpdate: true
+      });
     }
   }
 
@@ -61,27 +61,19 @@ export default class InputText extends React.Component {
   }
 
   handleChange(event) {
-    this.setState({value: event.target.value});
+    this.setState({
+      value: event.target.value,
+      ownUpdate: true
+    });
   }
 
-
-  componentDidUpdate(prevProps) {
-    if (this.props.submittedValue !== prevProps.submittedValue) {
-
-      console.log('InputText: componentDindUpdate: props changing')
-
-      this.prevValue = this.props.submittedValue;
-
-      this.setState(function(state, props) {
-        return {value: this.props.submittedValue};
-      });
-    }
-  }
 
   render() {
     return(
-      <div className="form-group">
-        <label>{this.props.inputLabel}</label>
+      <div style={{marginBottom: '16px'}}>
+        <div style={{marginBottom: '8px'}}>
+          {this.props.inputLabel}
+        </div>
         <input type="text"
                className="form-control"
                ref={this.ref}
