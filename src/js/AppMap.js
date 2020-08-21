@@ -77,6 +77,7 @@ function(provide, Map, ZoomControl, Constant,
 
     setReactDomRender(reactDomRender) {
       this.reactDomRender = reactDomRender;
+      //this.reactDomRender = this.reactDomRender.bind(this);
     }
 
     /**
@@ -136,13 +137,8 @@ function(provide, Map, ZoomControl, Constant,
         mapCenter: this.getCenter()
       };
       this.dz.push(newDz);
-
+      this.currentDz = newDz;
       this.reactDomRender();
-
-
-      /*
-      $('#dz').append('<option>' + newDz.name + '</option>');
-      $('#dz').children()[this.dz.length - 1].selected = true;  */
     };
   }
   provide(AppMap);

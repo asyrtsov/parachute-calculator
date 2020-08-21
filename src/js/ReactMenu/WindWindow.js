@@ -7,8 +7,6 @@ export default class WindWindow extends React.Component {
   constructor(props) {
     super(props);
 
-    console.log('WindWindow: constructor');
-
     this.state = {
       selectedWind: null,
       isWindList: true,
@@ -57,11 +55,6 @@ export default class WindWindow extends React.Component {
 
 
   render() {
-    /*
-    if (!this.props.isShown) {
-      return null;
-    }  */
-
     return (
       <div>
         <WindWindowList
@@ -83,27 +76,5 @@ export default class WindWindow extends React.Component {
           setFromWindList={(value) => {this.setState({fromWindList: value})}} />
       </div>
     );
-
-    /*
-    if (this.state.isWindList) {
-      return (
-        <WindWindowList
-          windList={this.props.windList}
-          handleSelectClick={this.handleSelectClick}
-          handleAddClick={this.handleAddClick} />
-      );
-    } else {
-      return (
-        <WindWindowInput
-          selectedWind={this.state.selectedWind}
-          maxWindValue={this.props.maxWindValue}
-
-          handleDeleteClick={this.handleDeleteClick}
-          handleSaveClick={this.handleSaveClick}
-          handleBackClick={() => {this.setState({isWindList: true})}}
-
-          isShown={this.state.isWindList}/>
-      );
-    }  */
   }
 }

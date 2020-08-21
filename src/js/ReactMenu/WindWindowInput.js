@@ -4,8 +4,6 @@ export default class WindWindowInput extends React.Component {
   constructor(props) {
     super(props);
 
-    console.log('WindWindowInput: constructor');
-
     this.state = {
       height: '',
       value: '',
@@ -21,7 +19,7 @@ export default class WindWindowInput extends React.Component {
 
 
   static getDerivedStateFromProps(props, state) {
-    console.log('WindWindowInput: getDerivedStateFromProps');
+    //console.log('WindWindowInput: getDerivedStateFromProps');
     if (state.ownUpdate) {
       return {...state, ownUpdate: false};
     } else {
@@ -35,13 +33,6 @@ export default class WindWindowInput extends React.Component {
           ownUpdate: false,
           saveButtonIsAvialable: false,
           deleteButtonIsShown: !props.selectedWindIsFirstWind};
-        /*
-        if (
-          wind.height != state.height
-          || wind.value != state.value
-          || wind.angle != state.agle) {
-          return {...wind, ownUpdate: false};
-        }  */
       } else {
         return null;
       }
@@ -120,6 +111,7 @@ export default class WindWindowInput extends React.Component {
           type="text"
           name="height"
           className="form-control"
+          autoComplete="off"
           value={this.state.height}
           disabled={!this.state.deleteButtonIsShown}
           onChange={this.handleInputChange} />
@@ -129,6 +121,7 @@ export default class WindWindowInput extends React.Component {
           type="text"
           name="value"
           className="form-control"
+          autoComplete="off"
           value={this.state.value}
           onChange={this.handleInputChange} />
 
@@ -178,7 +171,6 @@ export default class WindWindowInput extends React.Component {
             Удалить
           </button>
         </div>
-
       </div>
     );
   }
